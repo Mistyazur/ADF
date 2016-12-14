@@ -18,7 +18,7 @@ GrandiRaider::GrandiRaider()
 
 void GrandiRaider::run()
 {
-    JSettings js("ADF.json");
+    JSettings js("../ADF/ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
 
 //    for (int i=0; i<pathList.count(); ++i) {
@@ -46,12 +46,13 @@ void GrandiRaider::run()
                 int x = position.first().toInt();
                 int y = position.last().toInt();
                 qDebug()<<x<<y;
-                navigate(x, y);
+                if (navigate(x, y))
+                    break;
                 mdsleep(500);
             }
         }
         qDebug()<<"---";
-        msleep(3000);
+        msleep(2000);
     }
 
 //    navigate(-1, 600);

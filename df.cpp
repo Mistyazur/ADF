@@ -1,6 +1,7 @@
 #include "df.h"
 
 #include <QDebug>
+#include <QTime>
 
 DF::DF()
 {
@@ -21,10 +22,10 @@ bool DF::bind(bool underground)
     int hWnd = window();
     if (0 == hWnd)
         return false;
-    
+
     if (underground)
         return m_dm.BindWindow(hWnd, "dx2", "dx", "dx", 0);
-    
+
     return m_dm.BindWindow(hWnd, "normal", "normal", "normal", 0);
 }
 
@@ -44,7 +45,7 @@ void DF::setArrowKey(int left, int up, int right, int down)
 bool DF::getRoleCoords(int &x, int &y)
 {
     QVariant vx, vy;
-    if (!m_dm.FindMultiColor(0, 0, 800, 600,
+    if (!m_dm.FindMultiColor(0, 100, 800, 400,
                         "FF00FF-000100", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000100",
                         1.0, 0,
                         vx, vy))
@@ -104,8 +105,9 @@ void DF::stopRole(int horizontal, int vertical)
         sendKey(Up, m_arrowD);
     else if (vertical < 0)
         sendKey(Up, m_arrowU);
-}
 
+    mdsleep(200);
+}
 
 bool DF::navigate(int x, int y)
 {
@@ -117,8 +119,8 @@ bool DF::navigate(int x, int y)
     int prevRoleY = -1;
     int hDirection = 0;
     int vDirection = 0;
-    int speedX = -1;
-    int counter = 0;
+    int speed = 0;
+    QTime timer;
     uchar prevClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
 
@@ -126,7 +128,7 @@ bool DF::navigate(int x, int y)
         arrivedX = true;
     if (-1 == y)
         arrivedY = true;
-    
+
     while (!arrivedX || !arrivedY) {
         // Check if reached next section
         int blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
@@ -140,12 +142,18 @@ bool DF::navigate(int x, int y)
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
-            qDebug()<<"Failed";
             continue;
         }
 
         if ((roleX == prevRoleX) && (roleY == prevRoleY)) {
-            if (0 == (counter % 20)) {
+            // Start timer
+            if (timer.isNull()) {
+                timer.start();
+                continue;
+            }
+
+            // Trigger checking every 500 msecs
+            if (timer.elapsed() > 500) {
                 // Get client color blocks
                 for (int i=0; i<10; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -165,40 +173,40 @@ bool DF::navigate(int x, int y)
 
                 // Save client blocks for checking next time
                 memcpy(prevClientBlocks, clientBlocks, 64000);
-            }
 
-            counter++;
+                // Restart timer
+                timer.restart();
+            }
         } else {
             // Horizontal moving
             if (!arrivedX) {
                 int absOffsetX = abs(x-roleX);
-                if (-1 == speedX) {
+                if (0 == speed) {
                     if (absOffsetX > 20) {
-                        speedX = 3;
-                        hDirection = x - roleX;
-                        moveRole(hDirection, 0, speedX);
+                        speed = 3;
+                        hDirection = x-roleX;
+                        moveRole(hDirection, 0, speed);
                     } else if (absOffsetX > 5) {
-                        speedX = 2;
-                        hDirection = x - roleX;
-                        moveRole(hDirection, 0, speedX);
+                        speed = 2;
+                        hDirection = x-roleX;
+                        moveRole(hDirection, 0, speed);
                     } else {
                         arrivedX = true;
                     }
                 } else {
                     if (absOffsetX <= 5) {
-                        if (speedX >= 2) {
-                            qDebug()<<1<<hDirection;
-                            stopRole(hDirection);
-                        }
                         arrivedX = true;
+                        if (speed >= 2)
+                            stopRole(hDirection);
                     } else if (absOffsetX <= 20) {
-                        if (speedX == 3) {
+                        if (speed == 3) {
                             // Stop
                             stopRole(hDirection);
+
                             // Move at speed 2
-                            speedX = 2;
-                            hDirection = x - roleX;
-                            moveRole(hDirection, 0, speedX);
+                            speed = 2;
+                            hDirection = x-roleX;
+                            moveRole(hDirection, 0, speed);
                         }
                     }
                 }
@@ -213,9 +221,9 @@ bool DF::navigate(int x, int y)
                         moveRole(0, vDirection, 2);
                     }
                 } else {
+                    arrivedY = true;
                     if (vDirection != 0)
                         stopRole(0, vDirection);
-                    arrivedY = true;
                 }
             }
 

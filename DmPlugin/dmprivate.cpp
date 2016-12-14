@@ -9,7 +9,10 @@
 DmPrivate::DmPrivate(QObject *parent) :
     QThread(parent)
 {
-    //Ingore errors showed by dm plugin
+    // Init random seed
+    qsrand(time(0));
+
+    // Ingore errors showed by dm plugin
     m_dm.SetShowErrorMsg(0);
 }
 
@@ -54,9 +57,6 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 
     dm.DisablePowerSave();
     dm.DisableScreenSave();
-
-    // Init random seed
-    qsrand(time(0));
 
     return true;
 }
