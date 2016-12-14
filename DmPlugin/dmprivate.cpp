@@ -31,6 +31,9 @@ void DmPrivate::dmPluginSetup()
 bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 {
     dmsoft dm;
+
+    qDebug()<<dm.Ver();
+
     if (dm.Ver() != DM_VER)
         return false;
 
@@ -42,28 +45,11 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
         }
     }
 
-    if (!dm.BindWindow(dm.GetForegroundWindow(),"normal","normal","normal",0)) {
-//        if (m_dm.GetOsType()==3
-//                ||m_dm.GetOsType()==4
-//                ||m_dm.GetOsType()==5)
-//        {
-//            //Check if UAC is enabled
-//            if (m_dm.CheckUAC())
-//            {
-//                //Close UAC and restart system
-//                if (m_dm.SetUAC(0))
-//                {
-//                    qWarning() << "UAC is disabled, But it will effect after system restarting.";
-//                    m_dm.ExitOs(2);
-//                    return false;
-//                }
-//            }
-//        }
-
+    if (!dm.BindWindow(dm.GetForegroundWindow(),"normal","normal","normal",0))
         return false;
-    }
 
     dm.UnBindWindow();
+
     dm.DisablePowerSave();
     dm.DisableScreenSave();
 

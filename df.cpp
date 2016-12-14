@@ -108,9 +108,12 @@ void DF::navigate(int x, int y)
     int roleY = -1;
     int prevRoleX = -1;
     int prevRoleY = -1;
-    int directionX = 0;
-    int directionY = 0;
+    int hDirection = 0;
+    int vDirection = 0;
     int speedX = -1;
+    int counter = 0;
+    uchar prevClientBlocks[10][6400];
+    uchar clientBlocks[10][6400];
 
     if (-1 == x)
         arrivedX = true;
@@ -123,7 +126,26 @@ void DF::navigate(int x, int y)
             continue;
         
         if ((roleX == prevRoleX) && (roleY == prevRoleY)) {
+            if (0 == (counter % 20)) {
+                // Get client color blocks
+                for (int i=0; i<10; ++i) {
+                    uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                    memcpy(clientBlocks[i], data, 6400);
+                }
 
+                // Check if role is stucked
+                if (memcmp(clientBlocks, prevClientBlocks, 6400) == 6400) {
+                    if (0 != hDirection)
+                        stopRole(hDirection);
+                    if (0 != vDirection)
+                        stopRole(0, vDirection);
+                    break;
+                } else {
+                    memcpy(prevClientBlocks, clientBlocks, 6400);
+                }
+            }
+
+            counter++;
         } else {
             // Horizontal moving
             if (!arrivedX) {
@@ -131,28 +153,28 @@ void DF::navigate(int x, int y)
                 if (-1 == speedX) {
                     if (absOffsetX > 20) {
                         speedX = 3;
-                        directionX = x - roleX;
-                        moveRole(directionX, 0, speedX);
+                        hDirection = x - roleX;
+                        moveRole(hDirection, 0, speedX);
                     } else if (absOffsetX > 5) {
                         speedX = 2;
-                        directionX = x - roleX;
-                        moveRole(directionX, 0, speedX);
+                        hDirection = x - roleX;
+                        moveRole(hDirection, 0, speedX);
                     } else {
                         arrivedX = true;
                     }
                 } else {
                     if (absOffsetX <= 5) {
                         if (speedX >= 2)
-                            stopRole(directionX);
+                            stopRole(hDirection);
                         arrivedX = true;
                     } else if (absOffsetX <= 20) {
                         if (speedX == 3) {
                             // Stop
-                            stopRole(directionX);
+                            stopRole(hDirection);
                             // Move at speed 2
                             speedX = 2;
-                            directionX = x - roleX;
-                            moveRole(directionX, 0, speedX);
+                            hDirection = x - roleX;
+                            moveRole(hDirection, 0, speedX);
                         }
                     }
                 }
@@ -162,12 +184,12 @@ void DF::navigate(int x, int y)
             if (!arrivedY) {
                 int absOffsetY = abs(y-roleY);
                 if (absOffsetY > 5) {
-                    if (directionY == 0) {
-                        directionY = y - roleY;
-                        moveRole(0, directionY, 2);
+                    if (vDirection == 0) {
+                        vDirection = y - roleY;
+                        moveRole(0, vDirection, 2);
                     } else {
-                        if (directionY != 0)
-                            stopRole(0, directionY);
+                        if (vDirection != 0)
+                            stopRole(0, vDirection);
                         arrivedY = true;
                     }
                 }

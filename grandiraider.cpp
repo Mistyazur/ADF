@@ -10,5 +10,5 @@ void GrandiRaider::run()
     if (!bind())
         return;
 
-
+    navigate();
 }
