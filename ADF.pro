@@ -11,8 +11,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = ADF
 TEMPLATE = app
 
+include(JSettings/JSettings.pri)
 include(Hotkey/Hotkey.pri)
 include(DmPlugin/DmPlugin.pri)
+
 
 SOURCES += main.cpp\
         mainwindow.cpp \

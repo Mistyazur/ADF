@@ -1,5 +1,7 @@
 #include "df.h"
 
+#include <QDebug>
+
 DF::DF()
 {
     // Default arrow keys
@@ -24,6 +26,11 @@ bool DF::bind(bool underground)
         return m_dm.BindWindow(hWnd, "dx2", "dx", "dx", 0);
     
     return m_dm.BindWindow(hWnd, "normal", "normal", "normal", 0);
+}
+
+void DF::unbind()
+{
+    m_dm.UnBindWindow();
 }
 
 void DF::setArrowKey(int left, int up, int right, int down)
@@ -81,7 +88,7 @@ void DF::moveRole(int horizontal, int vertical, int speed)
             break;
         case 2:
         case 3:
-            sendKey(Down, hKeyHolding);
+            sendKey(Down, vKeyHolding);
             break;
         }
     }
@@ -100,7 +107,7 @@ void DF::stopRole(int horizontal, int vertical)
 }
 
 
-void DF::navigate(int x, int y)
+bool DF::navigate(int x, int y)
 {
     bool arrivedX = false;
     bool arrivedY = false;
@@ -112,8 +119,8 @@ void DF::navigate(int x, int y)
     int vDirection = 0;
     int speedX = -1;
     int counter = 0;
-    uchar prevClientBlocks[10][6400];
-    uchar clientBlocks[10][6400];
+    uchar prevClientBlocks[10][6400] = {0};
+    uchar clientBlocks[10][6400] = {0};
 
     if (-1 == x)
         arrivedX = true;
@@ -121,10 +128,22 @@ void DF::navigate(int x, int y)
         arrivedY = true;
     
     while (!arrivedX || !arrivedY) {
+        // Check if reached next section
+        int blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
+        if (blackCount > 200) {
+            if (0 != hDirection)
+                stopRole(hDirection);
+            if (0 != vDirection)
+                stopRole(0, vDirection);
+            return true;
+        }
+
         // Get position
-        if (!getRoleCoords(x, y))
+        if (!getRoleCoords(roleX, roleY)) {
+            qDebug()<<"Failed";
             continue;
-        
+        }
+
         if ((roleX == prevRoleX) && (roleY == prevRoleY)) {
             if (0 == (counter % 20)) {
                 // Get client color blocks
@@ -134,15 +153,18 @@ void DF::navigate(int x, int y)
                 }
 
                 // Check if role is stucked
-                if (memcmp(clientBlocks, prevClientBlocks, 6400) == 6400) {
-                    if (0 != hDirection)
-                        stopRole(hDirection);
-                    if (0 != vDirection)
-                        stopRole(0, vDirection);
-                    break;
-                } else {
-                    memcpy(prevClientBlocks, clientBlocks, 6400);
+                for (int i=0; i<10; ++i) {
+                    if (memcmp(clientBlocks[i], prevClientBlocks[i], 6400) == 0) {
+                        if (0 != hDirection)
+                            stopRole(hDirection);
+                        if (0 != vDirection)
+                            stopRole(0, vDirection);
+                        return false;
+                    }
                 }
+
+                // Save client blocks for checking next time
+                memcpy(prevClientBlocks, clientBlocks, 64000);
             }
 
             counter++;
@@ -164,8 +186,10 @@ void DF::navigate(int x, int y)
                     }
                 } else {
                     if (absOffsetX <= 5) {
-                        if (speedX >= 2)
+                        if (speedX >= 2) {
+                            qDebug()<<1<<hDirection;
                             stopRole(hDirection);
+                        }
                         arrivedX = true;
                     } else if (absOffsetX <= 20) {
                         if (speedX == 3) {
@@ -187,11 +211,11 @@ void DF::navigate(int x, int y)
                     if (vDirection == 0) {
                         vDirection = y - roleY;
                         moveRole(0, vDirection, 2);
-                    } else {
-                        if (vDirection != 0)
-                            stopRole(0, vDirection);
-                        arrivedY = true;
                     }
+                } else {
+                    if (vDirection != 0)
+                        stopRole(0, vDirection);
+                    arrivedY = true;
                 }
             }
 
@@ -199,6 +223,10 @@ void DF::navigate(int x, int y)
             prevRoleX = roleX;
             prevRoleY = roleY;
         }
+
+        msleep(10);
     }
+
+    return false;
 }
 

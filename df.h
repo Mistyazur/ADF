@@ -15,9 +15,10 @@ protected:
 
     int window();
     bool bind(bool underground=false);
+    void unbind();
     
     void setArrowKey(int left, int up, int right, int down);
-    void navigate(int x=-1, int y=-1);
+    bool navigate(int x=-1, int y=-1);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int horizontal=0, int vertical=0, int speed=0);
     void stopRole(int horizontal=0, int vertical=0);

@@ -4,6 +4,8 @@
 #include <QProcess>
 #include <QDebug>
 
+#include <time.h>
+
 DmPrivate::DmPrivate(QObject *parent) :
     QThread(parent)
 {
@@ -53,12 +55,23 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
     dm.DisablePowerSave();
     dm.DisableScreenSave();
 
+    // Init random seed
+    qsrand(time(0));
+
     return true;
 }
 
 void DmPrivate::setResourcePath(const QString &path)
 {
     m_dm.SetPath(qApp->applicationDirPath()+"/" + path);
+}
+
+void DmPrivate::mdsleep(int msec, float delta)
+{
+    int top = msec*(1+delta);
+    int bottom = msec*(1-delta);
+    int value = bottom+qrand()%(top-bottom+1);
+    msleep(value);
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,

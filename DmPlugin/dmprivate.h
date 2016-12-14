@@ -28,12 +28,13 @@ public:
 
     void setResourcePath(const QString &path);
 signals:
-    void end();
+
 public slots:
 
 protected:
     dmsoft m_dm;
 
+    void mdsleep(int msec, float delta=0.1);
     void sendMouse(const MouseOper &oper,
                const int &x,
                const int &y,
