@@ -79,8 +79,10 @@ void DmPrivate::sendMouse(const MouseOper &oper,
                       const int &y,
                       const int delay)
 {
-    m_dm.MoveTo(x,y);
-    msleep(10);
+    if ((x >= 0) && (y >= 0)) {
+        m_dm.MoveTo(x,y);
+        msleep(10);
+    }
 
     switch (oper) {
     case Move:

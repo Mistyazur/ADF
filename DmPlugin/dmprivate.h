@@ -36,13 +36,13 @@ protected:
 
     void mdsleep(int msec, float delta=0.1);
     void sendMouse(const MouseOper &oper,
-               const int &x,
-               const int &y,
-               const int delay=0);
+               const int &x=-1,
+               const int &y=-1,
+               const int delay=-1);
     void sendMouse(const MouseOper &oper,
-               const QVariant &x,
-               const QVariant &y,
-               int delay=0);
+               const QVariant &x=-1,
+               const QVariant &y=-1,
+               int delay=-1);
     void sendKey(const KeyOper &oper,
              const int &vk,
              int delay=0);

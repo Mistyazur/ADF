@@ -16,10 +16,64 @@ GrandiRaider::GrandiRaider()
 
 }
 
+GrandiRaider::~GrandiRaider()
+{
+    unbind();
+}
+
 void GrandiRaider::run()
 {
     JSettings js("../ADF/ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
+    Flow flow = MoveToDungeon;
+    int sectionIndex;
+
+    if (!bind())
+        return;
+
+    while (true) {
+        try {
+            switch (flow) {
+            case MoveToDungeon:
+
+                sectionIndex = 0;
+                flow = Navigate;
+                break;
+            case Fight:
+
+                break;
+            case Navigate:
+                if (sectionIndex < pathList.count()) {
+                    QVariant sectionPath = pathList.at(sectionIndex++);
+                    foreach(QVariant positionList, sectionPath.toList()) {
+                        QVariantList position = positionList.toList();
+                        if (position.count() == 2) {
+                            int x = position.first().toInt();
+                            int y = position.last().toInt();
+                            qDebug()<<x<<y;
+                            if (navigate(x, y))
+                                break;
+                            mdsleep(500);
+                        }
+                    }
+                } else {
+                    flow = FightBoss;
+                }
+
+                break;
+            case FightBoss:
+                qDebug()<<FightBoss;
+                break;
+            default:
+                break;
+            }
+
+        } catch(DFError e) {
+
+        }
+    }
+
+
 
 //    for (int i=0; i<pathList.count(); ++i) {
 //        QVariant sectionPath = pathList.at(i);
@@ -29,37 +83,14 @@ void GrandiRaider::run()
 //                int x = position.first().toInt();
 //                int y = position.last().toInt();
 //                qDebug()<<x<<y;
+//                if (navigate(x, y))
+//                    break;
+//                mdsleep(500);
 //            }
 //        }
 //        qDebug()<<"---";
+//        msleep(2000);
 //    }
 
 
-    if (!bind())
-        return;
-
-    for (int i=0; i<pathList.count(); ++i) {
-        QVariant sectionPath = pathList.at(i);
-        foreach(QVariant positionList, sectionPath.toList()) {
-            QVariantList position = positionList.toList();
-            if (position.count() == 2) {
-                int x = position.first().toInt();
-                int y = position.last().toInt();
-                qDebug()<<x<<y;
-                if (navigate(x, y))
-                    break;
-                mdsleep(500);
-            }
-        }
-        qDebug()<<"---";
-        msleep(2000);
-    }
-
-//    navigate(-1, 600);
-//    navigate(460, -1);
-//    navigate(-1, 0);
-//    navigate(650, -1);
-//    navigate(-1, 600);
-
-    unbind();
 }

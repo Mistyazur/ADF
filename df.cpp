@@ -42,6 +42,100 @@ void DF::setArrowKey(int left, int up, int right, int down)
     m_arrowD = down;
 }
 
+void DF::switchRole(int index)
+{
+    const int originalX = 128;
+    const int originalY = 190;
+    const int offsetX = 120;
+    const int offsetY = 210;
+    int row = index%4;
+    int column = index/4;
+
+    // Reset scroll bar
+    sendMouse(LeftDown, 580, 290, 500);
+    sendMouse(Move, 580, 100, 500);
+    sendMouse(LeftUp, -1, -1, 500);
+
+    // Scroll
+    if (column > 1) {
+        column = 1;
+        for (int i=0; i < column-1; ++i)
+            sendMouse(Left, 580, 495, 1000);
+    }
+
+    // Pick role
+    int roleX = originX+offsetX*row;
+    int roleY = originY+offsetY*column;
+    sendMouse(Left, roleX, roleY, 1000);
+    sendMouse(Left, roleX, roleY, 1000);
+
+    // Game start
+    sendMouse(Left, 400, 550, 1000);
+    sendMouse(Left, 400, 550, 1000);
+}
+
+void DF::teleport(const QString &destination)
+{
+    QVariant x, y;
+
+    // Check current location
+    if (m_dm.FindPic(CLIENT_RECT, destination, "000000", 1.0, 0, x, y) != -1)
+        return;
+
+    // Teleport
+}
+
+void DF::navigateOnMap(int x, int y)
+{
+    sendKey(Stroke, "N", 1000);
+    sendMouse(Left, x, y, 1000);
+    sendKey(Stroke, "N", 1000);
+}
+
+bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
+{
+    QVariant x, y;
+    int directionKey = leftEntrance ? m_arrowL : m_arrowR;
+
+    sendKey(Down, directionKey, 3000);
+    sendKey(Up, directionKey, 100);
+    for (int i=0; i<10; ++i) {
+        if (m_dm.FindPic(CLIENT_RECT, "back_to_town.bmp", "000000", 1.0, 0, x, y) != -1) {
+            goto EnterDungeon;
+        }
+        msleep(1000);
+    }
+
+    return false;
+
+EnterDungeon:
+    // Pick dungeon
+    for (int i=0; i<index; ++i)
+        sendKey(Stroke, m_arrowU, 500);
+
+    // Pick difficulty
+    for (int i=0; i<4; ++i)
+        sendKey(Stroke, m_arrowL, 500);
+    for (int i=0; i<difficulty; ++i)
+        sendKey(Stroke, m_arrowR, 500);
+
+    // Commit
+    sendKey(Stroke, 32, 500);
+    sendKey(Stroke, 32, 500);
+
+    return true;
+}
+
+bool DF::isSectionClear()
+{
+    QVariant x, y;
+
+    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "2F4F3F", 1.0, 0, x, y) == -1)
+        return false;
+
+    return true;
+}
+
 bool DF::getRoleCoords(int &x, int &y)
 {
     QVariant vx, vy;

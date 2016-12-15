@@ -5,9 +5,10 @@
 
 class GrandiRaider : public DF
 {
-    enum Flow{WAIT, RETRIEVE};
+    enum Flow{PickRole, MoveToDungeon, Fight, Navigate, FightBoss};
 public:
     GrandiRaider();
+    ~GrandiRaider();
     void run();
 private:
     Flow m_flow;
