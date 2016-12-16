@@ -63,7 +63,7 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 
 void DmPrivate::setResourcePath(const QString &path)
 {
-    m_dm.SetPath(qApp->applicationDirPath()+"/" + path);
+    m_dm.SetPath(qApp->applicationDirPath()+"/"+path);
 }
 
 void DmPrivate::mdsleep(int msec, float delta)

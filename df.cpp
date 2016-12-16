@@ -64,8 +64,8 @@ void DF::switchRole(int index)
     }
 
     // Pick role
-    int roleX = originX+offsetX*row;
-    int roleY = originY+offsetY*column;
+    int roleX = originalX+offsetX*row;
+    int roleY = originalY+offsetY*column;
     sendMouse(Left, roleX, roleY, 1000);
     sendMouse(Left, roleX, roleY, 1000);
 
@@ -124,6 +124,16 @@ EnterDungeon:
     sendKey(Stroke, 32, 500);
 
     return true;
+}
+
+bool DF::summonSupporter()
+{
+//    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
+        sendKey(Stroke, 9, 100);
+        return true;
+//    }
+
+    return false;
 }
 
 bool DF::isSectionClear()
@@ -236,6 +246,7 @@ bool DF::navigate(int x, int y)
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
+            qDebug()<<"Failed get coords";
             continue;
         }
 
@@ -246,8 +257,8 @@ bool DF::navigate(int x, int y)
                 continue;
             }
 
-            // Trigger checking every 500 msecs
-            if (timer.elapsed() > 500) {
+            // Trigger checking every 300 msecs
+            if (timer.elapsed() > 300) {
                 // Get client color blocks
                 for (int i=0; i<10; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -288,6 +299,11 @@ bool DF::navigate(int x, int y)
                         arrivedX = true;
                     }
                 } else {
+//                    qDebug()<<"Offset:"<<absOffsetX
+//                           <<"Speed:"<<speed
+//                          <<"Direction:"<<hDirection
+//                         <<"X:"<<x
+//                        <<"RoleX:"<<roleX;
                     if (absOffsetX <= 5) {
                         arrivedX = true;
                         if (speed >= 2)
@@ -298,7 +314,7 @@ bool DF::navigate(int x, int y)
                             stopRole(hDirection);
 
                             // Move at speed 2
-                            speed = 2;
+                            speed = 1;
                             hDirection = x-roleX;
                             moveRole(hDirection, 0, speed);
                         }
@@ -326,7 +342,7 @@ bool DF::navigate(int x, int y)
             prevRoleY = roleY;
         }
 
-        msleep(10);
+        msleep(5);
     }
 
     return false;

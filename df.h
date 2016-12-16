@@ -25,11 +25,12 @@ protected:
     // Common functions
     void setArrowKey(int left, int up, int right, int down);
     void switchRole(int index);
-    void leaveFor(const QString &destination);
+    void teleport(const QString &destination);
     void navigateOnMap(int x, int y);
 
     // Dungeon functions
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
+    bool summonSupporter();
     bool isSectionClear();
     bool navigate(int x=-1, int y=-1);
     bool getRoleCoords(int &x, int &y);

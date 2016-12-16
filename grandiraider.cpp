@@ -5,15 +5,9 @@
 #include <QDebug>
 #include <QString>
 
-QString pathJson = "{"
-        "GrandiPath : ["
-            "[(-1, 600), (460, -1), (-1, 0), (650, -1), (-1, 600)]"
-        "]"
-"}";
-
 GrandiRaider::GrandiRaider()
 {
-
+    setResourcePath("Images");
 }
 
 GrandiRaider::~GrandiRaider()
@@ -37,9 +31,37 @@ void GrandiRaider::run()
             case MoveToDungeon:
 
                 sectionIndex = 0;
-                flow = Navigate;
+                flow = PreFight;
+                break;
+            case PreFight:
+                // Summon tempester
+                summonSupporter();
+
+                // Get close to generator
+                if (sectionIndex == 4) {
+                    moveRole(-1, 1, 2);
+                    msleep(700);
+                    stopRole(-1, 1);
+                    sendKey(Stroke, m_arrowL, 30);
+                    for (int i=0; i<100; ++i)
+                        sendKey(Stroke, "x", 30);
+                }
+
+                flow = Fight;
                 break;
             case Fight:
+
+                // Check section state
+                if (isSectionClear()) {
+                    qDebug()<<"Section is clear";
+                    flow = Navigate;
+
+                    // Summon tempester
+                    summonSupporter();
+
+                    break;
+                }
+
 
                 break;
             case Navigate:
@@ -50,9 +72,12 @@ void GrandiRaider::run()
                         if (position.count() == 2) {
                             int x = position.first().toInt();
                             int y = position.last().toInt();
-                            qDebug()<<x<<y;
-                            if (navigate(x, y))
+//                            qDebug()<<"navigate"<<x<<y;
+                            if (navigate(x, y)) {
+//                                qDebug()<<"navigate true";
+                                flow = PreFight;
                                 break;
+                            }
                             mdsleep(500);
                         }
                     }
@@ -68,8 +93,9 @@ void GrandiRaider::run()
                 break;
             }
 
+            msleep(10);
         } catch(DFError e) {
-
+            qDebug()<<"DFError"<<e;
         }
     }
 
