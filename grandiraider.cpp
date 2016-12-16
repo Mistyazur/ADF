@@ -42,22 +42,30 @@ void GrandiRaider::run()
                     moveRole(-1, 1, 2);
                     msleep(700);
                     stopRole(-1, 1);
-                    sendKey(Stroke, m_arrowL, 30);
-                    for (int i=0; i<100; ++i)
+                    for (int i=0; i<100; ++i) {
+                        sendKey(Stroke, m_arrowL, 30);
                         sendKey(Stroke, "x", 30);
+                    }
                 }
 
-                flow = Fight;
+                if (sectionIndex < pathList.count())
+                    flow = Fight;
+                else
+                    flow == FightBoss;
+
                 break;
             case Fight:
 
                 // Check section state
-                if (isSectionClear()) {
+                if (isSectionClear((sectionIndex == 0))) {
                     qDebug()<<"Section is clear";
                     flow = Navigate;
 
                     // Summon tempester
                     summonSupporter();
+
+                    // Hide drop's name
+                    hideDropName(true);
 
                     break;
                 }
@@ -72,22 +80,41 @@ void GrandiRaider::run()
                         if (position.count() == 2) {
                             int x = position.first().toInt();
                             int y = position.last().toInt();
-//                            qDebug()<<"navigate"<<x<<y;
                             if (navigate(x, y)) {
-//                                qDebug()<<"navigate true";
                                 flow = PreFight;
+
+                                // SHow drop's name
+                                hideDropName(false);
+
                                 break;
                             }
                             mdsleep(500);
                         }
                     }
-                } else {
-                    flow = FightBoss;
                 }
 
                 break;
             case FightBoss:
                 qDebug()<<FightBoss;
+                // Move up
+                moveRole(0, -1, 2);
+                mdsleep(15000);
+                stopRole(0, -1);
+                mdsleep(100);
+
+                // Summon
+                summonSupporter();
+                mdsleep(100);
+
+                // Move down
+                moveRole(0, 1, 2);
+                mdsleep(15000);
+                stopRole(0, 1);
+                mdsleep(100);
+
+                // Summon
+                summonSupporter();
+                mdsleep(100);
                 break;
             default:
                 break;

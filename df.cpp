@@ -136,10 +136,29 @@ bool DF::summonSupporter()
     return false;
 }
 
-bool DF::isSectionClear()
+bool DF::isSectionClear(bool isFirstSection)
 {
+    static QTime *t = nullptr;
     QVariant x, y;
 
+    // First section maybe not has clear effect
+    // So we assume it's clear, if it has costed 30 secs
+    if (isFirstSection) {
+        if (!t) {
+            t = new QTime();
+            t->start();
+        } else {
+            if (t->elapsed() > 30000)
+                return true;
+        }
+    } else {
+        if (t) {
+            delete t;
+            t = nullptr;
+        }
+    }
+
+    // Check clear effect
     if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "2F4F3F", 1.0, 0, x, y) == -1)
         return false;
 
@@ -159,6 +178,25 @@ bool DF::getRoleCoords(int &x, int &y)
     y = vy.toInt();
 
     return true;
+}
+
+void DF::hideDropName(bool enable)
+{
+    static bool enabled = false;
+
+    if (enabled) {
+        if (!enable) {
+            sendKey(Down, "/", 300);
+            sendKey(Up, "/", 30);
+            enabled = false;
+        }
+    } else {
+        if (enable) {
+            sendKey(Down, "/", 300);
+            sendKey(Up, "/", 30);
+            enabled = true;
+        }
+    }
 }
 
 void DF::moveRole(int horizontal, int vertical, int speed)
@@ -201,14 +239,20 @@ void DF::moveRole(int horizontal, int vertical, int speed)
 
 void DF::stopRole(int horizontal, int vertical)
 {
-    if (horizontal > 0)
-        sendKey(Up, m_arrowR);
-    else if (horizontal < 0)
-        sendKey(Up, m_arrowL);
-    if (vertical > 0)
-        sendKey(Up, m_arrowD);
-    else if (vertical < 0)
-        sendKey(Up, m_arrowU);
+    if (horizontal > 0) {
+        while (m_dm.GetKeyState(m_arrowR) == 1)
+            sendKey(Up, m_arrowR);
+    } else if (horizontal < 0) {
+        while (m_dm.GetKeyState(m_arrowL) == 1)
+            sendKey(Up, m_arrowL);
+    }
+    if (vertical > 0) {
+        while (m_dm.GetKeyState(m_arrowD) == 1)
+            sendKey(Up, m_arrowD);
+    } else if (vertical < 0) {
+        while (m_dm.GetKeyState(m_arrowU) == 1)
+            sendKey(Up, m_arrowU);
+    }
 
     mdsleep(200);
 }

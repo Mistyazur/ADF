@@ -31,9 +31,10 @@ protected:
     // Dungeon functions
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool summonSupporter();
-    bool isSectionClear();
+    bool isSectionClear(bool isFirstSection);
     bool navigate(int x=-1, int y=-1);
     bool getRoleCoords(int &x, int &y);
+    void hideDropName(bool enable);
     void moveRole(int horizontal=0, int vertical=0, int speed=0);
     void stopRole(int horizontal=0, int vertical=0);
 };
