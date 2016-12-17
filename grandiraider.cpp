@@ -51,7 +51,7 @@ void GrandiRaider::run()
                 if (sectionIndex < pathList.count())
                     flow = Fight;
                 else
-                    flow == FightBoss;
+                    flow = FightBoss;
 
                 break;
             case Fight:
@@ -59,14 +59,11 @@ void GrandiRaider::run()
                 // Check section state
                 if (isSectionClear((sectionIndex == 0))) {
                     qDebug()<<"Section is clear";
-                    flow = Navigate;
-
-                    // Summon tempester
-                    summonSupporter();
 
                     // Hide drop's name
                     hideDropName(true);
 
+                    flow = Navigate;
                     break;
                 }
 
@@ -74,47 +71,49 @@ void GrandiRaider::run()
                 break;
             case Navigate:
                 if (sectionIndex < pathList.count()) {
-                    QVariant sectionPath = pathList.at(sectionIndex++);
-                    foreach(QVariant positionList, sectionPath.toList()) {
+                    bool success = false;
+                    const QVariant &sectionPath = pathList.at(sectionIndex++);
+                    foreach(const QVariant &positionList, sectionPath.toList()) {
                         QVariantList position = positionList.toList();
                         if (position.count() == 2) {
-                            int x = position.first().toInt();
-                            int y = position.last().toInt();
-                            if (navigate(x, y)) {
-                                flow = PreFight;
-
+                            if (navigate(position.first().toInt(), position.last().toInt())) {
                                 // SHow drop's name
                                 hideDropName(false);
 
+                                // Pre-fight
+                                success = true;
+                                flow = PreFight;
                                 break;
                             }
-                            mdsleep(500);
+                            mdsleep(100);
                         }
                     }
+
+                    if (!success)
+                        qDebug()<<"Failed to find gate";
                 }
 
                 break;
             case FightBoss:
-                qDebug()<<FightBoss;
                 // Move up
                 moveRole(0, -1, 2);
-                mdsleep(15000);
+                msleep(3000);
                 stopRole(0, -1);
-                mdsleep(100);
+                msleep(12000);
 
                 // Summon
                 summonSupporter();
-                mdsleep(100);
+                msleep(100);
 
                 // Move down
                 moveRole(0, 1, 2);
-                mdsleep(15000);
+                msleep(3000);
                 stopRole(0, 1);
-                mdsleep(100);
+                msleep(12000);
 
                 // Summon
                 summonSupporter();
-                mdsleep(100);
+                msleep(100);
                 break;
             default:
                 break;
@@ -125,25 +124,4 @@ void GrandiRaider::run()
             qDebug()<<"DFError"<<e;
         }
     }
-
-
-
-//    for (int i=0; i<pathList.count(); ++i) {
-//        QVariant sectionPath = pathList.at(i);
-//        foreach(QVariant positionList, sectionPath.toList()) {
-//            QVariantList position = positionList.toList();
-//            if (position.count() == 2) {
-//                int x = position.first().toInt();
-//                int y = position.last().toInt();
-//                qDebug()<<x<<y;
-//                if (navigate(x, y))
-//                    break;
-//                mdsleep(500);
-//            }
-//        }
-//        qDebug()<<"---";
-//        msleep(2000);
-//    }
-
-
 }
