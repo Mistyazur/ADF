@@ -100,7 +100,7 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
     sendKey(Down, directionKey, 3000);
     sendKey(Up, directionKey, 100);
     for (int i=0; i<10; ++i) {
-        if (m_dm.FindPic(CLIENT_RECT, "back_to_town.bmp", "000000", 1.0, 0, x, y) != -1) {
+        if (m_dm.FindPic(CLIENT_RECT, "options_back_to_town.bmp", "000000", 1.0, 0, x, y) != -1) {
             goto EnterDungeon;
         }
         msleep(1000);
@@ -122,6 +122,19 @@ EnterDungeon:
     // Commit
     sendKey(Stroke, 32, 500);
     sendKey(Stroke, 32, 500);
+
+    return true;
+}
+
+bool DF::reenterDungeon()
+{
+    QVariant x, y;
+
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end_cmd.bmp", "000000", 1.0, 2, x, y) == -1)
+        return false;
+
+    sendKey(Stroke, 27, 500);
+    sendKey(Stroke, 121, 500);
 
     return true;
 }
@@ -159,7 +172,7 @@ bool DF::isSectionClear(bool isFirstSection)
     }
 
     // Check clear effect
-    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "2F4F3F", 1.0, 0, x, y) == -1)
+    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "000000", 0.9, 0, x, y) == -1)
         return false;
 
     return true;

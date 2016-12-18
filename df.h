@@ -30,6 +30,7 @@ protected:
 
     // Dungeon functions
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
+    bool reenterDungeon();
     bool summonSupporter();
     bool isSectionClear(bool isFirstSection);
     bool navigate(int x=-1, int y=-1);

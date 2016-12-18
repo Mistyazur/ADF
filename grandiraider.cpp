@@ -17,7 +17,7 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    JSettings js("../ADF/ADF.json");
+    JSettings js("ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
     int sectionIndex;
@@ -66,8 +66,6 @@ void GrandiRaider::run()
                     flow = Navigate;
                     break;
                 }
-
-
                 break;
             case Navigate:
                 if (sectionIndex < pathList.count()) {
@@ -95,6 +93,13 @@ void GrandiRaider::run()
 
                 break;
             case FightBoss:
+                if (reenterDungeon()) {
+                    sectionIndex = 0;
+                    flow = PreFight;
+                    msleep(10000);
+                    continue;
+                }
+
                 // Move up
                 moveRole(0, -1, 2);
                 msleep(3000);
@@ -119,7 +124,7 @@ void GrandiRaider::run()
                 break;
             }
 
-            msleep(10);
+//            msleep(10);
         } catch(DFError e) {
             qDebug()<<"DFError"<<e;
         }
