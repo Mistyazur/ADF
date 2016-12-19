@@ -149,10 +149,42 @@ bool DF::summonSupporter()
     return false;
 }
 
+//bool DF::isSectionClear(bool isFirstSection)
+//{
+//    static QTime *t = nullptr;
+//    QVariant x, y;
+
+//    // First section maybe not has clear effect
+//    // So we assume it's clear, if it has costed 30 secs
+//    if (isFirstSection) {
+//        if (!t) {
+//            t = new QTime();
+//            t->start();
+//        } else {
+//            if (t->elapsed() > 30000)
+//                return true;
+//        }
+//    } else {
+//        if (t) {
+//            delete t;
+//            t = nullptr;
+//        }
+//    }
+
+//    // Check clear effect
+//    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "000000", 0.9, 0, x, y) == -1)
+//        return false;
+
+//    return true;
+//}
+
 bool DF::isSectionClear(bool isFirstSection)
 {
     static QTime *t = nullptr;
-    QVariant x, y;
+    QVariant vx, vy;
+    int x, y;
+    uchar beforeBlocks[4][160] = {0};
+    uchar afterBlocks[4][160] = {0};
 
     // First section maybe not has clear effect
     // So we assume it's clear, if it has costed 30 secs
@@ -172,10 +204,32 @@ bool DF::isSectionClear(bool isFirstSection)
     }
 
     // Check clear effect
-    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "000000", 0.9, 0, x, y) == -1)
+    if (m_dm.FindPic(600, 45, 800, 200, "dungeon_map_role.bmp", "000000", 0.9, 0, vx, vy) == -1) {
+        qDebug()<<"isSectionClear: Failed role on map";
         return false;
+    }
 
-    return true;
+    x = vx.toInt();
+    y = vy.toInt();
+//    qDebug()<<x<<y;
+
+    QString aveColor = m_dm.GetAveRGB(x-4, y+10, x-2, y+12);
+//    qDebug()<<aveColor;
+//    qDebug()<<m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor+"-070707", 1.0);
+//    qDebug()<<m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor+"-070707", 1.0);
+//    qDebug()<<m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor+"-070707", 1.0);
+//    qDebug()<<m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor+"-070707", 1.0);
+
+    if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor+"-070707", 1.0) > 15)
+        return true;
+    if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor+"-070707", 1.0) > 15)
+        return true;
+    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor+"-070707", 1.0) > 15)
+        return true;
+    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor+"-070707", 1.0) > 15)
+        return true;
+
+    return false;
 }
 
 bool DF::getRoleCoords(int &x, int &y)
