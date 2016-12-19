@@ -130,11 +130,18 @@ bool DF::reenterDungeon()
 {
     QVariant x, y;
 
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end_cmd.bmp", "000000", 1.0, 2, x, y) == -1)
+    // sell trophies
+    if (m_dm.FindPic(CLIENT_RECT, "sell.bmp", "000000", 1.0, 2, x, y) == -1)
         return false;
 
-    sendKey(Stroke, 27, 500);
-    sendKey(Stroke, 121, 500);
+    // Pick trophies
+    sendKey(Stroke, 189, 200);  // -
+    sendKey(Down, "x", 3000);
+    sendKey(Up, "x", 200);
+
+    // Reenter
+    sendKey(Stroke, 27, 200);
+    sendKey(Stroke, 121, 200);
 
     return true;
 }
@@ -149,42 +156,12 @@ bool DF::summonSupporter()
     return false;
 }
 
-//bool DF::isSectionClear(bool isFirstSection)
-//{
-//    static QTime *t = nullptr;
-//    QVariant x, y;
-
-//    // First section maybe not has clear effect
-//    // So we assume it's clear, if it has costed 30 secs
-//    if (isFirstSection) {
-//        if (!t) {
-//            t = new QTime();
-//            t->start();
-//        } else {
-//            if (t->elapsed() > 30000)
-//                return true;
-//        }
-//    } else {
-//        if (t) {
-//            delete t;
-//            t = nullptr;
-//        }
-//    }
-
-//    // Check clear effect
-//    if (m_dm.FindPic(720, 45, 800, 105, "section_clear.bmp", "000000", 0.9, 0, x, y) == -1)
-//        return false;
-
-//    return true;
-//}
-
 bool DF::isSectionClear(bool isFirstSection)
 {
     static QTime *t = nullptr;
     QVariant vx, vy;
     int x, y;
-    uchar beforeBlocks[4][160] = {0};
-    uchar afterBlocks[4][160] = {0};
+    ulong beforeBlocks[4][196] = {0};
 
     // First section maybe not has clear effect
     // So we assume it's clear, if it has costed 30 secs
@@ -213,21 +190,67 @@ bool DF::isSectionClear(bool isFirstSection)
     y = vy.toInt();
 //    qDebug()<<x<<y;
 
-    QString aveColor = m_dm.GetAveRGB(x-4, y+10, x-2, y+12);
-//    qDebug()<<aveColor;
-//    qDebug()<<m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor+"-070707", 1.0);
-//    qDebug()<<m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor+"-070707", 1.0);
-//    qDebug()<<m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor+"-070707", 1.0);
-//    qDebug()<<m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor+"-070707", 1.0);
+    QString aveColor = m_dm.GetAveRGB(x-4, y+10, x-2, y+12)+"-0F0F0F";
+    int aveColorCount = 50;
 
-    if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor+"-070707", 1.0) > 15)
-        return true;
-    if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor+"-070707", 1.0) > 15)
-        return true;
-    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor+"-070707", 1.0) > 15)
-        return true;
-    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor+"-070707", 1.0) > 15)
-        return true;
+    memcpy(beforeBlocks[0], (uchar *)m_dm.GetScreenData(x-24, y-4, x-10, y+10), 784);
+    memcpy(beforeBlocks[1], (uchar *)m_dm.GetScreenData(x+12, y-4, x+26, y+10), 784);
+    memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), 784);
+    memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), 784);
+
+    int count;
+    ulong *data;
+    for (int i=0; i<5; ++i) {
+        msleep(20);
+
+        if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor, 1.0) > aveColorCount) {
+            count = 0;
+            data = (ulong *)m_dm.GetScreenData(x-24, y-4, x-10, y+10);
+            for (int j=0; j<196; ++j) {
+                if (*(data+j) != beforeBlocks[0][j])
+                    ++count;
+            }
+            if (count == 196) {
+                return true;
+            }
+        }
+
+        if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor, 1.0) > aveColorCount) {
+            count = 0;
+            data = (ulong *)m_dm.GetScreenData(x+12, y-4, x+26, y+10);
+            for (int j=0; j<196; ++j) {
+                if (*(data+j) != beforeBlocks[1][j])
+                    ++count;
+            }
+            if (count == 196) {
+                return true;
+            }
+        }
+
+        if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor, 1.0) > aveColorCount) {
+            count = 0;
+            data = (ulong *)m_dm.GetScreenData(x-6, y-22, x+8, y-8);
+            for (int j=0; j<196; ++j) {
+                if (*(data+j) != beforeBlocks[2][j])
+                    ++count;
+            }
+            if (count == 196) {
+                return true;
+            }
+        }
+
+        if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor, 1.0) > aveColorCount) {
+            count = 0;
+            data = (ulong *)m_dm.GetScreenData(x-6, y+14, x+8, y+28);
+            for (int j=0; j<196; ++j) {
+                if (*(data+j) != beforeBlocks[3][j])
+                    ++count;
+            }
+            if (count == 196) {
+                return true;
+            }
+        }
+    }
 
     return false;
 }
@@ -307,18 +330,15 @@ void DF::moveRole(int horizontal, int vertical, int speed)
 void DF::stopRole(int horizontal, int vertical)
 {
     if (horizontal > 0) {
-        while (m_dm.GetKeyState(m_arrowR) == 1)
-            sendKey(Up, m_arrowR);
+        sendKey(Up, m_arrowR, 10);
     } else if (horizontal < 0) {
-        while (m_dm.GetKeyState(m_arrowL) == 1)
-            sendKey(Up, m_arrowL);
+        sendKey(Up, m_arrowL, 10);
     }
+
     if (vertical > 0) {
-        while (m_dm.GetKeyState(m_arrowD) == 1)
-            sendKey(Up, m_arrowD);
+        sendKey(Up, m_arrowD, 10);
     } else if (vertical < 0) {
-        while (m_dm.GetKeyState(m_arrowU) == 1)
-            sendKey(Up, m_arrowU);
+        sendKey(Up, m_arrowU, 10);
     }
 
     mdsleep(100);
@@ -372,37 +392,57 @@ bool DF::navigate(int x, int y)
         }
 
         if ((roleX == preRoleX) && (roleY == preRoleY)) {
-            // Start timer
-            if (timer.isNull()) {
-                timer.start();
+            // Situations against definition of stuck
+            if ((hDirection > 0) && (roleX > x)) {
+                continue;
+            }
+            if ((hDirection < 0) && (roleX < x)) {
+                continue;
+            }
+            if ((vDirection > 0) && (roleY > y)) {
+                continue;
+            }
+            if ((vDirection < 0) && (roleX < y)) {
                 continue;
             }
 
-            // Trigger checking every 300 msecs
-            if (timer.elapsed() > 300) {
+            if (timer.isNull()) {
                 // Get client color blocks
                 for (int i=0; i<10; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
-                    memcpy(clientBlocks[i], data, 6400);
+                    memcpy(preClientBlocks[i], data, 6400);
                 }
 
-                // Check if role is stucked
-                for (int i=0; i<10; ++i) {
-                    if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
-                        if (0 != hDirection)
-                            stopRole(hDirection);
-                        if (0 != vDirection)
-                            stopRole(0, vDirection);
-                        return false;
+                // Start timer
+                timer.start();
+            } else {
+                // Trigger checking every 300 msecs
+                if (timer.elapsed() > 100) {
+                    // Get client color blocks
+                    for (int i=0; i<10; ++i) {
+                        uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                        memcpy(clientBlocks[i], data, 6400);
                     }
+
+                    // Check if role is stucked
+                    for (int i=0; i<10; ++i) {
+                        if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
+                            if (0 != hDirection)
+                                stopRole(hDirection);
+                            if (0 != vDirection)
+                                stopRole(0, vDirection);
+                            return false;
+                        }
+                    }
+
+                    // Save client blocks for checking next time
+                    memcpy(preClientBlocks, clientBlocks, 64000);
+
+                    // Restart timer
+                    timer.restart();
                 }
-
-                // Save client blocks for checking next time
-                memcpy(preClientBlocks, clientBlocks, 64000);
-
-                // Restart timer
-                timer.restart();
             }
+
         } else {
             // Horizontal moving
             if (!hArrived) {

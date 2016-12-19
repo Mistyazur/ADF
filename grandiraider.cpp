@@ -21,9 +21,17 @@ void GrandiRaider::run()
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
     int sectionIndex;
+    int fightBossIndex;
 
     if (!bind())
         return;
+
+//    while (true) {
+//        qDebug()<<isSectionClear(false);
+//        msleep(1000);
+//    }
+//    unbind();
+//    return;
 
     while (true) {
         try {
@@ -37,25 +45,29 @@ void GrandiRaider::run()
                 // Summon tempester
                 summonSupporter();
 
-                // Get close to generator
-                if (sectionIndex == 4) {
-                    moveRole(-1, 1, 2);
-                    msleep(700);
-                    stopRole(-1, 1);
-                    for (int i=0; i<100; ++i) {
-                        sendKey(Stroke, m_arrowL, 30);
-                        sendKey(Stroke, "x", 30);
-                    }
-                }
-
-                if (sectionIndex < pathList.count())
+                if (sectionIndex < pathList.count()) {
                     flow = Fight;
-                else
-                    flow = FightBoss;
 
+                    if (sectionIndex == 4) {
+                        // Get close to generator
+                        moveRole(0, 1, 2);
+                        msleep(300);
+                        stopRole(0, 1);
+                        moveRole(-1, 0, 3);
+                        msleep(500);
+                        stopRole(-1, 0);
+                    } else if (sectionIndex == 5) {
+                        // Avoid damage
+                        moveRole(0, 1, 2);
+                        msleep(1000);
+                        stopRole(0, 1);
+                    }
+                } else {
+                    flow = FightBoss;
+                    fightBossIndex = 0;
+                }
                 break;
             case Fight:
-
                 // Check section state
                 if (isSectionClear((sectionIndex == 0))) {
                     qDebug()<<"Section is clear";
@@ -65,6 +77,13 @@ void GrandiRaider::run()
 
                     flow = Navigate;
                     break;
+                }
+
+                // Destory generator
+                if (sectionIndex == 4) {
+                    sendKey(Stroke, m_arrowL, 30);
+                    for (int i=0; i<10; ++i)
+                        sendKey(Stroke, "x", 30);
                 }
                 break;
             case Navigate:
@@ -93,6 +112,7 @@ void GrandiRaider::run()
 
                 break;
             case FightBoss:
+                // Check dungeon status
                 if (reenterDungeon()) {
                     sectionIndex = 0;
                     flow = PreFight;
@@ -100,25 +120,32 @@ void GrandiRaider::run()
                     continue;
                 }
 
-                // Move up
-                moveRole(0, -1, 2);
-                msleep(3000);
-                stopRole(0, -1);
-                msleep(12000);
+                // Move
+                if (fightBossIndex%4 == 0) {
+                    // Up
+                   moveRole(0, -1, 2);
+                   mdsleep(2000);
+                   stopRole(0, -1);
+                } else if (fightBossIndex%4 == 1) {
+                    // Right
+                   moveRole(1, 0, 2);
+                   mdsleep(2000);
+                   stopRole(1, 0);
+                } else if (fightBossIndex%4 == 2) {
+                    // Down
+                   moveRole(0, 1, 2);
+                   mdsleep(2000);
+                   stopRole(0, 1);
+                } else if (fightBossIndex%4 == 3) {
+                    // Left
+                   moveRole(-1, 0, 2);
+                   mdsleep(2000);
+                   stopRole(-1, 0);
+                }
+                ++fightBossIndex;
 
                 // Summon
                 summonSupporter();
-                msleep(100);
-
-                // Move down
-                moveRole(0, 1, 2);
-                msleep(3000);
-                stopRole(0, 1);
-                msleep(12000);
-
-                // Summon
-                summonSupporter();
-                msleep(100);
                 break;
             default:
                 break;
