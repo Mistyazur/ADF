@@ -10,6 +10,10 @@ DF::DF()
     m_arrowU = 38;
     m_arrowR = 39;
     m_arrowD = 40;
+
+    // Set mouse and key delay
+    setMouseDelayDelta(0.3);
+    setKeyDelayDelta(0.3);
 }
 
 int DF::window()
@@ -135,12 +139,13 @@ bool DF::reenterDungeon()
         return false;
 
     // Pick trophies
-    sendKey(Stroke, 189, 200);  // -
-    sendKey(Down, "x", 3000);
-    sendKey(Up, "x", 200);
+    sendKey(Stroke, 189, 600);  // -
+//    sendKey(Down, "x", 2400);
+//    sendKey(Up, "x", 200);
+    approxSleep(3000, 0.3);
 
     // Reenter
-    sendKey(Stroke, 27, 200);
+    sendKey(Stroke, 27, 600);
     sendKey(Stroke, 121, 200);
 
     return true;
@@ -153,7 +158,18 @@ bool DF::summonSupporter()
         return true;
 //    }
 
-    return false;
+        return false;
+}
+
+void DF::buff()
+{
+    sendKey(Stroke, m_arrowU, 50);
+    sendKey(Stroke, m_arrowD, 50);
+    sendKey(Stroke, 32, 1000);
+
+    sendKey(Stroke, m_arrowD, 50);
+    sendKey(Stroke, m_arrowU, 50);
+    sendKey(Stroke, 32, 1000);
 }
 
 bool DF::isSectionClear(bool isFirstSection)
@@ -276,14 +292,12 @@ void DF::hideDropName(bool enable)
 
     if (enabled) {
         if (!enable) {
-            sendKey(Down, "/", 300);
-            sendKey(Up, "/", 30);
+            sendKey(Stroke, ",", 300);
             enabled = false;
         }
     } else {
         if (enable) {
-            sendKey(Down, "/", 300);
-            sendKey(Up, "/", 30);
+            sendKey(Stroke, ",", 300);
             enabled = true;
         }
     }
@@ -341,7 +355,7 @@ void DF::stopRole(int horizontal, int vertical)
         sendKey(Up, m_arrowU, 10);
     }
 
-    mdsleep(100);
+    approxSleep(100);
 }
 
 bool DF::navigate(int x, int y)
@@ -393,18 +407,11 @@ bool DF::navigate(int x, int y)
 
         if ((roleX == preRoleX) && (roleY == preRoleY)) {
             // Situations against definition of stuck
-            if ((hDirection > 0) && (roleX > x)) {
+            if (((hDirection > 0) && (roleX > x)) ||
+                ((hDirection < 0) && (roleX < x)) ||
+                ((vDirection > 0) && (roleY > y)) ||
+                ((vDirection < 0) && (roleX < y)))
                 continue;
-            }
-            if ((hDirection < 0) && (roleX < x)) {
-                continue;
-            }
-            if ((vDirection > 0) && (roleY > y)) {
-                continue;
-            }
-            if ((vDirection < 0) && (roleX < y)) {
-                continue;
-            }
 
             if (timer.isNull()) {
                 // Get client color blocks

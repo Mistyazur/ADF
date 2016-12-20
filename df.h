@@ -32,6 +32,7 @@ protected:
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool reenterDungeon();
     bool summonSupporter();
+    void buff();
     bool isSectionClear(bool isFirstSection);
     bool navigate(int x=-1, int y=-1);
     bool getRoleCoords(int &x, int &y);

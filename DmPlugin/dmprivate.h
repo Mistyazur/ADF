@@ -13,6 +13,8 @@ using namespace dm;
 
 #include <QThread>
 
+#define MEDIAN_RANDOM(min, max) min+qrand()%(max-min+1)
+
 enum MouseOper {Move, Left, LeftDown, LeftUp, Right, RightDown, RightUp};
 enum KeyOper {Stroke, Down, Up};
 
@@ -34,7 +36,8 @@ public slots:
 protected:
     dmsoft m_dm;
 
-    void mdsleep(int msec, float delta=0.1);
+    void approxSleep(int msec, double delta=0.1);
+    void setMouseDelayDelta(double delta);
     void sendMouse(const MouseOper &oper,
                const int &x=-1,
                const int &y=-1,
@@ -43,6 +46,7 @@ protected:
                const QVariant &x=-1,
                const QVariant &y=-1,
                int delay=-1);
+    void setKeyDelayDelta(double delta);
     void sendKey(const KeyOper &oper,
              const int &vk,
              int delay=0);
@@ -50,7 +54,8 @@ protected:
              const QString &vk,
              int delay=0);
 private:
-
+    double m_mouseDelayDelta;
+    double m_keyDelayDelta;
 };
 
 #endif // DMPRIVATE_H

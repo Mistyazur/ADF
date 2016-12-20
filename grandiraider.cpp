@@ -21,23 +21,15 @@ void GrandiRaider::run()
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
     int sectionIndex;
-    int fightBossIndex;
+    int randomDirection;
 
     if (!bind())
         return;
-
-//    while (true) {
-//        qDebug()<<isSectionClear(false);
-//        msleep(1000);
-//    }
-//    unbind();
-//    return;
 
     while (true) {
         try {
             switch (flow) {
             case MoveToDungeon:
-
                 sectionIndex = 0;
                 flow = PreFight;
                 break;
@@ -48,23 +40,25 @@ void GrandiRaider::run()
                 if (sectionIndex < pathList.count()) {
                     flow = Fight;
 
-                    if (sectionIndex == 4) {
+                    if (sectionIndex == 1) {
+                        // Buff
+                        buff();
+                    } else if (sectionIndex == 4) {
                         // Get close to generator
                         moveRole(0, 1, 2);
-                        msleep(300);
+                        msleep(500);
                         stopRole(0, 1);
                         moveRole(-1, 0, 3);
-                        msleep(500);
+                        msleep(600);
                         stopRole(-1, 0);
                     } else if (sectionIndex == 5) {
                         // Avoid damage
                         moveRole(0, 1, 2);
-                        msleep(1000);
+                        approxSleep(2000, 0.3);
                         stopRole(0, 1);
                     }
                 } else {
                     flow = FightBoss;
-                    fightBossIndex = 0;
                 }
                 break;
             case Fight:
@@ -102,7 +96,7 @@ void GrandiRaider::run()
                                 flow = PreFight;
                                 break;
                             }
-                            mdsleep(100);
+                            approxSleep(100);
                         }
                     }
 
@@ -112,37 +106,38 @@ void GrandiRaider::run()
 
                 break;
             case FightBoss:
+                randomDirection = MEDIAN_RANDOM(0, 3);
+
                 // Check dungeon status
                 if (reenterDungeon()) {
                     sectionIndex = 0;
                     flow = PreFight;
-                    msleep(10000);
+                    approxSleep(10000, 0.3);
                     continue;
                 }
 
                 // Move
-                if (fightBossIndex%4 == 0) {
+                if (randomDirection%4 == 0) {
                     // Up
                    moveRole(0, -1, 2);
-                   mdsleep(2000);
+                   approxSleep(2000);
                    stopRole(0, -1);
-                } else if (fightBossIndex%4 == 1) {
+                } else if (randomDirection%4 == 1) {
                     // Right
                    moveRole(1, 0, 2);
-                   mdsleep(2000);
+                   approxSleep(2000);
                    stopRole(1, 0);
-                } else if (fightBossIndex%4 == 2) {
+                } else if (randomDirection%4 == 2) {
                     // Down
                    moveRole(0, 1, 2);
-                   mdsleep(2000);
+                   approxSleep(2000);
                    stopRole(0, 1);
-                } else if (fightBossIndex%4 == 3) {
+                } else if (randomDirection%4 == 3) {
                     // Left
                    moveRole(-1, 0, 2);
-                   mdsleep(2000);
+                   approxSleep(2000);
                    stopRole(-1, 0);
                 }
-                ++fightBossIndex;
 
                 // Summon
                 summonSupporter();

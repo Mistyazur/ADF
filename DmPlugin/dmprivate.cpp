@@ -9,6 +9,10 @@
 DmPrivate::DmPrivate(QObject *parent) :
     QThread(parent)
 {
+    // Init
+    m_mouseDelayDelta = 0;
+    m_keyDelayDelta = 0;
+
     // Init random seed
     qsrand(time(0));
 
@@ -66,12 +70,17 @@ void DmPrivate::setResourcePath(const QString &path)
     m_dm.SetPath(qApp->applicationDirPath()+"/"+path);
 }
 
-void DmPrivate::mdsleep(int msec, float delta)
+void DmPrivate::approxSleep(int msec, double delta)
 {
-    int top = msec*(1+delta);
-    int bottom = msec*(1-delta);
-    int value = bottom+qrand()%(top-bottom+1);
-    msleep(value);
+    int max = msec*(1+delta);
+    int min = msec*(1-delta);
+
+    msleep(MEDIAN_RANDOM(min, max));
+}
+
+void DmPrivate::setMouseDelayDelta(double delta)
+{
+    m_mouseDelayDelta = delta;
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,
@@ -81,7 +90,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
 {
     if ((x >= 0) && (y >= 0)) {
         m_dm.MoveTo(x,y);
-        msleep(10);
+        approxSleep(delay, m_mouseDelayDelta);
     }
 
     switch (oper) {
@@ -110,7 +119,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     }
 
     if (delay > 0)
-        msleep(delay);
+        approxSleep(delay, m_mouseDelayDelta);
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,
@@ -119,6 +128,11 @@ void DmPrivate::sendMouse(const MouseOper &oper,
                       int delay)
 {
     sendMouse(oper, x.toInt(), y.toInt(), delay);
+}
+
+void DmPrivate::setKeyDelayDelta(double delta)
+{
+    m_keyDelayDelta = delta;
 }
 
 void DmPrivate::sendKey(const KeyOper &oper,
@@ -140,7 +154,7 @@ void DmPrivate::sendKey(const KeyOper &oper,
     }
 
     if (delay > 0)
-        msleep(delay);
+        approxSleep(delay, m_keyDelayDelta);
 }
 
 void DmPrivate::sendKey(const KeyOper &oper,
@@ -162,5 +176,5 @@ void DmPrivate::sendKey(const KeyOper &oper,
     }
 
     if (delay > 0)
-        msleep(delay);
+        approxSleep(delay, m_keyDelayDelta);
 }
