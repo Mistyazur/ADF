@@ -14,7 +14,7 @@
 #define DM_EXPORT
 #endif
 
-#define DM_VER "6.1540"
+#define DM_VER "6.1647"
 
 #include <qaxobject.h>
 #include <qaxwidget.h>

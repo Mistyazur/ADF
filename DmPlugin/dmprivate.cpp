@@ -4,7 +4,10 @@
 #include <QProcess>
 #include <QDebug>
 
+#include <windows.h>
 #include <time.h>
+
+typedef int (WINAPI *SETDLLPATHW)(LPCWSTR path, int type);
 
 DmPrivate::DmPrivate(QObject *parent) :
     QThread(parent)
@@ -25,19 +28,24 @@ DmPrivate::~DmPrivate()
     wait();
 }
 
-void DmPrivate::dmPluginSetup()
+void DmPrivate::dmPluginSetup(bool local)
 {
-    QProcess proc;
+    if (local) {
+        SETDLLPATHW SetDllPathW = (SETDLLPATHW)GetProcAddress(LoadLibrary(L"DmReg.dll"),
+                                                              "SetDllPathW");
+        SetDllPathW(L"dm.dll", 0);
+    } else {
+        QProcess proc;
 
-    proc.start("regsvr32 /s dm.dll");
-    proc.waitForStarted();
-    proc.waitForFinished();
-    proc.close();
+        proc.start("regsvr32 /s dm.dll");
+        proc.waitForStarted();
+        proc.waitForFinished();
+        proc.close();
 
-    msleep(1000);
+        msleep(1000);
+    }
 }
-
-bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
+bool DmPrivate::dmPluginReg(const QString &key, const QString &flag, const QString &guard)
 {
     dmsoft dm;
 
@@ -47,11 +55,15 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
         return false;
 
     if (dm.Ver().toDouble() > 3.1233) {
-        int code = dm.Reg(key,flag);
+        int code = dm.Reg(key, flag);
         if (code != 1) {
             qWarning() << "Register failed:" <<code;
             return false;
         }
+
+        // Guard
+        if (!guard.isEmpty())
+            qDebug()<<"Guard"<<dm.DmGuard(1, guard);
     }
 
     if (!dm.BindWindow(dm.GetForegroundWindow(),"normal","normal","normal",0))

@@ -25,8 +25,8 @@ public:
     explicit DmPrivate(QObject *parent = 0);
     ~DmPrivate();
 
-    static void dmPluginSetup();
-    static bool dmPluginReg(const QString &sendKey, const QString &flag);
+    static void dmPluginSetup(bool local=false);
+    static bool dmPluginReg(const QString &sendKey, const QString &flag, const QString &guard=QString());
 
     void setResourcePath(const QString &path);
 signals:

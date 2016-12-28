@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));
 
     // Init dm plugin
-    DmPrivate::dmPluginSetup();
-    if (!DmPrivate::dmPluginReg("fatecynfa0a8763009beca243a467d74d4f05e0",
+//    DmPrivate::dmPluginSetup(true);
+    if (!DmPrivate::dmPluginReg("FateCyn220d1daf6c3e4a132d4da742b5fc3691",
                                 QApplication::applicationDisplayName()))
         return 0;
 

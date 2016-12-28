@@ -24,6 +24,7 @@ int DF::window()
 bool DF::bind(bool underground)
 {
     int hWnd = window();
+    qDebug()<<hWnd;
     if (0 == hWnd)
         return false;
 
@@ -134,9 +135,10 @@ bool DF::reenterDungeon()
 {
     QVariant x, y;
 
-    // sell trophies
-    if (m_dm.FindPic(CLIENT_RECT, "sell.bmp", "000000", 1.0, 2, x, y) == -1)
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 1.0, 2, x, y) == -1)
         return false;
+
+    approxSleep(5000, 0.5);
 
     // Pick trophies
     sendKey(Stroke, 189, 600);  // -

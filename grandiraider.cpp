@@ -17,11 +17,12 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
+    qDebug()<<0;
     JSettings js("ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
-    int sectionIndex;
-    int randomDirection;
+    int sectionIndex = 0;
+    int randomDirection= 0;
 
     if (!bind())
         return;
@@ -76,6 +77,9 @@ void GrandiRaider::run()
                 // Destory generator
                 if (sectionIndex == 4) {
                     sendKey(Stroke, m_arrowL, 30);
+                    for (int i=0; i<10; ++i)
+                        sendKey(Stroke, "x", 30);
+                } else {
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
                 }
