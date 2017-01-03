@@ -3,6 +3,7 @@
 #include "JSettings/jsettings.h"
 
 #include <QDebug>
+#include <QApplication>
 #include <QString>
 
 GrandiRaider::GrandiRaider()
@@ -17,18 +18,18 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    qDebug()<<0;
-    JSettings js("ADF.json");
+    JSettings js(QApplication::applicationDirPath()+"/ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
     int sectionIndex = 0;
-    int randomDirection= 0;
+    int fightBossIndex = 0;
 
-    if (!bind())
+    if (!bind(false))
         return;
 
     while (true) {
         try {
+//            qDebug()<<"Flow: "<<flow<<sectionIndex;
             switch (flow) {
             case MoveToDungeon:
                 sectionIndex = 0;
@@ -41,7 +42,7 @@ void GrandiRaider::run()
                 if (sectionIndex < pathList.count()) {
                     flow = Fight;
 
-                    if (sectionIndex == 1) {
+                    if (sectionIndex == 0) {
                         // Buff
                         buff();
                     } else if (sectionIndex == 4) {
@@ -60,6 +61,7 @@ void GrandiRaider::run()
                     }
                 } else {
                     flow = FightBoss;
+                    fightBossIndex = 0;
                 }
                 break;
             case Fight:
@@ -110,47 +112,53 @@ void GrandiRaider::run()
 
                 break;
             case FightBoss:
-                randomDirection = MEDIAN_RANDOM(0, 3);
 
                 // Check dungeon status
                 if (reenterDungeon()) {
+                    if ((fightBossIndex < 5) &&
+                            (fightBossIndex > 0)) {
+                        stopRole(0, -1);
+                    } else  if ((fightBossIndex < 22) &&
+                            (fightBossIndex > 17)) {
+                        stopRole(0, 1);
+                    }
+
                     sectionIndex = 0;
                     flow = PreFight;
+
                     approxSleep(10000, 0.3);
                     continue;
                 }
 
-                // Move
-                if (randomDirection%4 == 0) {
-                    // Up
-                   moveRole(0, -1, 2);
-                   approxSleep(2000);
-                   stopRole(0, -1);
-                } else if (randomDirection%4 == 1) {
-                    // Right
-                   moveRole(1, 0, 2);
-                   approxSleep(2000);
-                   stopRole(1, 0);
-                } else if (randomDirection%4 == 2) {
-                    // Down
-                   moveRole(0, 1, 2);
-                   approxSleep(2000);
-                   stopRole(0, 1);
-                } else if (randomDirection%4 == 3) {
-                    // Left
-                   moveRole(-1, 0, 2);
-                   approxSleep(2000);
-                   stopRole(-1, 0);
+                if (fightBossIndex == 0) {
+                    moveRole(0, -1, 2);
+                } else if (fightBossIndex < 5) {
+                    approxSleep(1000);
+                    summonSupporter();
+                } else if (fightBossIndex == 5) {
+                    stopRole(0, -1);
+                } else if (fightBossIndex < 17) {
+                    approxSleep(1000);
+                } else if (fightBossIndex == 17) {
+                    moveRole(0, 1, 2);
+                } else if (fightBossIndex < 22) {
+                    approxSleep(1000);
+                    summonSupporter();
+                } else if (fightBossIndex == 22) {
+                    stopRole(0, 1);
+                } else if (fightBossIndex < 34) {
+                    approxSleep(1000);
+                } else {
+                    fightBossIndex = 0;
+                    continue;
                 }
 
-                // Summon
-                summonSupporter();
+                ++fightBossIndex;
                 break;
             default:
                 break;
             }
 
-//            msleep(10);
         } catch(DFError e) {
             qDebug()<<"DFError"<<e;
         }

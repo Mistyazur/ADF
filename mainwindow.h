@@ -8,6 +8,11 @@ class MainWindow;
 }
 
 class DF;
+
+void MsgRedirection(QtMsgType type,
+                    const QMessageLogContext &context,
+                    const QString &msg);
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -19,7 +24,7 @@ public:
 public slots:
     void hotkeyStartTriggerd();
     void hotkeyStopTriggerd();
-
+    void logBrowserScroll();
 private:
     Ui::MainWindow *ui;
     DF *m_df;

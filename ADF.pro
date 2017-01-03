@@ -10,7 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ADF
 TEMPLATE = app
-DESTDIR = bin
+DESTDIR = ../ADF/Bin
 
 include(JSettings/JSettings.pri)
 include(Hotkey/Hotkey.pri)

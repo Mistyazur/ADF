@@ -3,7 +3,7 @@
 
 #include <QApplication>
 #include <QTextCodec>
-#include <QDebug>
+
 
 int main(int argc, char *argv[])
 {
@@ -12,14 +12,17 @@ int main(int argc, char *argv[])
     // Language
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));
 
+
     // Init dm plugin
-//    DmPrivate::dmPluginSetup(true);
+    DmPrivate::dmPluginSetup(true);
     if (!DmPrivate::dmPluginReg("FateCyn220d1daf6c3e4a132d4da742b5fc3691",
-                                QApplication::applicationDisplayName()))
+                                QApplication::applicationDisplayName(), "b2"))
         return 0;
 
     MainWindow w;
-//    w.show();
+    w.show();
+
+//    qInstallMessageHandler(MsgRedirection);
 
     return a.exec();
 }

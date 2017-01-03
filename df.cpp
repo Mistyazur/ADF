@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QTime>
 
+
 DF::DF()
 {
     // Default arrow keys
@@ -23,15 +24,19 @@ int DF::window()
 
 bool DF::bind(bool underground)
 {
+    bool ret = false;
+
     int hWnd = window();
-    qDebug()<<hWnd;
     if (0 == hWnd)
-        return false;
+        return ret;
 
     if (underground)
-        return m_dm.BindWindow(hWnd, "dx2", "dx", "dx", 0);
+        ret = m_dm.BindWindow(hWnd, "dx2", "dx", "dx", 101);
+    else
+        ret = m_dm.BindWindow(hWnd, "normal", "normal", "normal", 101);
 
-    return m_dm.BindWindow(hWnd, "normal", "normal", "normal", 0);
+    approxSleep(2000);
+    return ret;
 }
 
 void DF::unbind()
@@ -135,19 +140,22 @@ bool DF::reenterDungeon()
 {
     QVariant x, y;
 
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 1.0, 2, x, y) == -1)
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 0.9, 2, x, y) == -1)
         return false;
 
-    approxSleep(5000, 0.5);
+    approxSleep(3000, 0.5);
 
     // Pick trophies
     sendKey(Stroke, 189, 600);  // -
-//    sendKey(Down, "x", 2400);
-//    sendKey(Up, "x", 200);
-    approxSleep(3000, 0.3);
+    sendKey(Down, "x", 3000);
+    sendKey(Up, "x");
+
+    while (m_dm.FindPic(CLIENT_RECT, "sell.bmp", "000000", 1.0, 2, x, y) == -1) {
+        approxSleep(1000);
+    }
 
     // Reenter
-    sendKey(Stroke, 27, 600);
+    sendKey(Stroke, 27, 1500);
     sendKey(Stroke, 121, 200);
 
     return true;
@@ -200,13 +208,12 @@ bool DF::isSectionClear(bool isFirstSection)
 
     // Check clear effect
     if (m_dm.FindPic(600, 45, 800, 200, "dungeon_map_role.bmp", "000000", 0.9, 0, vx, vy) == -1) {
-        qDebug()<<"isSectionClear: Failed role on map";
+//        qDebug()<<"isSectionClear: Failed role on map";
         return false;
     }
 
     x = vx.toInt();
     y = vy.toInt();
-//    qDebug()<<x<<y;
 
     QString aveColor = m_dm.GetAveRGB(x-4, y+10, x-2, y+12)+"-0F0F0F";
     int aveColorCount = 50;
@@ -377,6 +384,7 @@ bool DF::navigate(int x, int y)
     QTime timer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
+    QVariant vx, vy;
 
     if (-1 == x)
         hArrived = true;
@@ -386,7 +394,7 @@ bool DF::navigate(int x, int y)
     while (!hArrived || !vArrived) {
         // Check if reached next section
         int blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
-        if (blackCount > 200) {
+        if (blackCount > 2000) {
             if (0 != hDirection)
                 stopRole(hDirection);
             if (0 != vDirection)
@@ -394,8 +402,9 @@ bool DF::navigate(int x, int y)
 
             for (int i=0; i<100; ++i) {
                 blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
-                if (blackCount <= 200)
+                if (blackCount <= 2000) {
                     return true;
+                }
                 msleep(100);
             }
             qDebug()<<"black screen too long";
@@ -407,13 +416,19 @@ bool DF::navigate(int x, int y)
             continue;
         }
 
-        if ((roleX == preRoleX) && (roleY == preRoleY)) {
+        qDebug()<<"Pos: "<<roleX<<roleY;
+
+        if (((hDirection != 0) || (vDirection != 0)) &&
+                ((roleX == preRoleX) && (roleY == preRoleY))) {
             // Situations against definition of stuck
             if (((hDirection > 0) && (roleX > x)) ||
                 ((hDirection < 0) && (roleX < x)) ||
                 ((vDirection > 0) && (roleY > y)) ||
-                ((vDirection < 0) && (roleX < y)))
+                ((vDirection < 0) && (roleY < y))) {
+                preRoleX = -1;
+                preRoleY = -1;
                 continue;
+            }
 
             if (timer.isNull()) {
                 // Get client color blocks
@@ -451,7 +466,6 @@ bool DF::navigate(int x, int y)
                     timer.restart();
                 }
             }
-
         } else {
             // Horizontal moving
             if (!hArrived) {
@@ -459,6 +473,10 @@ bool DF::navigate(int x, int y)
                 hAbsOffset = abs(hOffset);
 
                 if (hAbsOffset <= 5) {
+                    if (hDirection != 0) {
+                        stopRole(hDirection);
+                        hDirection = 0;
+                    }
                     hArrived = true;
                 } else if (hAbsOffset <= 20) {
                     if (hDirection == 0) {
@@ -486,6 +504,10 @@ bool DF::navigate(int x, int y)
                 vAbsOffset = abs(vOffset);
 
                 if (vAbsOffset <= 5) {
+//                    if (vDirection != 0) {
+//                        stopRole(0, vDirection);
+//                        vDirection = 0;
+//                    }
                     vArrived = true;
                 } else if (vAbsOffset <= 20) {
                     if (vDirection == 0) {

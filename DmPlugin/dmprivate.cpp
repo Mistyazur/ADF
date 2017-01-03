@@ -31,13 +31,16 @@ DmPrivate::~DmPrivate()
 void DmPrivate::dmPluginSetup(bool local)
 {
     if (local) {
-        SETDLLPATHW SetDllPathW = (SETDLLPATHW)GetProcAddress(LoadLibrary(L"DmReg.dll"),
+        QString regDLLPath = QApplication::applicationDirPath()+"/DmReg.dll";
+        QString pluginDLLPath = QApplication::applicationDirPath()+"/dm(mta).dll";
+
+        SETDLLPATHW SetDllPathW = (SETDLLPATHW)GetProcAddress(LoadLibrary(regDLLPath.toStdWString().c_str()),
                                                               "SetDllPathW");
-        SetDllPathW(L"dm.dll", 0);
+        SetDllPathW(pluginDLLPath.toStdWString().c_str(), 1);
     } else {
         QProcess proc;
 
-        proc.start("regsvr32 /s dm.dll");
+        proc.start("regsvr32 /s dm(mta).dll");
         proc.waitForStarted();
         proc.waitForFinished();
         proc.close();
