@@ -39,6 +39,7 @@ protected:
     void hideDropName(bool enable);
     void moveRole(int horizontal=0, int vertical=0, int speed=0);
     void stopRole(int horizontal=0, int vertical=0);
+    void linearMove(int speed=0, int hDir=0, int vDir=0);
 };
 
 #endif // DF_H

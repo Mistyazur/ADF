@@ -367,6 +367,55 @@ void DF::stopRole(int horizontal, int vertical)
     approxSleep(100);
 }
 
+void DF::linearMove(int speed, int hDir, int vDir)
+// speed :  0 - relese direction key
+//			1 - click direction key
+//          2 - hold direction key
+//          3 - double click then hold direction key
+{
+    static int hHeldKey = 0;
+    static int vHeldKey = 0;
+
+    // Stop first
+    if (hHeldKey) {
+        sendKey(Up, hHeldKey);
+        hHeldKey = 0;
+    }
+    if (vHeldKey) {
+        sendKey(Up, vHeldKey);
+        vHeldKey = 0;
+    }
+
+
+    if (speed == 1) {
+        if (hDir)
+            sendKey(Stroke, (hDir > 0) ? m_arrowR : m_arrowL);
+        if (vDir)
+            sendKey(Stroke, (vDir > 0) ? m_arrowD : m_arrowU);
+    } else {
+        if (hDir)
+            hHeldKey = (hDir > 0) ? m_arrowR : m_arrowL;
+        if (vDir)
+            vHeldKey = (vDir > 0) ? m_arrowD : m_arrowU;
+
+        if (speed == 2) {
+            if (hHeldKey)
+                sendKey(Down, hHeldKey);
+            if (vHeldKey)
+                sendKey(Down, vHeldKey);
+        } else if (speed == 3) {
+            if (hHeldKey) {
+                sendKey(Stroke, hHeldKey, 30);
+                sendKey(Down, hHeldKey);
+            }
+            approxSleep(30);
+            if (vHeldKey) {
+                sendKey(Down, vHeldKey);
+            }
+        }
+    }
+}
+
 bool DF::navigate(int x, int y)
 {
     bool hArrived = false;
@@ -392,6 +441,7 @@ bool DF::navigate(int x, int y)
         vArrived = true;
 
     while (!hArrived || !vArrived) {
+
         // Check if reached next section
         int blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
         if (blackCount > 2000) {
@@ -407,7 +457,6 @@ bool DF::navigate(int x, int y)
                 }
                 msleep(100);
             }
-            qDebug()<<"black screen too long";
         }
 
         // Get position
@@ -415,8 +464,7 @@ bool DF::navigate(int x, int y)
 //            qDebug()<<"Failed get coords";
             continue;
         }
-
-        qDebug()<<"Pos: "<<roleX<<roleY;
+//        qDebug()<<"Pos: "<<roleX<<roleY;
 
         if (((hDirection != 0) || (vDirection != 0)) &&
                 ((roleX == preRoleX) && (roleY == preRoleY))) {
