@@ -24,9 +24,11 @@ protected:
     
     // Common functions
     void setArrowKey(int left, int up, int right, int down);
+    bool isBlackScreen(int x1, int y1, int x2, int y2);
     void switchRole(int index);
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y);
+
 
     // Dungeon functions
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
@@ -34,12 +36,10 @@ protected:
     bool summonSupporter();
     void buff();
     bool isSectionClear(bool isFirstSection);
-    bool navigate(int x=-1, int y=-1);
+    bool navigate(int x, int y, bool end);
     bool getRoleCoords(int &x, int &y);
     void hideDropName(bool enable);
-    void moveRole(int horizontal=0, int vertical=0, int speed=0);
-    void stopRole(int horizontal=0, int vertical=0);
-    void linearMove(int hDir, int vDir, int speed=0);
+    void moveRole(int hDir, int vDir, int speed=0);
 };
 
 #endif // DF_H

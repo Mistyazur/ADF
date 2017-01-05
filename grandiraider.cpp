@@ -22,14 +22,13 @@ void GrandiRaider::run()
     QVariantList pathList = js.value("GrandiPath").toList();
     Flow flow = MoveToDungeon;
     int sectionIndex = 0;
-    int fightBossIndex = 0;
+    int fightingIndex = 0;
 
     if (!bind(false))
         return;
 
     while (true) {
         try {
-//            qDebug()<<"Flow: "<<flow<<sectionIndex;
             switch (flow) {
             case MoveToDungeon:
                 sectionIndex = 0;
@@ -49,19 +48,19 @@ void GrandiRaider::run()
                         // Get close to generator
                         moveRole(0, 1, 2);
                         msleep(500);
-                        stopRole(0, 1);
+                        moveRole(0, 1);
                         moveRole(-1, 0, 3);
                         msleep(600);
-                        stopRole(-1, 0);
+                        moveRole(-1, 0);
                     } else if (sectionIndex == 5) {
                         // Avoid damage
                         moveRole(0, 1, 2);
                         approxSleep(2000, 0.3);
-                        stopRole(0, 1);
+                        moveRole(0, 1);
                     }
                 } else {
                     flow = FightBoss;
-                    fightBossIndex = 0;
+                    fightingIndex = 0;
                 }
                 break;
             case Fight:
@@ -89,71 +88,67 @@ void GrandiRaider::run()
             case Navigate:
                 if (sectionIndex < pathList.count()) {
                     bool success = false;
-                    const QVariant &sectionPath = pathList.at(sectionIndex++);
-                    foreach(const QVariant &positionList, sectionPath.toList()) {
-                        QVariantList position = positionList.toList();
-                        if (position.count() == 2) {
-                            if (navigate(position.first().toInt(), position.last().toInt())) {
-                                // SHow drop's name
-                                hideDropName(false);
-
-                                // Pre-fight
-                                success = true;
-                                flow = PreFight;
-                                break;
-                            }
-                            approxSleep(100);
+                    bool end = false;
+                    const QVariantList &sectionPathList = pathList.at(sectionIndex++).toList();
+                    for (int i = 0; i < sectionPathList.count(); ++i) {
+                        QVariantList &position = sectionPathList.at(i).toList();
+                        if (position.count() < 2) {
+                            qDebug()<<"Path is not acceptable";
+                            return;
                         }
+                        end = (i == (sectionPathList.count() - 1)) ? true : false;
+                        success = navigate(position.first().toInt(), position.last().toInt(), end);
+                        if (success) {
+                            // SHow drop's name
+                            hideDropName(false);
+                            // Pre-fight
+                            flow = PreFight;
+                            break;
+                        } else {
+                            if (end) {
+                                qDebug()<<"Navigate error";
+                            }
+                        }
+                        approxSleep(100);
                     }
-
-                    if (!success)
-                        qDebug()<<"Failed to find gate";
                 }
-
                 break;
             case FightBoss:
-
                 // Check dungeon status
                 if (reenterDungeon()) {
-                    if ((fightBossIndex < 5) &&
-                            (fightBossIndex > 0)) {
-                        stopRole(0, -1);
-                    } else  if ((fightBossIndex < 22) &&
-                            (fightBossIndex > 17)) {
-                        stopRole(0, 1);
-                    }
+                    moveRole(1, 1);
 
                     sectionIndex = 0;
                     flow = PreFight;
 
-                    approxSleep(10000, 0.3);
+                    approxSleep(10000);
                     continue;
                 }
 
-                if (fightBossIndex == 0) {
+                if (fightingIndex == 0) {
                     moveRole(0, -1, 2);
-                } else if (fightBossIndex < 5) {
+                } else if (fightingIndex < 5) {
                     approxSleep(1000);
                     summonSupporter();
-                } else if (fightBossIndex == 5) {
-                    stopRole(0, -1);
-                } else if (fightBossIndex < 17) {
+                } else if (fightingIndex == 5) {
+                    moveRole(0, -1);
+                } else if (fightingIndex < 17) {
                     approxSleep(1000);
-                } else if (fightBossIndex == 17) {
+                } else if (fightingIndex == 17) {
                     moveRole(0, 1, 2);
-                } else if (fightBossIndex < 22) {
+                } else if (fightingIndex < 22) {
                     approxSleep(1000);
                     summonSupporter();
-                } else if (fightBossIndex == 22) {
-                    stopRole(0, 1);
-                } else if (fightBossIndex < 34) {
+                } else if (fightingIndex == 22) {
+                    moveRole(0, 1);
+                } else if (fightingIndex < 34) {
                     approxSleep(1000);
                 } else {
-                    fightBossIndex = 0;
+                    fightingIndex = 0;
                     continue;
                 }
 
-                ++fightBossIndex;
+                ++fightingIndex;
                 break;
             default:
                 break;
