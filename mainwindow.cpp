@@ -50,10 +50,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_started = false;
 
-    Hotkey *startHotkey = new Hotkey(QKeySequence("Ins"),this);
+    Hotkey *startHotkey = new Hotkey(QKeySequence("Ctrl+Ins"),this);
     connect(startHotkey,SIGNAL(activated()),this,SLOT(hotkeyStartTriggerd()));
 
-    Hotkey *stopHotkey = new Hotkey(QKeySequence("Del"),this);
+    Hotkey *stopHotkey = new Hotkey(QKeySequence("Ctrl+Del"),this);
     connect(stopHotkey,SIGNAL(activated()),this,SLOT(hotkeyStopTriggerd()));
 }
 

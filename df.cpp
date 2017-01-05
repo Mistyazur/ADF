@@ -145,12 +145,14 @@ EnterDungeon:
     return true;
 }
 
-bool DF::reenterDungeon()
+bool DF::dungeonEnd()
 {
     QVariant x, y;
 
     if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 0.9, 2, x, y) == -1)
         return false;
+
+    moveRole(1, 1);
 
     approxSleep(3000, 0.5);
 
@@ -321,62 +323,7 @@ void DF::hideDropName(bool enable)
     }
 }
 
-void DF::moveRole(int horizontal, int vertical, int speed)
-// speed :  1 - click direction key
-//          2 - hold direction key
-//          3 - double click then hold direction key
-{
-    int hKeyHolding = 0;
-    int vKeyHolding = 0;
-
-    if (0 != horizontal) {
-        hKeyHolding = (horizontal > 0) ? m_arrowR : m_arrowL;
-        switch (speed) {
-        case 1:
-            sendKey(Stroke, hKeyHolding);
-            break;
-        case 2:
-            sendKey(Down, hKeyHolding);
-            break;
-        case 3:
-            sendKey(Stroke, hKeyHolding, 30);
-            sendKey(Down, hKeyHolding);
-            break;
-        }
-    }
-
-    if (0 != vertical) {
-        vKeyHolding = (vertical > 0) ? m_arrowD : m_arrowU;
-        switch (speed) {
-        case 1:
-            sendKey(Stroke, vKeyHolding);
-            break;
-        case 2:
-        case 3:
-            sendKey(Down, vKeyHolding);
-            break;
-        }
-    }
-}
-
-void DF::stopRole(int horizontal, int vertical)
-{
-    if (horizontal > 0) {
-        sendKey(Up, m_arrowR, 10);
-    } else if (horizontal < 0) {
-        sendKey(Up, m_arrowL, 10);
-    }
-
-    if (vertical > 0) {
-        sendKey(Up, m_arrowD, 10);
-    } else if (vertical < 0) {
-        sendKey(Up, m_arrowU, 10);
-    }
-
-    approxSleep(100);
-}
-
-void DF::linearMove(int hDir, int vDir, int speed)
+void DF::moveRole(int hDir, int vDir, int speed)
 // speed :  0 - relese direction key if direction is zero
 //			1 - click direction key
 //          2 - hold direction key
@@ -387,11 +334,11 @@ void DF::linearMove(int hDir, int vDir, int speed)
 
 
     if (speed == 0) {
-        if ((hDir == 0) && hHeldKey) {
+        if (hDir && hHeldKey) {
             sendKey(Up, hHeldKey);
             hHeldKey = 0;
         }
-        if ((vDir == 0) && vHeldKey) {
+        if (vDir && vHeldKey) {
             sendKey(Up, vHeldKey);
             vHeldKey = 0;
         }
@@ -413,32 +360,38 @@ void DF::linearMove(int hDir, int vDir, int speed)
                 sendKey(Down, vHeldKey);
         } else if (speed == 3) {
             if (hHeldKey) {
-                sendKey(Stroke, hHeldKey, 30);
-                sendKey(Down, hHeldKey);
+                sendKey(Stroke, hHeldKey, 20);
+                sendKey(Down, hHeldKey, 20);
             }
-            approxSleep(30);
             if (vHeldKey) {
+                if (!hHeldKey) {
+                    sendKey(Stroke, m_arrowL, 20);
+                    sendKey(Stroke, m_arrowL, 20);
+                    sendKey(Stroke, m_arrowR, 20);
+                    sendKey(Down, m_arrowR, 20);
+                }
                 sendKey(Down, vHeldKey);
+                if (!hHeldKey) {
+                    sendKey(Up, m_arrowR);
+                }
             }
         }
     }
 }
 
-/*
-bool DF::navigate(int x, int y)
+bool DF::navigate(int x, int y, bool end)
 {
+    int checkBlackScreenCount = 0;
     bool hArrived = false;
     bool vArrived = false;
-    int hDirection = 0;
-    int vDirection = 0;
-    int roleX = -1;
-    int roleY = -1;
     int preRoleX = -1;
     int preRoleY = -1;
-    int vOffset = 0;
-    int vAbsOffset = 0;
-    int hOffset = 0;
-    int hAbsOffset = 0;
+    int roleX = -1;
+    int roleY = -1;
+    int hPreDir = 0;
+    int vPreDir = 0;
+    int hDir = 0;
+    int vDir = 0;
     QTime timer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
@@ -449,190 +402,36 @@ bool DF::navigate(int x, int y)
     if (-1 == y)
         vArrived = true;
 
-    while (!hArrived || !vArrived) {
-
-        // Check if reached next section
-        int blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
-        if (blackCount > 2000) {
-            if (0 != hDirection)
-                stopRole(hDirection);
-            if (0 != vDirection)
-                stopRole(0, vDirection);
-
-            for (int i=0; i<100; ++i) {
-                blackCount = m_dm.GetColorNum(0, 0, 50, 50, "000000", 1.0);
-                if (blackCount <= 2000) {
-                    return true;
-                }
-                msleep(100);
-            }
-        }
-
-        // Get position
-        if (!getRoleCoords(roleX, roleY)) {
-//            qDebug()<<"Failed get coords";
-            continue;
-        }
-//        qDebug()<<"Pos: "<<roleX<<roleY;
-
-        if (((hDirection != 0) || (vDirection != 0)) &&
-                ((roleX == preRoleX) && (roleY == preRoleY))) {
-            // Situations against definition of stuck
-            if (((hDirection > 0) && (roleX > x)) ||
-                ((hDirection < 0) && (roleX < x)) ||
-                ((vDirection > 0) && (roleY > y)) ||
-                ((vDirection < 0) && (roleY < y))) {
-                preRoleX = -1;
-                preRoleY = -1;
-                continue;
-            }
-
-            if (timer.isNull()) {
-                // Get client color blocks
-                for (int i=0; i<10; ++i) {
-                    uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
-                    memcpy(preClientBlocks[i], data, 6400);
-                }
-
-                // Start timer
-                timer.start();
-            } else {
-                // Trigger checking every 300 msecs
-                if (timer.elapsed() > 100) {
-                    // Get client color blocks
-                    for (int i=0; i<10; ++i) {
-                        uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
-                        memcpy(clientBlocks[i], data, 6400);
-                    }
-
-                    // Check if role is stucked
-                    for (int i=0; i<10; ++i) {
-                        if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
-                            if (0 != hDirection)
-                                stopRole(hDirection);
-                            if (0 != vDirection)
-                                stopRole(0, vDirection);
-                            return false;
-                        }
-                    }
-
-                    // Save client blocks for checking next time
-                    memcpy(preClientBlocks, clientBlocks, 64000);
-
-                    // Restart timer
-                    timer.restart();
-                }
-            }
-        } else {
-            // Horizontal moving
-            if (!hArrived) {
-                hOffset = x-roleX;
-                hAbsOffset = abs(hOffset);
-
-                if (hAbsOffset <= 5) {
-                    if (hDirection != 0) {
-                        stopRole(hDirection);
-                        hDirection = 0;
-                    }
-                    hArrived = true;
-                } else if (hAbsOffset <= 20) {
-                    if (hDirection == 0) {
-                        moveRole(hOffset, 0, 1);
-                    } else {
-                        stopRole(hDirection);
-                        hDirection = 0;
-                    }
-                } else {
-                    if (hDirection == 0) {
-                        hDirection = hOffset;
-                        moveRole(hDirection, 0, 3);
-                    } else {
-                        if (abs(hOffset+hDirection) != hAbsOffset+abs(hDirection)) {
-                            stopRole(hDirection);
-                            hDirection = 0;
-                        }
-                    }
-                }
-            }
-
-            // Vertical moving
-            if (!vArrived) {
-                vOffset = y-roleY;
-                vAbsOffset = abs(vOffset);
-
-                if (vAbsOffset <= 5) {
-//                    if (vDirection != 0) {
-//                        stopRole(0, vDirection);
-//                        vDirection = 0;
-//                    }
-                    vArrived = true;
-                } else if (vAbsOffset <= 20) {
-                    if (vDirection == 0) {
-                        moveRole(0, vOffset, 1);
-                    } else {
-                        stopRole(0, vDirection);
-                        vDirection = 0;
-                    }
-                } else {
-                    if (vDirection == 0) {
-                        vDirection = vOffset;
-                        moveRole(0, vDirection, 2);
-                    } else {
-                        if (abs(vOffset+vDirection) != vAbsOffset+abs(vDirection)) {
-                            stopRole(0, vDirection);
-                            vDirection = 0;
-                        }
-                    }
-                }
-            }
-
-            // Save position as previous
-            preRoleX = roleX;
-            preRoleY = roleY;
-        }
-
-        msleep(1);
-    }
-
-    return false;
-}
-*/
-
-bool DF::navigate(int x, int y)
-{
-    bool hArrived = false;
-    bool vArrived = false;
-    int hDirection = 0;
-    int vDirection = 0;
-    int roleX = -1;
-    int roleY = -1;
-    int preRoleX = -1;
-    int preRoleY = -1;
-    int vOffset = 0;
-    int vAbsOffset = 0;
-    int hOffset = 0;
-    int hAbsOffset = 0;
-    QTime timer;
-    uchar preClientBlocks[10][6400] = {0};
-    uchar clientBlocks[10][6400] = {0};
-    QVariant vx, vy;
-
-    if (-1 == x)
-        hArrived = true;
-    if (-1 == y)
-        vArrived = true;
-
-    while (!hArrived || !vArrived) {
+    while (true) {
+//    while (!hArrived || !vArrived) {
 
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
+            // Stop
+            moveRole(1, 1);
+            hPreDir = vPreDir = 0;
+
+            // Wait until not black screen
             for (int i=0; i<100; ++i) {
                 msleep(100);
                 if (!isBlackScreen(0, 0, 50, 50)) {
-                    linearMove(0, 0);
                     return true;
                 }
             }
+        }
+
+        // Check arrival
+        if (hArrived && vArrived) {
+            // Check black screen for secs
+            if (end) {
+                if (checkBlackScreenCount++ < 200) {
+                    msleep(50);
+                    continue;
+                }
+            }
+
+            // end
+            break;
         }
 
         // Get position
@@ -642,13 +441,13 @@ bool DF::navigate(int x, int y)
         }
 //        qDebug()<<"Pos: "<<roleX<<roleY;
 
-        if (((hDirection != 0) || (vDirection != 0))  // Moving
+        if (((hPreDir != 0) || (vPreDir != 0))  // Moving
             && ((roleX == preRoleX) && (roleY == preRoleY))) {
             // Situations against definition of stuck
-            if (((hDirection > 0) && (roleX > x)) ||
-                ((hDirection < 0) && (roleX < x)) ||
-                ((vDirection > 0) && (roleY > y)) ||
-                ((vDirection < 0) && (roleY < y))) {
+            if (((hPreDir > 0) && (roleX > x)) ||
+                ((hPreDir < 0) && (roleX < x)) ||
+                ((vPreDir > 0) && (roleY > y)) ||
+                ((vPreDir < 0) && (roleY < y))) {
                 preRoleX = -1;
                 preRoleY = -1;
                 continue;
@@ -664,7 +463,7 @@ bool DF::navigate(int x, int y)
                 // Start timer
                 timer.start();
             } else {
-                // Trigger checking every 300 msecs
+                // Trigger checking every 100 msecs
                 if (timer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
@@ -675,10 +474,8 @@ bool DF::navigate(int x, int y)
                     // Check if role is stucked
                     for (int i=0; i<10; ++i) {
                         if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
-                            if (0 != hDirection)
-                                stopRole(hDirection);
-                            if (0 != vDirection)
-                                stopRole(0, vDirection);
+                            moveRole(1, 1);
+                            hPreDir = vPreDir = 0;
                             return false;
                         }
                     }
@@ -691,32 +488,29 @@ bool DF::navigate(int x, int y)
                 }
             }
         } else {
+
             // Horizontal moving
             if (!hArrived) {
-                hOffset = x-roleX;
-                hAbsOffset = abs(hOffset);
-
-                if (hAbsOffset <= 5) {
-                    if (hDirection != 0) {
-                        stopRole(hDirection);
-                        hDirection = 0;
-                    }
+                hDir = x-roleX;
+                if (abs(hDir) <= 5) {
+                    moveRole(1, 0);
+                    hPreDir = 0;
                     hArrived = true;
-                } else if (hAbsOffset <= 20) {
-                    if (hDirection == 0) {
-                        moveRole(hOffset, 0, 1);
+                } else if (abs(hDir) <= 20) {
+                    if (hPreDir == 0) {
+                        moveRole(hDir, 0, 1);
                     } else {
-                        stopRole(hDirection);
-                        hDirection = 0;
+                        moveRole(1, 0);
+                        hPreDir = 0;
                     }
                 } else {
-                    if (hDirection == 0) {
-                        hDirection = hOffset;
-                        moveRole(hDirection, 0, 3);
+                    if (hPreDir == 0) {
+                        moveRole(hDir, 0, 3);
+                        hPreDir = hDir;
                     } else {
-                        if (abs(hOffset+hDirection) != hAbsOffset+abs(hDirection)) {
-                            stopRole(hDirection);
-                            hDirection = 0;
+                        if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
+                            moveRole(1, 0);
+                            hPreDir = 0;
                         }
                     }
                 }
@@ -724,30 +518,26 @@ bool DF::navigate(int x, int y)
 
             // Vertical moving
             if (!vArrived) {
-                vOffset = y-roleY;
-                vAbsOffset = abs(vOffset);
-
-                if (vAbsOffset <= 5) {
-//                    if (vDirection != 0) {
-//                        stopRole(0, vDirection);
-//                        vDirection = 0;
-//                    }
+                vDir = y-roleY;
+                if (abs(vDir) <= 5) {
+                    moveRole(0, 1);
+                    vDir = 0;
                     vArrived = true;
-                } else if (vAbsOffset <= 20) {
-                    if (vDirection == 0) {
-                        moveRole(0, vOffset, 1);
+                } else if (abs(vDir) <= 20) {
+                    if (vPreDir == 0) {
+                        moveRole(0, vDir, 1);
                     } else {
-                        stopRole(0, vDirection);
-                        vDirection = 0;
+                        moveRole(0, 1);
+                        vDir = 0;
                     }
                 } else {
-                    if (vDirection == 0) {
-                        vDirection = vOffset;
-                        moveRole(0, vDirection, 2);
+                    if (vPreDir == 0) {
+                        moveRole(0, vDir, 3);
+                        vPreDir = vDir;
                     } else {
-                        if (abs(vOffset+vDirection) != vAbsOffset+abs(vDirection)) {
-                            stopRole(0, vDirection);
-                            vDirection = 0;
+                        if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
+                            moveRole(0, 1);
+                            vDir = 0;
                         }
                     }
                 }
