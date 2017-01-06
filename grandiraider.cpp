@@ -66,10 +66,12 @@ void GrandiRaider::run()
             case Fight:
                 // Check section state
                 if (isSectionClear((sectionIndex == 0))) {
-                    qDebug()<<"Section is clear";
+//                    qDebug()<<"Section is clear";
 
                     // Hide drop's name
                     hideDropName(true);
+
+                    approxSleep(500);
 
                     flow = Navigate;
                     break;
@@ -82,14 +84,14 @@ void GrandiRaider::run()
                     sendKey(Down, m_arrowR, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-                    sendKey(Up, m_arrowR, 100);
-                } else {
                     sendKey(Up, m_arrowR, 30);
+                } else {
+                    sendKey(Stroke, m_arrowR, 30);
                     sendKey(Stroke, "x", 30);
                     sendKey(Down, m_arrowL, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-                    sendKey(Up, m_arrowL, 100);
+                    sendKey(Up, m_arrowL, 30);
                 }
                 break;
             case Navigate:
@@ -114,6 +116,7 @@ void GrandiRaider::run()
                         } else {
                             if (end) {
                                 qDebug()<<"Navigate error";
+                                m_dm.Beep(1000, 10000);
                             }
                         }
                         approxSleep(100);
@@ -127,7 +130,7 @@ void GrandiRaider::run()
                     sectionIndex = 0;
                     flow = PreFight;
 
-                    approxSleep(10000);
+                    approxSleep(12000);
                     continue;
                 }
 
