@@ -24,7 +24,6 @@ public:
 public slots:
     void hotkeyStartTriggerd();
     void hotkeyStopTriggerd();
-    void logBrowserScroll();
 private:
     Ui::MainWindow *ui;
     DF *m_df;

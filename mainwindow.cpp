@@ -5,38 +5,9 @@
 
 #include "Hotkey/hotkey.h"
 
-#include <QMutex>
-#include <QTextCursor>
 #include <QDebug>
 
-QTextBrowser *g_logBrowser = nullptr;
 
-
-void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    static QMutex mutex;
-    mutex.lock();
-
-    if (g_logBrowser == nullptr)
-        return;
-
-    QByteArray localMsg = msg.toLocal8Bit();
-    QString msgStr = QString("%1\t%2")
-            .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
-            .arg(localMsg.constData());
-
-    switch (type) {
-    case QtDebugMsg:
-    case QtInfoMsg:
-    case QtWarningMsg:
-    case QtCriticalMsg:
-    case QtFatalMsg:
-        g_logBrowser->append(msgStr);
-        break;
-    }
-
-    mutex.unlock();
-}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,9 +15,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle("L");
-
-    g_logBrowser = ui->textBrowser;
-    connect(ui->textBrowser, SIGNAL(textChanged()), this, SLOT(logBrowserScroll()));
 
     m_started = false;
 
@@ -84,12 +52,4 @@ void MainWindow::hotkeyStopTriggerd()
         m_df->terminate();
         m_df->deleteLater();
     }
-
-}
-
-void MainWindow::logBrowserScroll()
-{
-    QTextCursor cursor =  ui->textBrowser->textCursor();
-    cursor.movePosition(QTextCursor::End);
-    ui->textBrowser->setTextCursor(cursor);
 }

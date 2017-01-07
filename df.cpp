@@ -306,23 +306,6 @@ bool DF::getRoleCoords(int &x, int &y)
     return true;
 }
 
-void DF::hideDropName(bool enable)
-{
-    static bool enabled = false;
-
-    if (enabled) {
-        if (!enable) {
-            sendKey(Stroke, ",", 300);
-            enabled = false;
-        }
-    } else {
-        if (enable) {
-            sendKey(Stroke, ",", 300);
-            enabled = true;
-        }
-    }
-}
-
 void DF::moveRole(int hDir, int vDir, int speed)
 // speed :  0 - relese direction key if direction is zero
 //			1 - click direction key
@@ -403,8 +386,6 @@ bool DF::navigate(int x, int y, bool end)
         vArrived = true;
 
     while (true) {
-//    while (!hArrived || !vArrived) {
-
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
             // Stop
@@ -436,7 +417,11 @@ bool DF::navigate(int x, int y, bool end)
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
-//            qDebug()<<"Failed get coords";
+            // Assume it's covered by trophy's name
+            if (m_dm.FindColorBlock(CLIENT_RECT, "FFFFFF|68D5ED|B36BFF|FF00FF|FF7800", 1.0, 60, 30, 10, vx, vy)) {
+                // Hide trophies' names
+                sendKey(Stroke, ",", 300);
+            }
             continue;
         }
 //        qDebug()<<"Pos: "<<roleX<<roleY;

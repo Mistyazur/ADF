@@ -66,15 +66,16 @@ void GrandiRaider::run()
             case Fight:
                 // Check section state
                 if (isSectionClear((sectionIndex == 0))) {
-//                    qDebug()<<"Section is clear";
-
-                    // Hide drop's name
-                    hideDropName(true);
-
-                    approxSleep(500);
-
-                    flow = Navigate;
-                    break;
+                    if (sectionIndex == 0) {
+                        flow = Navigate;
+                        break;
+                    } else {
+                        sleep(1000);
+                        if (isSectionClear(false)) {
+                            flow = Navigate;
+                            break;
+                        }
+                    }
                 }
 
                 // Destory generator
@@ -108,8 +109,6 @@ void GrandiRaider::run()
                         end = (i == (sectionPathList.count() - 1)) ? true : false;
                         success = navigate(position.first().toInt(), position.last().toInt(), end);
                         if (success) {
-                            // SHow drop's name
-                            hideDropName(false);
                             // Pre-fight
                             flow = PreFight;
                             break;

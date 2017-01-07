@@ -3,10 +3,34 @@
 
 #include <QApplication>
 #include <QTextCodec>
+#include <QMutex>
 
+void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    static QMutex mutex;
+    mutex.lock();
+
+    QByteArray localMsg = msg.toLocal8Bit();
+    QString msgStr = QString("%1\t%2")
+            .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
+            .arg(localMsg.constData());
+
+    switch (type) {
+    case QtDebugMsg:
+    case QtInfoMsg:
+    case QtWarningMsg:
+    case QtCriticalMsg:
+    case QtFatalMsg:
+        break;
+    }
+
+    mutex.unlock();
+}
 
 int main(int argc, char *argv[])
 {
+//    qInstallMessageHandler(MsgRedirection);
+
     QApplication a(argc, argv);
 
     // Language
@@ -21,8 +45,6 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
-
-//    qInstallMessageHandler(MsgRedirection);
 
     return a.exec();
 }

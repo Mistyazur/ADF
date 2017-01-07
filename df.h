@@ -29,17 +29,15 @@ protected:
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y);
 
-
     // Dungeon functions
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool dungeonEnd();
     bool summonSupporter();
     void buff();
     bool isSectionClear(bool isFirstSection);
-    bool navigate(int x, int y, bool end);
     bool getRoleCoords(int &x, int &y);
-    void hideDropName(bool enable);
     void moveRole(int hDir, int vDir, int speed=0);
+    bool navigate(int x, int y, bool end);
 };
 
 #endif // DF_H
