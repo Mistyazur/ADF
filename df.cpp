@@ -161,13 +161,23 @@ bool DF::dungeonEnd()
     sendKey(Down, "x", 3000);
     sendKey(Up, "x");
 
-    while (m_dm.FindPic(CLIENT_RECT, "sell.bmp", "000000", 1.0, 2, x, y) == -1) {
+    while (m_dm.FindPic(CLIENT_RECT, "sell.bmp", "000000", 1.0, 0, x, y) == -1) {
         approxSleep(1000);
     }
 
     // Reenter
     sendKey(Stroke, 27, 1500);
     sendKey(Stroke, 121, 200);
+
+    // Wait
+    for (int i = 0; i < 20; ++i) {
+        if (m_dm.FindPic(CLIENT_RECT, "dungeon_map_role.bmp", "000000", 0.9, 2, x, y) != -1) {
+            return true;
+        }
+        msleep(1000);
+    }
+
+    qDebug()<<"error: restart game";
 
     return true;
 }
@@ -191,6 +201,73 @@ void DF::buff()
     sendKey(Stroke, m_arrowD, 50);
     sendKey(Stroke, m_arrowU, 50);
     sendKey(Stroke, 32, 1000);
+}
+
+bool DF::isSectionClear(int x1, int y1, int x2, int y2,
+                         const QString &pic,
+                         int timeout)
+{
+    static QTime *t = nullptr;
+
+    if (timeout) {
+        if (!t) {
+            t = new QTime();
+            t->start();
+        } else {
+            if (t->elapsed() > timeout) {
+                delete t;
+                t = nullptr;
+                return true;
+            }
+        }
+    } else {
+        if (t) {
+            delete t;
+            t = nullptr;
+        }
+    }
+
+    QVariant vx, vy;
+    if (m_dm.FindPic(x1, y1, x2, y2, pic, "101010", 1.0, 0, vx, vy) != -1)
+        return true;
+
+//    int checkCount = 0;
+//    int preDarkCount = 0;
+//    int preBrightCount = 0;
+//    int darkCount = 0;
+//    int brightCount = 0;
+//    int preDarkDelta = 0;
+//    int preBrightDelta = 0;
+//    int darkDelta = 0;
+//    int brightDelta = 0;
+
+//    for (int i = 0; i < 50; ++i) {
+//        darkCount = m_dm.GetColorNum(x1, y1, x2, y2, "122e5b-101010", 1.0);
+//        brightCount = m_dm.GetColorNum(x1, y1, x2, y2, "216979-101010", 1.0);
+//        darkDelta = darkCount - preDarkCount;
+//        brightDelta = brightCount - preBrightCount;
+
+//        if ((darkDelta == 0) || (brightDelta == 0))
+//            continue;
+
+//        if (abs(darkDelta + brightDelta) != (abs(darkDelta) + abs(brightDelta))) {
+//            qDebug()<<darkCount<<brightCount<<darkDelta<<brightDelta<<checkCount;
+//            if (checkCount == 0) {
+//                preDarkDelta = darkDelta;
+//                preBrightDelta = brightDelta;
+//            } else {
+//                if ((darkDelta == preDarkDelta) && (brightDelta == preBrightDelta))
+//                    return true;
+//            }
+//            ++checkCount;
+//        }
+
+//        preDarkCount = darkCount;
+//        preBrightCount = brightCount;
+//        msleep(10);
+//    }
+
+    return false;
 }
 
 bool DF::isSectionClear(bool isFirstSection)
@@ -219,7 +296,6 @@ bool DF::isSectionClear(bool isFirstSection)
 
     // Check clear effect
     if (m_dm.FindPic(600, 45, 800, 200, "dungeon_map_role.bmp", "000000", 0.9, 0, vx, vy) == -1) {
-//        qDebug()<<"isSectionClear: Failed role on map";
         return false;
     }
 

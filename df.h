@@ -34,7 +34,11 @@ protected:
     bool dungeonEnd();
     bool summonSupporter();
     void buff();
+    bool isSectionClear(int x1, int y1, int x2, int y2,
+                             const QString &pic,
+                             int timeout=0);
     bool isSectionClear(bool isFirstSection);
+//    bool isSectionClear(bool isFirstSection);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int vDir, int speed=0);
     bool navigate(int x, int y, bool end);

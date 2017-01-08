@@ -6,6 +6,8 @@
 #include <QApplication>
 #include <QString>
 
+#define GRANDI_MAP_RECT 720, 50, 795, 105
+
 GrandiRaider::GrandiRaider()
 {
     setResourcePath("Images");
@@ -26,6 +28,13 @@ void GrandiRaider::run()
 
     if (!bind(false))
         return;
+
+
+//    while (true) {
+
+//        qDebug()<<isSectionClear(false);
+//        msleep(100);
+//    }
 
     while (true) {
         try {
@@ -65,34 +74,31 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear((sectionIndex == 0))) {
-                    if (sectionIndex == 0) {
-                        flow = Navigate;
-                        break;
-                    } else {
-                        sleep(1000);
-                        if (isSectionClear(false)) {
-                            flow = Navigate;
-                            break;
-                        }
-                    }
+                if (isSectionClear(sectionIndex == 0)) {
+//                if (isSectionClear(GRANDI_MAP_RECT,
+//                                   (sectionIndex == pathList.count() - 1) ? "dungeon_section_clear_boss.bmp" : "dungeon_section_clear.bmp",
+//                                   (sectionIndex == 0) ? 30000 : 0)) {
+                    qDebug()<<"isSectionClear";
+                    msleep(500);
+                    flow = Navigate;
+                    break;
                 }
 
                 // Destory generator
                 if (sectionIndex == 4) {
                     sendKey(Stroke, m_arrowL, 30);
-                    sendKey(Stroke, "x", 30);
-                    sendKey(Down, m_arrowR, 30);
+//                    sendKey(Stroke, "x", 30);
+//                    sendKey(Down, m_arrowR, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-                    sendKey(Up, m_arrowR, 30);
+//                    sendKey(Up, m_arrowR, 30);
                 } else {
-                    sendKey(Stroke, m_arrowR, 30);
-                    sendKey(Stroke, "x", 30);
-                    sendKey(Down, m_arrowL, 30);
+//                    sendKey(Stroke, m_arrowR, 30);
+//                    sendKey(Stroke, "x", 30);
+//                    sendKey(Down, m_arrowL, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-                    sendKey(Up, m_arrowL, 30);
+//                    sendKey(Up, m_arrowL, 30);
                 }
                 break;
             case Navigate:
@@ -125,11 +131,8 @@ void GrandiRaider::run()
             case FightBoss:
                 // Check dungeon status
                 if (dungeonEnd()) {
-
                     sectionIndex = 0;
                     flow = PreFight;
-
-                    approxSleep(12000);
                     continue;
                 }
 
