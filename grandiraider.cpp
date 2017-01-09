@@ -22,19 +22,17 @@ void GrandiRaider::run()
 {
     JSettings js(QApplication::applicationDirPath()+"/ADF.json");
     QVariantList pathList = js.value("GrandiPath").toList();
+    QVariantList nodeList = js.value("GrandiNodes").toList();
+    QVariantList node;
+    int x, y;
+    int rectifiedSectionIndex;
+
     Flow flow = MoveToDungeon;
     int sectionIndex = 0;
     int fightingIndex = 0;
 
     if (!bind(false))
         return;
-
-
-//    while (true) {
-
-//        qDebug()<<isSectionClear(false);
-//        msleep(100);
-//    }
 
     while (true) {
         try {
@@ -74,10 +72,7 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear(sectionIndex == 0)) {
-//                if (isSectionClear(GRANDI_MAP_RECT,
-//                                   (sectionIndex == pathList.count() - 1) ? "dungeon_section_clear_boss.bmp" : "dungeon_section_clear.bmp",
-//                                   (sectionIndex == 0) ? 30000 : 0)) {
+                if (isSectionClear(GRANDI_MAP_RECT, "216979-051F1F", sectionIndex == 0)) {
                     qDebug()<<"isSectionClear";
                     msleep(500);
                     flow = Navigate;
@@ -102,6 +97,15 @@ void GrandiRaider::run()
                 }
                 break;
             case Navigate:
+            {
+                if (!getRoleCoordsInMap(GRANDI_MAP_RECT, x, y))
+                    continue;
+
+                node = QVariantList({x , y});
+                rectifiedSectionIndex = nodeList.indexOf(node);
+                if (rectifiedSectionIndex != -1)
+                    sectionIndex = rectifiedSectionIndex;
+
                 if (sectionIndex < pathList.count()) {
                     bool success = false;
                     bool end = false;
@@ -127,7 +131,9 @@ void GrandiRaider::run()
                         approxSleep(100);
                     }
                 }
+
                 break;
+            }
             case FightBoss:
                 // Check dungeon status
                 if (dungeonEnd()) {

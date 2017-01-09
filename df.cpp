@@ -13,8 +13,8 @@ DF::DF()
     m_arrowD = 40;
 
     // Set mouse and key delay
-    setMouseDelayDelta(0.3);
-    setKeyDelayDelta(0.3);
+    setMouseDelayDelta(0.2);
+    setKeyDelayDelta(0.2);
 }
 
 int DF::window()
@@ -171,7 +171,7 @@ bool DF::dungeonEnd()
 
     // Wait
     for (int i = 0; i < 20; ++i) {
-        if (m_dm.FindPic(CLIENT_RECT, "dungeon_map_role.bmp", "000000", 0.9, 2, x, y) != -1) {
+        if (m_dm.FindPic(739, 31, 749, 41, "dungeon_in.bmp", "000000", 1.0, 0, x, y) != -1) {
             return true;
         }
         msleep(1000);
@@ -200,80 +200,15 @@ void DF::buff()
 
     sendKey(Stroke, m_arrowD, 50);
     sendKey(Stroke, m_arrowU, 50);
-    sendKey(Stroke, 32, 1000);
+    sendKey(Down, 32, 2000);
+    sendKey(Up, 32, 100);
 }
 
 bool DF::isSectionClear(int x1, int y1, int x2, int y2,
-                         const QString &pic,
-                         int timeout)
+                    const QString &brightColor,
+                    bool isFirstSection)
 {
     static QTime *t = nullptr;
-
-    if (timeout) {
-        if (!t) {
-            t = new QTime();
-            t->start();
-        } else {
-            if (t->elapsed() > timeout) {
-                delete t;
-                t = nullptr;
-                return true;
-            }
-        }
-    } else {
-        if (t) {
-            delete t;
-            t = nullptr;
-        }
-    }
-
-    QVariant vx, vy;
-    if (m_dm.FindPic(x1, y1, x2, y2, pic, "101010", 1.0, 0, vx, vy) != -1)
-        return true;
-
-//    int checkCount = 0;
-//    int preDarkCount = 0;
-//    int preBrightCount = 0;
-//    int darkCount = 0;
-//    int brightCount = 0;
-//    int preDarkDelta = 0;
-//    int preBrightDelta = 0;
-//    int darkDelta = 0;
-//    int brightDelta = 0;
-
-//    for (int i = 0; i < 50; ++i) {
-//        darkCount = m_dm.GetColorNum(x1, y1, x2, y2, "122e5b-101010", 1.0);
-//        brightCount = m_dm.GetColorNum(x1, y1, x2, y2, "216979-101010", 1.0);
-//        darkDelta = darkCount - preDarkCount;
-//        brightDelta = brightCount - preBrightCount;
-
-//        if ((darkDelta == 0) || (brightDelta == 0))
-//            continue;
-
-//        if (abs(darkDelta + brightDelta) != (abs(darkDelta) + abs(brightDelta))) {
-//            qDebug()<<darkCount<<brightCount<<darkDelta<<brightDelta<<checkCount;
-//            if (checkCount == 0) {
-//                preDarkDelta = darkDelta;
-//                preBrightDelta = brightDelta;
-//            } else {
-//                if ((darkDelta == preDarkDelta) && (brightDelta == preBrightDelta))
-//                    return true;
-//            }
-//            ++checkCount;
-//        }
-
-//        preDarkCount = darkCount;
-//        preBrightCount = brightCount;
-//        msleep(10);
-//    }
-
-    return false;
-}
-
-bool DF::isSectionClear(bool isFirstSection)
-{
-    static QTime *t = nullptr;
-    QVariant vx, vy;
     int x, y;
     ulong beforeBlocks[4][196] = {0};
 
@@ -294,77 +229,86 @@ bool DF::isSectionClear(bool isFirstSection)
         }
     }
 
-    // Check clear effect
-    if (m_dm.FindPic(600, 45, 800, 200, "dungeon_map_role.bmp", "000000", 0.9, 0, vx, vy) == -1) {
+    if (!getRoleCoordsInMap(x1, y1, x2, y2, x, y))
         return false;
-    }
 
-    x = vx.toInt();
-    y = vy.toInt();
+    ulong *data = nullptr;
+    ulong size = 196;
+    int brightColorCountMin = 50;
+    ulong count;
 
-    QString aveColor = m_dm.GetAveRGB(x-4, y+10, x-2, y+12)+"-0F0F0F";
-    int aveColorCount = 50;
+    memcpy(beforeBlocks[0], (uchar *)m_dm.GetScreenData(x-24, y-4, x-10, y+10), size*sizeof(ulong));
+    memcpy(beforeBlocks[1], (uchar *)m_dm.GetScreenData(x+12, y-4, x+26, y+10), size*sizeof(ulong));
+    memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), size*sizeof(ulong));
+    memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), size*sizeof(ulong));
 
-    memcpy(beforeBlocks[0], (uchar *)m_dm.GetScreenData(x-24, y-4, x-10, y+10), 784);
-    memcpy(beforeBlocks[1], (uchar *)m_dm.GetScreenData(x+12, y-4, x+26, y+10), 784);
-    memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), 784);
-    memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), 784);
-
-    int count;
-    ulong *data;
     for (int i=0; i<5; ++i) {
         msleep(20);
 
-        if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, aveColor, 1.0) > aveColorCount) {
+        if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, brightColor, 1.0) > brightColorCountMin) {
             count = 0;
             data = (ulong *)m_dm.GetScreenData(x-24, y-4, x-10, y+10);
-            for (int j=0; j<196; ++j) {
+            for (ulong j=0; j<size; ++j) {
                 if (*(data+j) != beforeBlocks[0][j])
                     ++count;
             }
-            if (count == 196) {
+            if (count == size) {
                 return true;
             }
         }
 
-        if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, aveColor, 1.0) > aveColorCount) {
+        if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, brightColor, 1.0) > brightColorCountMin) {
             count = 0;
             data = (ulong *)m_dm.GetScreenData(x+12, y-4, x+26, y+10);
-            for (int j=0; j<196; ++j) {
+            for (ulong j=0; j<size; ++j) {
                 if (*(data+j) != beforeBlocks[1][j])
                     ++count;
             }
-            if (count == 196) {
+            if (count == size) {
                 return true;
             }
         }
 
-        if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, aveColor, 1.0) > aveColorCount) {
+        if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > brightColorCountMin) {
             count = 0;
             data = (ulong *)m_dm.GetScreenData(x-6, y-22, x+8, y-8);
-            for (int j=0; j<196; ++j) {
+            for (ulong j=0; j<size; ++j) {
                 if (*(data+j) != beforeBlocks[2][j])
                     ++count;
             }
-            if (count == 196) {
+            if (count == size) {
                 return true;
             }
         }
 
-        if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, aveColor, 1.0) > aveColorCount) {
+        if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > brightColorCountMin) {
             count = 0;
             data = (ulong *)m_dm.GetScreenData(x-6, y+14, x+8, y+28);
-            for (int j=0; j<196; ++j) {
+            for (ulong j=0; j<size; ++j) {
                 if (*(data+j) != beforeBlocks[3][j])
                     ++count;
             }
-            if (count == 196) {
+            if (count == size) {
                 return true;
             }
         }
     }
 
     return false;
+}
+
+bool DF::getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y)
+{
+    QVariant vx, vy;
+
+    if (m_dm.FindPic(x1, y1, x2, y2, "dungeon_map_role.bmp", "101010", 1.0, 0, vx, vy) == -1) {
+        return false;
+    }
+
+    x = vx.toInt();
+    y = vy.toInt();
+
+    return true;
 }
 
 bool DF::getRoleCoords(int &x, int &y)
@@ -429,9 +373,9 @@ void DF::moveRole(int hDir, int vDir, int speed)
                     sendKey(Stroke, m_arrowR, 20);
                     sendKey(Down, m_arrowR, 20);
                 }
-                sendKey(Down, vHeldKey);
+                sendKey(Down, vHeldKey, 20);
                 if (!hHeldKey) {
-                    sendKey(Up, m_arrowR);
+                    sendKey(Up, m_arrowR, 20);
                 }
             }
         }
