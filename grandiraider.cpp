@@ -27,19 +27,42 @@ void GrandiRaider::run()
     int x, y;
     int rectifiedSectionIndex;
 
-    Flow flow = MoveToDungeon;
+//    Flow flow = PreFight;
+    Flow flow = PickRole;
     int sectionIndex = 0;
     int fightingIndex = 0;
 
     if (!bind(false))
         return;
 
+    m_roleOffsetY = 152;
+    while (true) {
+
+//        if (getTrophyCoords(x, y)) {
+//            qDebug()<<"Trophy"<<x<<y;
+//            navigate(x, -1, false);
+//            navigate(-1, y, false);
+//            approxSleep(500);
+//            sendKey(Stroke, "x", 100);
+//        }
+        pickTrophies();
+        msleep(500);
+    }
+
     while (true) {
         try {
             switch (flow) {
+            case PickRole:
+                initRoleOffset();
+                flow = MoveToDungeon;
+                break;
             case MoveToDungeon:
-                sectionIndex = 0;
-                flow = PreFight;
+                navigateOnMap(645, 280);
+                approxSleep(15000);
+                if (enterDungeon(4, 2, false)) {
+                    sectionIndex = 0;
+                    flow = PreFight;
+                }
                 break;
             case PreFight:
                 // Summon tempester

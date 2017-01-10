@@ -98,8 +98,23 @@ void DF::teleport(const QString &destination)
 void DF::navigateOnMap(int x, int y)
 {
     sendKey(Stroke, "N", 1000);
-    sendMouse(Left, x, y, 1000);
+    sendMouse(Right, x, y, 1000);
     sendKey(Stroke, "N", 1000);
+}
+
+bool DF::initRoleOffset()
+{
+    QVariant vx, vy;
+    if (!m_dm.FindMultiColor(0, 100, 800, 400,
+                        "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
+                        1.0, 0,
+                        vx, vy))
+        return false;
+
+    m_roleOffsetY = 432 - vy.toInt();
+    qDebug()<<"Role offset y: "<<m_roleOffsetY;
+
+    return true;
 }
 
 bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
@@ -114,6 +129,7 @@ bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 {
     QVariant x, y;
+
     int directionKey = leftEntrance ? m_arrowL : m_arrowR;
 
     sendKey(Down, directionKey, 3000);
@@ -142,7 +158,25 @@ EnterDungeon:
     sendKey(Stroke, 32, 500);
     sendKey(Stroke, 32, 500);
 
-    return true;
+    // Wait
+    for (int i = 0; i < 10; ++i) {
+        if (dungeonIn())
+            return true;
+        msleep(1000);
+    }
+
+    return false;
+}
+
+bool DF::dungeonIn()
+{
+    QVariant x, y;
+
+    if (m_dm.FindPic(770, 0, 800, 30, "dungeon_in.bmp", "000000", 1.0, 0, x, y) != -1) {
+        return true;
+    }
+
+    return false;
 }
 
 bool DF::dungeonEnd()
@@ -171,7 +205,7 @@ bool DF::dungeonEnd()
 
     // Wait
     for (int i = 0; i < 20; ++i) {
-        if (m_dm.FindPic(739, 31, 749, 41, "dungeon_in.bmp", "000000", 1.0, 0, x, y) != -1) {
+        if (dungeonIn()) {
             return true;
         }
         msleep(1000);
@@ -297,6 +331,166 @@ bool DF::isSectionClear(int x1, int y1, int x2, int y2,
     return false;
 }
 
+bool DF::getTrophyCoords(int roleX, int roleY, int &x, int &y)
+{
+
+    QString res = m_dm.FindPicEx(0, 0, 800, 480, "trophy.bmp|trophy_event.bmp", "2F2F2F", 1.0, 0);
+    QStringList coordsList = res.split("|");
+
+    if (coordsList.isEmpty())
+        return false;
+
+    int tx, ty;
+    foreach(QString coords, coordsList) {
+        QStringList &coordList = coords.split(",");
+        tx = coordList.at(1).toInt() + 20;
+        ty = coordList.at(2).toInt() + 30;
+        if (abs(roleX - tx) + abs(roleY - ty) < abs(x - tx) + abs(y - ty)) {
+            x = tx;
+            y = ty;
+        }
+    }
+
+    return true;
+
+}
+
+bool DF::pickTrophies()
+{
+    bool hArrived = false;
+    bool vArrived = false;
+    int preRoleX = -1;
+    int preRoleY = -1;
+    int roleX = -1;
+    int roleY = -1;
+    int hPreDir = 0;
+    int vPreDir = 0;
+    int hDir = 0;
+    int vDir = 0;
+    QTime timer;
+    uchar preClientBlocks[10][6400] = {0};
+    uchar clientBlocks[10][6400] = {0};
+    QVariant vx, vy;
+    int x, y;
+
+    while (true) {
+        // Check arrival
+        if (hArrived && vArrived) {
+            approxSleep(500);
+            sendKey(Stroke, "x", 500);
+
+            return true;
+        }
+
+        // Get position
+        if (!getRoleCoords(roleX, roleY)) {
+            continue;
+        }
+        if (!getTrophyCoords(roleX, roleY, x, y)) {
+            continue;
+        }
+        qDebug()<<"Pos: "<<roleX<<roleY<<x<<y<<hPreDir<<vPreDir<<hArrived<<vArrived;
+
+        if (((hPreDir != 0) || (vPreDir != 0))  // Moving
+            && ((roleX == preRoleX) && (roleY == preRoleY))) {
+            // Situations against definition of stuck
+            if (((hPreDir > 0) && (roleX > x)) ||
+                ((hPreDir < 0) && (roleX < x)) ||
+                ((vPreDir > 0) && (roleY > y)) ||
+                ((vPreDir < 0) && (roleY < y))) {
+                preRoleX = -1;
+                preRoleY = -1;
+                continue;
+            }
+
+            if (timer.isNull()) {
+                // Get client color blocks
+                for (int i=0; i<10; ++i) {
+                    uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                    memcpy(preClientBlocks[i], data, 6400);
+                }
+
+                // Start timer
+                timer.start();
+            } else {
+                // Trigger checking every 100 msecs
+                if (timer.elapsed() > 100) {
+                    // Get client color blocks
+                    for (int i=0; i<10; ++i) {
+                        uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                        memcpy(clientBlocks[i], data, 6400);
+                    }
+
+                    // Check if role is stucked
+                    for (int i=0; i<10; ++i) {
+                        if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
+                            moveRole(1, 1);
+                            hPreDir = vPreDir = 0;
+                            return false;
+                        }
+                    }
+
+                    // Save client blocks for checking next time
+                    memcpy(preClientBlocks, clientBlocks, 64000);
+
+                    // Restart timer
+                    timer.restart();
+                }
+            }
+        } else {
+
+            // Horizontal moving
+            if (!hArrived) {
+                hDir = x-roleX;
+                if (abs(hDir) <= 5) {
+                    moveRole(1, 0);
+                    hPreDir = 0;
+                    hArrived = true;
+                } else {
+                    if (hPreDir == 0) {
+                        moveRole(hDir, 0, 2);
+                        hPreDir = hDir;
+                    } else {
+                        if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
+                            moveRole(1, 0);
+                            hPreDir = 0;
+                        }
+                    }
+                }
+            }
+
+            // Vertical moving
+            if (!vArrived) {
+                vDir = y-roleY;
+                if (abs(vDir) <= 5) {
+                    moveRole(0, 1);
+                    vDir = 0;
+                    vArrived = true;
+                } else {
+                    if (vPreDir == 0) {
+                        moveRole(0, vDir, 2);
+                        vPreDir = vDir;
+                    } else {
+                        if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
+                            moveRole(0, 1);
+                            vDir = 0;
+                        }
+                    }
+                }
+            }
+
+            // Save position as previous
+            preRoleX = roleX;
+            preRoleY = roleY;
+        }
+
+        msleep(1);
+    }
+
+    moveRole(1, 1, 0);
+    return false;
+}
+
 bool DF::getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y)
 {
     QVariant vx, vy;
@@ -314,6 +508,7 @@ bool DF::getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y)
 bool DF::getRoleCoords(int &x, int &y)
 {
     QVariant vx, vy;
+
     if (!m_dm.FindMultiColor(0, 100, 800, 400,
                         "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
                         1.0, 0,
@@ -321,7 +516,7 @@ bool DF::getRoleCoords(int &x, int &y)
         return false;
 
     x = vx.toInt();
-    y = vy.toInt();
+    y = vy.toInt() + m_roleOffsetY;
 
     return true;
 }
@@ -351,10 +546,18 @@ void DF::moveRole(int hDir, int vDir, int speed)
         if (vDir)
             sendKey(Stroke, (vDir > 0) ? m_arrowD : m_arrowU);
     } else {
-        if (hDir)
+        if (hDir) {
+            if (hHeldKey) {
+                sendKey(Up, hHeldKey);
+            }
             hHeldKey = (hDir > 0) ? m_arrowR : m_arrowL;
-        if (vDir)
+        }
+        if (vDir) {
+            if (vHeldKey) {
+                sendKey(Up, vHeldKey);
+            }
             vHeldKey = (vDir > 0) ? m_arrowD : m_arrowU;
+        }
 
         if (speed == 2) {
             if (hHeldKey)
@@ -437,11 +640,6 @@ bool DF::navigate(int x, int y, bool end)
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
-            // Assume it's covered by trophy's name
-            if (m_dm.FindColorBlock(CLIENT_RECT, "FFFFFF|68D5ED|B36BFF|FF00FF|FF7800", 1.0, 60, 30, 10, vx, vy)) {
-                // Hide trophies' names
-                sendKey(Stroke, ",", 300);
-            }
             continue;
         }
 //        qDebug()<<"Pos: "<<roleX<<roleY;
