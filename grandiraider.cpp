@@ -27,19 +27,44 @@ void GrandiRaider::run()
     int x, y;
     int rectifiedSectionIndex;
 
-    Flow flow = MoveToDungeon;
+    Flow flow = PickRole;
     int sectionIndex = 0;
+    bool moveRoleUsed = false;
     int fightingIndex = 0;
 
     if (!bind(false))
         return;
 
+    flow = PreFight;
+    m_roleOffsetY = 162;
+
+//    while (true) {
+
+////        if (getTrophyCoords(x, y)) {
+////            qDebug()<<"Trophy"<<x<<y;
+////            navigate(x, -1, false);
+////            navigate(-1, y, false);
+////            approxSleep(500);
+////            sendKey(Stroke, "x", 100);
+////        }
+//        pickTrophies();
+//        msleep(10);
+//    }
+
     while (true) {
         try {
             switch (flow) {
+            case PickRole:
+                initRoleOffset();
+                flow = MoveToDungeon;
+                break;
             case MoveToDungeon:
-                sectionIndex = 0;
-                flow = PreFight;
+                navigateOnMap(645, 280);
+                approxSleep(15000);
+                if (enterDungeon(4, 2, false)) {
+                    sectionIndex = 0;
+                    flow = PreFight;
+                }
                 break;
             case PreFight:
                 // Summon tempester
@@ -53,12 +78,8 @@ void GrandiRaider::run()
                         buff();
                     } else if (sectionIndex == 4) {
                         // Get close to generator
-                        moveRole(0, 1, 2);
-                        msleep(300);
-                        moveRole(0, 1);
-                        moveRole(-1, 0, 3);
-                        msleep(600);
-                        moveRole(-1, 0);
+                        navigate(-1, 400);
+                        navigate(200, -1);
                     } else if (sectionIndex == 5) {
                         // Avoid damage
                         moveRole(0, 1, 2);
@@ -67,7 +88,6 @@ void GrandiRaider::run()
                     }
                 } else {
                     flow = FightBoss;
-                    fightingIndex = 0;
                 }
                 break;
             case Fight:
@@ -75,25 +95,23 @@ void GrandiRaider::run()
                 if (isSectionClear(GRANDI_MAP_RECT, "216979-051F1F", sectionIndex == 0)) {
                     qDebug()<<"isSectionClear";
                     msleep(500);
-                    flow = Navigate;
+                    flow = PickTrophies;
                     break;
                 }
 
                 // Destory generator
                 if (sectionIndex == 4) {
                     sendKey(Stroke, m_arrowL, 30);
-//                    sendKey(Stroke, "x", 30);
-//                    sendKey(Down, m_arrowR, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-//                    sendKey(Up, m_arrowR, 30);
                 } else {
-//                    sendKey(Stroke, m_arrowR, 30);
-//                    sendKey(Stroke, "x", 30);
-//                    sendKey(Down, m_arrowL, 30);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x", 30);
-//                    sendKey(Up, m_arrowL, 30);
+                }
+                break;
+            case PickTrophies:
+                if (!pickTrophies()) {
+                    flow = Navigate;
                 }
                 break;
             case Navigate:
@@ -126,6 +144,10 @@ void GrandiRaider::run()
                             if (end) {
                                 qDebug()<<"Navigate error";
                                 m_dm.Beep(1000, 10000);
+                                if (!moveRoleUsed) {
+                                    sendKey(Stroke, 187, 500);
+                                    moveRoleUsed = true;
+                                }
                             }
                         }
                         approxSleep(100);
@@ -137,8 +159,10 @@ void GrandiRaider::run()
             case FightBoss:
                 // Check dungeon status
                 if (dungeonEnd()) {
-                    sectionIndex = 0;
                     flow = PreFight;
+                    sectionIndex = 0;
+                    fightingIndex = 0;
+                    moveRoleUsed = false;
                     continue;
                 }
 

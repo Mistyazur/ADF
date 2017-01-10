@@ -16,6 +16,7 @@ protected:
     int m_arrowU;
     int m_arrowR;
     int m_arrowD;
+    int m_roleOffsetY;
 
     // Client functions
     int window();
@@ -30,17 +31,21 @@ protected:
     void navigateOnMap(int x, int y);
 
     // Dungeon functions
+    bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
+    bool dungeonIn();
     bool dungeonEnd();
     bool summonSupporter();
     void buff();
     bool isSectionClear(int x1, int y1, int x2, int y2,
                         const QString &brightColor,
                         bool isFirstSection);
+    bool getTrophyCoords(int &x, int &y, bool &standOn);
+    bool pickTrophies();
     bool getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int vDir, int speed=0);
-    bool navigate(int x, int y, bool end);
+    bool navigate(int x, int y, bool end=false);
 };
 
 #endif // DF_H
