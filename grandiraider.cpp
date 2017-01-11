@@ -52,6 +52,19 @@ void GrandiRaider::run()
 //    }
 
     while (true) {
+
+//        if (getTrophyCoords(x, y)) {
+//            qDebug()<<"Trophy"<<x<<y;
+//            navigate(x, -1, false);
+//            navigate(-1, y, false);
+//            approxSleep(500);
+//            sendKey(Stroke, "x", 100);
+//        }
+        pickTrophies();
+        msleep(500);
+    }
+
+    while (true) {
         try {
             switch (flow) {
             case PickRole:
