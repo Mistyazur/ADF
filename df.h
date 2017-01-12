@@ -40,11 +40,11 @@ protected:
     bool isSectionClear(int x1, int y1, int x2, int y2,
                         const QString &brightColor,
                         bool isFirstSection);
-    bool getTrophyCoords(int &x, int &y, bool &standOn);
-    bool pickTrophies();
+    bool getTrophyCoords(int &x, int &y, bool &pickable);
     bool getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int vDir, int speed=0);
+    bool pickTrophies();
     bool navigate(int x, int y, bool end=false);
 };
 
