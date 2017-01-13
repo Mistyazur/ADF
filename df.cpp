@@ -591,11 +591,6 @@ bool DF::pickTrophies()
             break;
         }
 
-        if (hArrived && vArrived) {
-            result = true;
-            break;
-        }
-
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
             continue;
@@ -614,7 +609,6 @@ bool DF::pickTrophies()
             result = true;
             break;
         }
-        qDebug()<<"role:"<<roleX<<roleY<<"|"<<"trophy:"<<x<<y<<"|"<<"dir:"<<hPreDir<<vPreDir<<"|"<<"arrived:"<<hArrived<<vArrived;
 
 //        qDebug()<<QTime::currentTime().toString("HH:mm:ss.zzz")
 //               <<"role:"<<roleX<<roleY<<"|"<<"trophy:"<<x<<y<<"|"<<"dir:"<<hPreDir<<vPreDir<<"|"<<"arrived:"<<hArrived<<vArrived;
