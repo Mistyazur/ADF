@@ -921,6 +921,7 @@ bool DF::fightBoss()
                         "FF00FF", "1|0|FF00FF, 2|0|FF00FF, 3|0|FF00FF",
                         1.0, 0,
                         vx, vy)) {
+        summonSupporter();
         return true;
     }
 
@@ -939,8 +940,6 @@ bool DF::fightBoss()
     if (abs(rx- bx) < 250) {
         moveRole((bx < 400) ? 1 : -1, 0, 2);
         approxSleep(100);
-    } else {
-        summonSupporter();
     }
 
     return true;
