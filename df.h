@@ -28,7 +28,7 @@ protected:
     bool isBlackScreen(int x1, int y1, int x2, int y2);
     void switchRole(int index);
     void teleport(const QString &destination);
-    void navigateOnMap(int x, int y);
+    void navigateOnMap(int x, int y, int time);
     void sellEquipment();
 
     // Dungeon functions
