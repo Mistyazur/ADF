@@ -107,10 +107,22 @@ void DF::sellEquipment()
     QVariant vx, vy;
     int ox, oy;
     int x, y;
+    bool found = false;
+
+    // Wait for selling
+    for (int i = 0; i < 100; ++i) {
+        if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
+            found = true;
+            break;
+        }
+        msleep(200);
+    }
+    if (!found) {
+        qDebug()<<"sellEquipment error";
+        return;
+    }
 
     // Click sell button
-    if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) == -1)
-        return;
     sendMouse(Left, vx, vy, 200);
 
     // Search sort button
@@ -125,15 +137,18 @@ void DF::sellEquipment()
             y = oy + ((i / 8) * 30);
 
             // Check empty
-            if (m_dm.GetColor(x, y - 14) == "000000")
+            if (m_dm.GetColor(x, y - 14) == "000000") {
                 break;
+            }
 
             // Sell
             sendMouse(Move, x, y, 100);
             if (m_dm.FindPic(0, 0, 800, 400, "unique.bmp|legendary.bmp|epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
                 sendMouse(Left, x, y, 200);
+
                 sendKey(Stroke, 32, 100);
-                sendKey(Stroke, 32);
+                sendKey(Stroke, 32, 100);
+
 //                for (int j = 0; j < 10; ++j) {
 //                    if (m_dm.FindPic(vx.toInt(), vy.toInt() - 100, 800, 500, "announcement.bmp", "000000", 1.0, 0, vx, vy) != -1)
 //                        break;
@@ -236,7 +251,7 @@ bool DF::dungeonEnd()
     // Pick trophies
     sendKey(Stroke, 189, 600);  // -
     sendKey(Down, "x", 3000);
-    sendKey(Up, "x", 6000);
+    sendKey(Up, "x");
 
     // sell
     sellEquipment();

@@ -67,8 +67,7 @@ void GrandiRaider::run()
                 flow = MoveToDungeon;
                 break;
             case MoveToDungeon:
-                navigateOnMap(645, 280);
-                approxSleep(15000);
+                navigateOnMap(645, 280, 15000);
                 if (enterDungeon(4, 2, false)) {
                     sectionIndex = 0;
                     flow = PreFight;
@@ -159,7 +158,6 @@ void GrandiRaider::run()
                         } else {
                             if (end) {
                                 qDebug()<<"Navigate error";
-                                m_dm.Beep(1000, 5000);
                                 if (!moveRoleUsed) {
                                     qDebug()<<"Reset";
                                     sendKey(Stroke, 187, 500);
