@@ -5,7 +5,7 @@
 
 #define CLIENT_RECT 0, 0, 800, 600
 
-enum DFError { DFCrashed , DFDisconnected};
+enum DFError { DFSettingError, DFCrashed , DFDisconnected};
 
 class DF : public DmPrivate
 {
@@ -36,7 +36,7 @@ protected:
     void sellEquipment();
 
     // Dungeon functions
-    void initSettings(const QString &file);
+    bool initSettings(const QString &file);
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool reenterDungeon();

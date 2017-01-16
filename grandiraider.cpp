@@ -25,7 +25,8 @@ void GrandiRaider::run()
     if (!bind(false))
         return;
 
-    initSettings("ADF.json");
+    if (!initSettings("ADF.json"))
+        return;
 
     flow = PreFight;
     m_roleOffsetY = 150;
@@ -131,6 +132,8 @@ void GrandiRaider::run()
                     }
 
                     break;
+                } else {
+
                 }
 
 //                if (sectionIndex < pathList.count()) {
@@ -205,6 +208,9 @@ void GrandiRaider::run()
 
         } catch(DFError e) {
             qDebug()<<"DFError"<<e;
+            if (e == DFSettingError) {
+                return;
+            }
         }
     }
 }

@@ -174,11 +174,15 @@ void DF::sellEquipment()
     }
 }
 
-void DF::initSettings(const QString &file)
+bool DF::initSettings(const QString &file)
 {
     JSettings js(QApplication::applicationDirPath() + "/" + file);
     m_pathList = js.value("GrandiPath").toList();
     m_nodeList = js.value("GrandiNodes").toList();
+    if (m_pathList.isEmpty() || m_nodeList.isEmpty())
+        return false;
+
+    return true;
 }
 
 bool DF::initRoleOffset()
@@ -562,7 +566,6 @@ bool DF::pickTrophies()
     int hDir = 0;
     int vDir = 0;
     QTime blockTimer;
-//    QTime timeoutTimer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
     int x, y;
@@ -574,13 +577,7 @@ bool DF::pickTrophies()
         return false;
     }
 
-//    timeoutTimer.start();
-
     while (true) {
-//        if (timeoutTimer.elapsed() > 10000) {
-//            qDebug()<<"PickTrophies: Timeout";
-//            break;
-//        }
 
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
@@ -966,22 +963,12 @@ bool DF::navigateSection(int sectionIndex, bool &bossRoomArrived)
         for (int i = 0; i < sectionPathList.count(); ++i) {
             QVariantList &position = sectionPathList.at(i).toList();
             if (position.count() < 2) {
-                qDebug()<<"Path is not acceptable";
-                return false;
+                throw DFSettingError;
             }
 
             end = (i == (sectionPathList.count()-1)) ? true : false;
             if (navigate(position.first().toInt(), position.last().toInt(), end)) {
                 return true;
-//            } else {
-//                if (end) {
-//                    qDebug()<<"Navigate error";
-//                    if (!moveRoleUsed) {
-//                        qDebug()<<"Reset";
-//                        sendKey(Stroke, 187, 500);
-//                        moveRoleUsed = true;
-//                    }
-//                }
             }
         }
     }
