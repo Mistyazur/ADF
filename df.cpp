@@ -336,7 +336,7 @@ bool DF::isSectionClear(int x1, int y1, int x2, int y2,
     memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), size*sizeof(ulong));
     memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), size*sizeof(ulong));
 
-    for (int i=0; i<5; ++i) {
+    for (int i=0; i<10; ++i) {
         msleep(20);
 
         if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, brightColor, 1.0) > brightColorCountMin) {
@@ -528,6 +528,7 @@ void DF::moveRole(int hDir, int vDir, int speed)
 
 bool DF::pickTrophies()
 {
+    static int counter = 0;
     bool result = false;
     bool hArrived = false;
     bool vArrived = false;
@@ -540,19 +541,25 @@ bool DF::pickTrophies()
     int hDir = 0;
     int vDir = 0;
     QTime blockTimer;
-    QTime timeoutTimer;
+//    QTime timeoutTimer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
     int x, y;
     bool pickable;
 
-    timeoutTimer.start();
+    // Avoid insisting picking a unpickable item
+    if (counter++ > 10) {
+        counter = 0;
+        return false;
+    }
+
+//    timeoutTimer.start();
 
     while (true) {
-        if (timeoutTimer.elapsed() > 10000) {
-            qDebug()<<"PickTrophies: Timeout";
-            break;
-        }
+//        if (timeoutTimer.elapsed() > 10000) {
+//            qDebug()<<"PickTrophies: Timeout";
+//            break;
+//        }
 
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
