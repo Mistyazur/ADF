@@ -1,11 +1,16 @@
 #include "df.h"
 
-#include <QDebug>
+#include "JSettings/jsettings.h"
+
+#include <QApplication>
 #include <QTime>
+#include <QDebug>
 
 
 DF::DF()
 {
+    m_firstSectionTimer = nullptr;
+
     // Default arrow keys
     m_arrowL = 37;
     m_arrowU = 38;
@@ -15,6 +20,14 @@ DF::DF()
     // Set mouse and key delay
     setMouseDelayDelta(0.2);
     setKeyDelayDelta(0.2);
+}
+
+DF::~DF()
+{
+    if (m_firstSectionTimer) {
+        delete m_firstSectionTimer;
+        m_firstSectionTimer = nullptr;
+    }
 }
 
 int DF::window()
@@ -124,7 +137,7 @@ void DF::sellEquipment()
     }
 
     // Click sell button
-    sendMouse(Left, vx, vy, 200);
+    sendMouse(Left, vx, vy, 300);
 
     // Search sort button
     if (m_dm.FindPic(0, 300, 800, 600, "sort.bmp", "000000", 1.0, 1, vx, vy) != -1) {
@@ -159,6 +172,13 @@ void DF::sellEquipment()
             }
         }
     }
+}
+
+void DF::initSettings(const QString &file)
+{
+    JSettings js(QApplication::applicationDirPath() + "/" + file);
+    m_pathList = js.value("GrandiPath").toList();
+    m_nodeList = js.value("GrandiNodes").toList();
 }
 
 bool DF::initRoleOffset()
@@ -219,7 +239,7 @@ EnterDungeon:
 
     // Wait
     for (int i = 0; i < 10; ++i) {
-        if (dungeonIn())
+        if (isInDungeon())
             return true;
         msleep(1000);
     }
@@ -227,37 +247,8 @@ EnterDungeon:
     return false;
 }
 
-bool DF::dungeonIn()
+bool DF::reenterDungeon()
 {
-    QVariant x, y;
-
-    if (m_dm.FindPic(770, 0, 800, 30, "dungeon_in.bmp", "000000", 1.0, 0, x, y) != -1) {
-        return true;
-    }
-
-    return false;
-}
-
-bool DF::dungeonEnd()
-{
-    QVariant x, y;
-
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 0.9, 2, x, y) == -1)
-        return false;
-
-    moveRole(1, 1);
-
-    approxSleep(3000, 0.2);
-
-    // Pick trophies
-    sendKey(Stroke, 189, 600);  // -
-    sendKey(Down, "x", 3000);
-    sendKey(Up, "x");
-
-    // sell
-    sellEquipment();
-    approxSleep(100);
-
     // Reenter
     sendKey(Stroke, 27, 1500);
     sendKey(Stroke, 121, 500);
@@ -265,13 +256,31 @@ bool DF::dungeonEnd()
 
     // Wait
     for (int i = 0; i < 20; ++i) {
-        if (dungeonIn()) {
+        if (isInDungeon()) {
             return true;
         }
         msleep(1000);
     }
 
-    qDebug()<<"error: restart game";
+    return false;
+}
+
+bool DF::isInDungeon()
+{
+    QVariant x, y;
+
+    if (m_dm.FindPic(770, 0, 800, 30, "dungeon_in.bmp", "000000", 1.0, 0, x, y) == -1)
+        return false;
+
+    return true;
+}
+
+bool DF::isDungeonEnded()
+{
+    QVariant x, y;
+
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 0.9, 2, x, y) == -1)
+        return false;
 
     return true;
 }
@@ -298,28 +307,40 @@ void DF::buff()
     sendKey(Up, 32, 100);
 }
 
+void DF::rectifySectionIndex(int x1, int y1, int x2, int y2, int &sectionIndex)
+{
+    int x, y;
+
+    if (!getRoleCoordsInMap(x1, y1, x2, y2, x, y))
+        return;
+
+    QVariantList node = QVariantList({x , y});
+    int rectifiedSectionIndex = m_nodeList.indexOf(node);
+    if (rectifiedSectionIndex != -1)
+        sectionIndex = rectifiedSectionIndex;
+}
+
 bool DF::isSectionClear(int x1, int y1, int x2, int y2,
                     const QString &brightColor,
                     bool isFirstSection)
 {
-    static QTime *t = nullptr;
     int x, y;
     ulong beforeBlocks[4][196] = {0};
 
     // First section maybe not has clear effect
     // So we assume it's clear, if it has costed 30 secs
     if (isFirstSection) {
-        if (!t) {
-            t = new QTime();
-            t->start();
+        if (!m_firstSectionTimer) {
+            m_firstSectionTimer = new QTime();
+            m_firstSectionTimer->start();
         } else {
-            if (t->elapsed() > 30000)
+            if (m_firstSectionTimer->elapsed() > 30000)
                 return true;
         }
     } else {
-        if (t) {
-            delete t;
-            t = nullptr;
+        if (m_firstSectionTimer) {
+            delete m_firstSectionTimer;
+            m_firstSectionTimer = nullptr;
         }
     }
 
@@ -336,8 +357,8 @@ bool DF::isSectionClear(int x1, int y1, int x2, int y2,
     memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), size*sizeof(ulong));
     memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), size*sizeof(ulong));
 
-    for (int i=0; i<10; ++i) {
-        msleep(20);
+    for (int i=0; i<5; ++i) {
+        msleep(50);
 
         if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, brightColor, 1.0) > brightColorCountMin) {
             count = 0;
@@ -930,6 +951,44 @@ bool DF::navigate(int x, int y, bool end)
     return false;
 }
 
+bool DF::navigateSection(int sectionIndex, bool &bossRoomArrived)
+{
+    bool end = false;
+
+    if (sectionIndex < m_pathList.count()) {
+        if (sectionIndex == m_pathList.count()-1) {
+            bossRoomArrived = true;
+        } else {
+            bossRoomArrived = false;
+        }
+
+        const QVariantList &sectionPathList = m_pathList.at(sectionIndex).toList();
+        for (int i = 0; i < sectionPathList.count(); ++i) {
+            QVariantList &position = sectionPathList.at(i).toList();
+            if (position.count() < 2) {
+                qDebug()<<"Path is not acceptable";
+                return false;
+            }
+
+            end = (i == (sectionPathList.count()-1)) ? true : false;
+            if (navigate(position.first().toInt(), position.last().toInt(), end)) {
+                return true;
+//            } else {
+//                if (end) {
+//                    qDebug()<<"Navigate error";
+//                    if (!moveRoleUsed) {
+//                        qDebug()<<"Reset";
+//                        sendKey(Stroke, 187, 500);
+//                        moveRoleUsed = true;
+//                    }
+//                }
+            }
+        }
+    }
+
+    return false;
+}
+
 bool DF::fightBoss()
 {
     QVariant vx, vy;
@@ -961,8 +1020,10 @@ bool DF::fightBoss()
 //    }
 
     if (abs(rx- bx) < 250) {
-        moveRole((bx < 400) ? 1 : -1, 0, 2);
+        moveRole((bx < 400) ? 1 : -1, 0, 3);
         approxSleep(100);
+    } else {
+        summonSupporter();
     }
 
     return true;

@@ -11,12 +11,16 @@ class DF : public DmPrivate
 {
 public:
     DF();
+    virtual ~DF();
 protected:
     int m_arrowL;
     int m_arrowU;
     int m_arrowR;
     int m_arrowD;
     int m_roleOffsetY;
+    QVariantList m_pathList;
+    QVariantList m_nodeList;
+
 
     // Client functions
     int window();
@@ -32,12 +36,15 @@ protected:
     void sellEquipment();
 
     // Dungeon functions
+    void initSettings(const QString &file);
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
-    bool dungeonIn();
-    bool dungeonEnd();
+    bool reenterDungeon();
+    bool isInDungeon();
+    bool isDungeonEnded();
     bool summonSupporter();
     void buff();
+    void rectifySectionIndex(int x1, int y1, int x2, int y2, int &sectionIndex);
     bool isSectionClear(int x1, int y1, int x2, int y2,
                         const QString &brightColor,
                         bool isFirstSection);
@@ -47,7 +54,10 @@ protected:
     void moveRole(int hDir, int vDir, int speed=0);
     bool pickTrophies();
     bool navigate(int x, int y, bool end=false);
+    bool navigateSection(int sectionIndex, bool &bossRoomArrived);
     bool fightBoss();
+private:
+    QTime *m_firstSectionTimer;
 };
 
 #endif // DF_H

@@ -1,9 +1,6 @@
 #include "grandiraider.h"
 
-#include "JSettings/jsettings.h"
-
 #include <QDebug>
-#include <QApplication>
 #include <QString>
 
 #define GRANDI_MAP_RECT 720, 50, 795, 105
@@ -20,14 +17,6 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    JSettings js(QApplication::applicationDirPath()+"/ADF.json");
-    QVariantList pathList = js.value("GrandiPath").toList();
-    QVariantList nodeList = js.value("GrandiNodes").toList();
-    QVariantList node;
-
-    int x;
-    int y;
-    QTime fightingTimer;
 
     Flow flow = PickRole;
     int sectionIndex = 0;
@@ -35,6 +24,8 @@ void GrandiRaider::run()
 
     if (!bind(false))
         return;
+
+    initSettings("ADF.json");
 
     flow = PreFight;
     m_roleOffsetY = 150;
@@ -56,6 +47,7 @@ void GrandiRaider::run()
 //        msleep(10);
 //    }
 
+    QTime fightingTimer;
     fightingTimer.start();
 
     while (true) {
@@ -76,26 +68,22 @@ void GrandiRaider::run()
                 // Summon tempester
                 summonSupporter();
 
-                if (sectionIndex < pathList.count()) {
-                    flow = Fight;
-                    fightingTimer.restart();
-
-                    if (sectionIndex == 0) {
-                        // Buff
-                        buff();
-                    } else if (sectionIndex == 4) {
-                        // Get close to generator
-                        navigate(-1, 390);
-                        navigate(200, -1);
-                    } else if (sectionIndex == 5) {
-                        // Avoid damage
-                        moveRole(0, 1, 2);
-                        approxSleep(2000, 0.3);
-                        moveRole(0, 1);
-                    }
-                } else {
-                    flow = BossFight;
+                if (sectionIndex == 0) {
+                    // Buff
+                    buff();
+                } else if (sectionIndex == 4) {
+                    // Get close to generator
+                    navigate(-1, 390);
+                    navigate(200, -1);
+                } else if (sectionIndex == 5) {
+                    // Avoid damage
+                    moveRole(0, 1, 2);
+                    approxSleep(2000, 0.3);
+                    moveRole(0, 1);
                 }
+
+                fightingTimer.restart();
+                flow = Fight;
                 break;
             case Fight:
                 // Check section state
@@ -116,11 +104,11 @@ void GrandiRaider::run()
                     // Destory generator
                     sendKey(Stroke, m_arrowL, 30);
                     for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x", 20);
+                        sendKey(Stroke, "x", 30);
                 } else {
                     // Normal attack
                     for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x", 20);
+                        sendKey(Stroke, "x", 30);
                 }
                 break;
             case PickTrophies:
@@ -130,52 +118,83 @@ void GrandiRaider::run()
                 break;
             case Navigate:
             {
-                if (!getRoleCoordsInMap(GRANDI_MAP_RECT, x, y))
-                    continue;
+                rectifySectionIndex(GRANDI_MAP_RECT, sectionIndex);
 
-                node = QVariantList({x , y});
-                int rectifiedSectionIndex = nodeList.indexOf(node);
-                if (rectifiedSectionIndex != -1)
-                    sectionIndex = rectifiedSectionIndex;
+                bool bossRoomArrived;
+                if (navigateSection(sectionIndex, bossRoomArrived)) {
+                    ++sectionIndex;
 
-                if (sectionIndex < pathList.count()) {
-                    bool success = false;
-                    bool end = false;
-                    const QVariantList &sectionPathList = pathList.at(sectionIndex++).toList();
-                    for (int i = 0; i < sectionPathList.count(); ++i) {
-                        QVariantList &position = sectionPathList.at(i).toList();
-                        if (position.count() < 2) {
-                            qDebug()<<"Path is not acceptable";
-                            return;
-                        }
-
-                        end = (i == (sectionPathList.count() - 1)) ? true : false;
-                        success = navigate(position.first().toInt(), position.last().toInt(), end);
-                        if (success) {
-                            // Pre-fight
-                            flow = PreFight;
-                            break;
-                        } else {
-                            if (end) {
-                                qDebug()<<"Navigate error";
-                                if (!moveRoleUsed) {
-                                    qDebug()<<"Reset";
-                                    sendKey(Stroke, 187, 500);
-                                    moveRoleUsed = true;
-                                }
-                            }
-                        }
+                    if (bossRoomArrived) {
+                        flow = PreBossFight;
+                    } else {
+                        flow = PreFight;
                     }
+
+                    break;
                 }
+
+//                if (sectionIndex < pathList.count()) {
+//                    bool success = false;
+//                    bool end = false;
+//                    const QVariantList &sectionPathList = pathList.at(sectionIndex++).toList();
+//                    for (int i = 0; i < sectionPathList.count(); ++i) {
+//                        QVariantList &position = sectionPathList.at(i).toList();
+//                        if (position.count() < 2) {
+//                            qDebug()<<"Path is not acceptable";
+//                            return;
+//                        }
+
+//                        end = (i == (sectionPathList.count() - 1)) ? true : false;
+//                        success = navigate(position.first().toInt(), position.last().toInt(), end);
+//                        if (success) {
+//                            // Pre-fight
+//                            flow = PreFight;
+//                            break;
+//                        } else {
+//                            if (end) {
+//                                qDebug()<<"Navigate error";
+//                                if (!moveRoleUsed) {
+//                                    qDebug()<<"Reset";
+//                                    sendKey(Stroke, 187, 500);
+//                                    moveRoleUsed = true;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
                 break;
             }
+            case PreBossFight:
+                // Summon tempester
+                summonSupporter();
+
+                flow = BossFight;
+                break;
             case BossFight:
                 // Check dungeon status
-                if (dungeonEnd()) {
-                    flow = PreFight;
-                    sectionIndex = 0;
-                    moveRoleUsed = false;
-                    continue;
+                if (isDungeonEnded()) {
+                    moveRole(1, 1);
+
+                    approxSleep(3000, 0.2);
+
+                    // Pick trophies
+                    sendKey(Stroke, 189, 600);  // -
+                    sendKey(Down, "x", 3000);
+                    sendKey(Up, "x");
+
+                    // sell trophies
+                    sellEquipment();
+                    approxSleep(100);
+
+                    // reenter dungeon
+                    if (reenterDungeon()) {
+                        flow = PreFight;
+                        sectionIndex = 0;
+                        moveRoleUsed = false;
+                        continue;
+                    } else {
+                        qDebug()<<"error: restart game";
+                    }
                 }
 
                 fightBoss();
