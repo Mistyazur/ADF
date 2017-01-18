@@ -57,6 +57,7 @@ protected:
     bool navigateSection(int sectionIndex, bool &bossRoomArrived);
     bool fightBoss();
 private:
+    int m_hBindWnd;
     QTime *m_firstSectionTimer;
 };
 

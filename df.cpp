@@ -9,6 +9,7 @@
 
 DF::DF()
 {
+    m_hBindWnd = 0;
     m_firstSectionTimer = nullptr;
 
     // Default arrow keys
@@ -35,18 +36,22 @@ int DF::window()
     return m_dm.FindWindow("地下城与勇士", "地下城与勇士");
 }
 
+#include <Windows.h>
+
 bool DF::bind(bool underground)
 {
     bool ret = false;
 
-    int hWnd = window();
-    if (0 == hWnd)
+    m_hBindWnd = window();
+    if (0 == m_hBindWnd)
         return ret;
 
     if (underground)
-        ret = m_dm.BindWindow(hWnd, "dx2", "dx", "dx", 101);
-    else
-        ret = m_dm.BindWindow(hWnd, "normal", "normal", "normal", 101);
+        ret = m_dm.BindWindow(m_hBindWnd, "dx2", "dx", "dx", 101);
+    else {
+        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+        ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 101);
+    }
 
     approxSleep(2000);
     return ret;
@@ -54,6 +59,7 @@ bool DF::bind(bool underground)
 
 void DF::unbind()
 {
+    SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
     m_dm.UnBindWindow();
 }
 
