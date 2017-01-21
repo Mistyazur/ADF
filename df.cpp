@@ -3,9 +3,13 @@
 #include "JSettings/jsettings.h"
 
 #include <QApplication>
+#include <QProcess>
 #include <QTime>
 #include <QDebug>
 
+#include <Windows.h>
+
+#undef FindWindow
 
 DF::DF()
 {
@@ -36,7 +40,6 @@ int DF::window()
     return m_dm.FindWindow("地下城与勇士", "地下城与勇士");
 }
 
-#include <Windows.h>
 
 bool DF::bind(bool underground)
 {
@@ -61,6 +64,66 @@ void DF::unbind()
 {
     SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
     m_dm.UnBindWindow();
+}
+
+bool DF::restartClient()
+{
+    int hTGPWnd;
+    unbind();
+
+    // Terminate process
+    QProcess::startDetached("TASKKILL /IM DNF.exe");
+    msleep(10000);
+
+//    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
+//    if (hTGPWnd == 0) {
+////        QProcess::startDetached();
+//    }
+
+//    for (int i = 0; i < 60; ++i) {
+//        hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
+//        if (hTGPWnd != 0)
+//            break;
+//        msleep(1000);
+//    }
+
+    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
+    if (hTGPWnd == 0) {
+        return false;
+    }
+
+    // Activate tgp
+    if (m_dm.GetForegroundWindow() != hTGPWnd) {
+        m_dm.SetWindowState(hTGPWnd, 1);
+    }
+    while (m_dm.GetForegroundWindow() != hTGPWnd) {
+        msleep(1000);
+    }
+
+    // Bind tgp
+    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+
+//    // Terminate client
+//    sendMouse(Left, 50, 120, 310);
+//    if ()kk
+//    sendMouse(Left, 50, 300, 100);
+
+//    QProcess::startDetached("TASKKILL /F /IM DNF.exe");
+//    msleep(3000);
+
+    // Start client
+    sendMouse(Left, 50, 300, 100);
+    sendMouse(Left, 50, 300, 100);
+    sendMouse(Left, 900, 680, 100);
+    sendMouse(Left, 900, 680, 100);
+    for (int i = 0; i < 60; ++i) {
+        if (window() != 0)
+            break;
+        msleep(1000);
+    }
+
+    return true;
 }
 
 void DF::setArrowKey(int left, int up, int right, int down)
@@ -191,6 +254,14 @@ bool DF::initSettings(const QString &file)
     return true;
 }
 
+void DF::initDungeonMapRect(int x1, int y1, int x2, int y2)
+{
+    m_dungeonMapX1 = x1;
+    m_dungeonMapY1 = y1;
+    m_dungeonMapX2 = x2;
+    m_dungeonMapY2 = y2;
+}
+
 bool DF::initRoleOffset()
 {
     QVariant vx, vy;
@@ -298,7 +369,8 @@ bool DF::isDungeonEnded()
 bool DF::summonSupporter()
 {
 //    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
-        sendKey(Stroke, 9, 100);
+        sendKey(Stroke, "z", 100);
+        sendKey(Stroke, 9, 100);  // Tab
         return true;
 //    }
 
@@ -317,12 +389,13 @@ void DF::buff()
     sendKey(Up, 32, 100);
 }
 
-void DF::rectifySectionIndex(int x1, int y1, int x2, int y2, int &sectionIndex)
+void DF::rectifySectionIndex(int &sectionIndex)
 {
     int x, y;
 
-    if (!getRoleCoordsInMap(x1, y1, x2, y2, x, y))
-        return;
+    if (!getRoleCoordsInMap(x, y)) {
+        throw DFRESTART;
+    }
 
     QVariantList node = QVariantList({x , y});
     int rectifiedSectionIndex = m_nodeList.indexOf(node);
@@ -330,9 +403,7 @@ void DF::rectifySectionIndex(int x1, int y1, int x2, int y2, int &sectionIndex)
         sectionIndex = rectifiedSectionIndex;
 }
 
-bool DF::isSectionClear(int x1, int y1, int x2, int y2,
-                    const QString &brightColor,
-                    bool isFirstSection)
+bool DF::isSectionClear(const QString &brightColor, bool isFirstSection)
 {
     int x, y;
     ulong beforeBlocks[4][196] = {0};
@@ -354,7 +425,7 @@ bool DF::isSectionClear(int x1, int y1, int x2, int y2,
         }
     }
 
-    if (!getRoleCoordsInMap(x1, y1, x2, y2, x, y))
+    if (!getRoleCoordsInMap(x, y))
         return false;
 
     ulong *data = nullptr;
@@ -442,11 +513,12 @@ bool DF::getTrophyCoords(int &x, int &y, bool &pickable)
     return false;
 }
 
-bool DF::getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y)
+bool DF::getRoleCoordsInMap(int &x, int &y)
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(x1, y1, x2, y2, "dungeon_map_role.bmp", "101010", 1.0, 0, vx, vy) == -1) {
+    if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
+                     "dungeon_map_role.bmp", "101010", 1.0, 0, vx, vy) == -1) {
         return false;
     }
 
@@ -575,6 +647,8 @@ bool DF::pickTrophies()
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
     int x, y;
+    int sectionIndex;
+    bool bossRoomArrived;
     bool pickable;
 
     // Avoid insisting picking a unpickable item
@@ -599,34 +673,14 @@ bool DF::pickTrophies()
                 }
             }
 
-            // Get postion
-            approxSleep(1000);
-            if (!getRoleCoords(roleX, roleY)) {
-                qDebug()<<"Error: need restart";
-                break;
-            }
-
-            // Simulate return to last section
-            hDir = (roleX < 400) ? 1 : -1;
-            vDir = (roleY < 300) ? 1 : -1;
-            moveRole(hDir, vDir, 2);
             msleep(500);
-            moveRole(0 - hDir, 0 - vDir, 2);
-
-            // Don't pick again
-            int i;
-            for (i=0; i<200; ++i) {
-                msleep(50);
-                if (isBlackScreen(0, 0, 50, 50)) {
-                    break;
-                }
+            rectifySectionIndex(sectionIndex);
+            if (navigateSection(sectionIndex, bossRoomArrived)) {
+                break;
+            } else {
+                throw DFRESTART;
             }
-            if (i == 200) {
-                qDebug()<<"Error: need restart2";
-            }
-            moveRole(1, 1);
 
-            break;
         }
 
         if (hArrived && vArrived) {

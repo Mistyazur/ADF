@@ -5,7 +5,7 @@
 
 #define CLIENT_RECT 0, 0, 800, 600
 
-enum DFError { DFSettingError, DFCrashed , DFDisconnected};
+enum DFError { DFSettingError, DFRESTART };
 
 class DF : public DmPrivate
 {
@@ -17,6 +17,10 @@ protected:
     int m_arrowU;
     int m_arrowR;
     int m_arrowD;
+    int m_dungeonMapX1;
+    int m_dungeonMapY1;
+    int m_dungeonMapX2;
+    int m_dungeonMapY2;
     int m_roleOffsetY;
     QVariantList m_pathList;
     QVariantList m_nodeList;
@@ -28,6 +32,7 @@ protected:
     void unbind();
     
     // Common functions
+    bool restartClient();
     void setArrowKey(int left, int up, int right, int down);
     bool isBlackScreen(int x1, int y1, int x2, int y2);
     void switchRole(int index);
@@ -37,6 +42,7 @@ protected:
 
     // Dungeon functions
     bool initSettings(const QString &file);
+    void initDungeonMapRect(int x1, int y1, int x2, int y2);
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool reenterDungeon();
@@ -44,12 +50,10 @@ protected:
     bool isDungeonEnded();
     bool summonSupporter();
     void buff();
-    void rectifySectionIndex(int x1, int y1, int x2, int y2, int &sectionIndex);
-    bool isSectionClear(int x1, int y1, int x2, int y2,
-                        const QString &brightColor,
-                        bool isFirstSection);
+    void rectifySectionIndex(int &sectionIndex);
+    bool isSectionClear(const QString &brightColor, bool isFirstSection);
     bool getTrophyCoords(int &x, int &y, bool &pickable);
-    bool getRoleCoordsInMap(int x1, int y1, int x2, int y2, int &x, int &y);
+    bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int vDir, int speed=0);
     bool pickTrophies();

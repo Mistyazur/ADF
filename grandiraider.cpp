@@ -17,36 +17,21 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-
-    Flow flow = PickRole;
+    Flow flow = BindClient;
     int sectionIndex = 0;
     bool moveRoleUsed = false;
 
-    if (!bind(false))
-        return;
+    restartClient();
+    return;
+
 
     if (!initSettings("ADF.json"))
         return;
 
+    initDungeonMapRect(GRANDI_MAP_RECT);
+
     flow = PreFight;
     m_roleOffsetY = 150;
-
-//    sellEquipment();
-//    unbind();
-//    return;
-
-//    while (true) {
-
-////        if (getTrophyCoords(x, y)) {
-////            qDebug()<<"Trophy"<<x<<y;
-////            navigate(x, -1, false);
-////            navigate(-1, y, false);
-////            approxSleep(500);
-////            sendKey(Stroke, "x", 100);
-////        }
-//        pickTrophies();
-//        msleep(10);
-//    }
 
     QTime fightingTimer;
     fightingTimer.start();
@@ -54,6 +39,13 @@ void GrandiRaider::run()
     while (true) {
         try {
             switch (flow) {
+            case BindClient:
+                if (bind(false)) {
+                    flow = PickRole;
+                } else {
+                    throw DFRESTART;
+                }
+                break;
             case PickRole:
                 initRoleOffset();
                 flow = MoveToDungeon;
@@ -88,7 +80,7 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear(GRANDI_MAP_RECT, "216979-051F1F", sectionIndex == 0)) {
+                if (isSectionClear("216979-051F1F", sectionIndex == 0)) {
                     qDebug()<<"Section Clear";
                     approxSleep(200);
                     flow = PickTrophies;
@@ -119,7 +111,7 @@ void GrandiRaider::run()
                 break;
             case Navigate:
             {
-                rectifySectionIndex(GRANDI_MAP_RECT, sectionIndex);
+                rectifySectionIndex(sectionIndex);
 
                 bool bossRoomArrived;
                 if (navigateSection(sectionIndex, bossRoomArrived)) {
@@ -130,41 +122,10 @@ void GrandiRaider::run()
                     } else {
                         flow = PreFight;
                     }
-
                     break;
                 } else {
-
+                    throw DFRESTART;
                 }
-
-//                if (sectionIndex < pathList.count()) {
-//                    bool success = false;
-//                    bool end = false;
-//                    const QVariantList &sectionPathList = pathList.at(sectionIndex++).toList();
-//                    for (int i = 0; i < sectionPathList.count(); ++i) {
-//                        QVariantList &position = sectionPathList.at(i).toList();
-//                        if (position.count() < 2) {
-//                            qDebug()<<"Path is not acceptable";
-//                            return;
-//                        }
-
-//                        end = (i == (sectionPathList.count() - 1)) ? true : false;
-//                        success = navigate(position.first().toInt(), position.last().toInt(), end);
-//                        if (success) {
-//                            // Pre-fight
-//                            flow = PreFight;
-//                            break;
-//                        } else {
-//                            if (end) {
-//                                qDebug()<<"Navigate error";
-//                                if (!moveRoleUsed) {
-//                                    qDebug()<<"Reset";
-//                                    sendKey(Stroke, 187, 500);
-//                                    moveRoleUsed = true;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
                 break;
             }
             case PreBossFight:
@@ -196,7 +157,7 @@ void GrandiRaider::run()
                         moveRoleUsed = false;
                         continue;
                     } else {
-                        qDebug()<<"error: restart game";
+                        throw DFRESTART;
                     }
                 }
 
@@ -210,6 +171,8 @@ void GrandiRaider::run()
             qDebug()<<"DFError"<<e;
             if (e == DFSettingError) {
                 return;
+            } else if (e == DFRESTART) {
+
             }
         }
     }
