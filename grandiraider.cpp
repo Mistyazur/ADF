@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QString>
 
+#define DUNGEON "Grandi"
 #define GRANDI_MAP_RECT 720, 50, 795, 105
 
 GrandiRaider::GrandiRaider()
@@ -17,28 +18,62 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    Flow flow = BindClient;
+    Flow flow = StartClient;
     int sectionIndex = 0;
-    bool moveRoleUsed = false;
+    int timeElapsed = 0;
+    QTime timer;
 
-    restartClient();
-    return;
+    timer.start();
+    m_preFlow = (Flow)-1;
 
-
-    if (!initSettings("ADF.json"))
+    if (!initDungeonSettings(DUNGEON))
         return;
+    
 
-    initDungeonMapRect(GRANDI_MAP_RECT);
+//    flow = PreFight;
+//    bind(false);
 
-    flow = PreFight;
-    m_roleOffsetY = 150;
-
-    QTime fightingTimer;
-    fightingTimer.start();
 
     while (true) {
         try {
+            // Check disconnected
+            if (isDisconnected()) {
+                qDebug()<<"Disconnected";
+                throw DFRESTART;
+            }
+
+            // Check timeout
+            if (flow != m_preFlow) {
+                timer.restart();
+                m_preFlow = flow;
+            } else {
+                timeElapsed = timer.elapsed();
+                if (flow > BindClient) {
+                    if (timeElapsed > 40000) {
+                        if (flow == Fight) {
+                            // Tempester may be disappeared
+                            summonSupporter();
+                            approxSleep(1000);
+                        }
+                    } else if (timeElapsed > 120000) {
+                        qDebug()<<"Timer hit 2 min:"<<flow;
+                        throw DFRESTART;
+                    }
+                }
+            }
+
+            // Check death
+            if (isRoleDead()) {
+                qDebug()<<"Role is dead";
+                throw DFRESTART;
+            }
+
             switch (flow) {
+            case StartClient:
+                if (startClient()) {
+                    flow = BindClient;
+                }
+                break;
             case BindClient:
                 if (bind(false)) {
                     flow = PickRole;
@@ -47,7 +82,16 @@ void GrandiRaider::run()
                 }
                 break;
             case PickRole:
+                pickRole();
+
+                // Check dungeon point
+                if (isNoDungeonPoint()) {
+                    flow = BackToRoleList;
+                    break;
+                }
+
                 initRoleOffset();
+
                 flow = MoveToDungeon;
                 break;
             case MoveToDungeon:
@@ -75,7 +119,6 @@ void GrandiRaider::run()
                     moveRole(0, 1);
                 }
 
-                fightingTimer.restart();
                 flow = Fight;
                 break;
             case Fight:
@@ -85,12 +128,6 @@ void GrandiRaider::run()
                     approxSleep(200);
                     flow = PickTrophies;
                     break;
-                }
-
-                // Check supporter
-                if (fightingTimer.elapsed() > 40000) {
-                    summonSupporter();
-                    approxSleep(5000);
                 }
 
                 if (sectionIndex == 4) {
@@ -146,15 +183,21 @@ void GrandiRaider::run()
                     sendKey(Down, "x", 3000);
                     sendKey(Up, "x");
 
-                    // sell trophies
+                    // Sell trophies
                     sellEquipment();
                     approxSleep(100);
 
-                    // reenter dungeon
+                    // Check dungeon point
+                    if (isNoDungeonPoint()) {
+                        sendKey(Stroke, 123, 1000);  // Esc
+                        flow = BackToRoleList;
+                        break;
+                    }
+
+                    // Reenter dungeon
                     if (reenterDungeon()) {
                         flow = PreFight;
                         sectionIndex = 0;
-                        moveRoleUsed = false;
                         continue;
                     } else {
                         throw DFRESTART;
@@ -162,6 +205,15 @@ void GrandiRaider::run()
                 }
 
                 fightBoss();
+                break;
+            case BackToRoleList:
+                if (!updateRoleIndex(DUNGEON)) {
+                    // Job finished
+                    return;
+                }
+
+                backToRoleList();
+                flow = PickRole;
                 break;
             default:
                 break;
@@ -172,7 +224,8 @@ void GrandiRaider::run()
             if (e == DFSettingError) {
                 return;
             } else if (e == DFRESTART) {
-
+                flow = StartClient;
+                continue;
             }
         }
     }

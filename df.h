@@ -21,7 +21,8 @@ protected:
     int m_dungeonMapY1;
     int m_dungeonMapX2;
     int m_dungeonMapY2;
-    int m_roleOffsetY;
+    int m_roleCount;
+    int m_lastRoleIndex;
     QVariantList m_pathList;
     QVariantList m_nodeList;
 
@@ -32,22 +33,31 @@ protected:
     void unbind();
     
     // Common functions
-    bool restartClient();
+    bool startClient();
+    bool waitForRoleList();
+    bool openSystemMenu();
+    bool closeSystemMenu();
+    bool isDisconnected();
     void setArrowKey(int left, int up, int right, int down);
     bool isBlackScreen(int x1, int y1, int x2, int y2);
-    void switchRole(int index);
+    void pickRole(int index);
+    void backToRoleList();
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y, int time);
     void sellEquipment();
 
     // Dungeon functions
-    bool initSettings(const QString &file);
-    void initDungeonMapRect(int x1, int y1, int x2, int y2);
+//    bool initDungeonSettings(const QString &file);
+    bool initDungeonSettings(const QString &dungeon);
+    bool updateRoleIndex(const QString &dungeon);
+    void pickRole();
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool reenterDungeon();
     bool isInDungeon();
+    bool isRoleDead();
     bool isDungeonEnded();
+    bool isNoDungeonPoint();
     bool summonSupporter();
     void buff();
     void rectifySectionIndex(int &sectionIndex);
@@ -62,6 +72,7 @@ protected:
     bool fightBoss();
 private:
     int m_hBindWnd;
+    int m_roleOffsetY;
     QTime *m_firstSectionTimer;
 };
 

@@ -3,6 +3,7 @@
 #include "JSettings/jsettings.h"
 
 #include <QApplication>
+#include <QSettings>
 #include <QProcess>
 #include <QTime>
 #include <QDebug>
@@ -11,9 +12,13 @@
 
 #undef FindWindow
 
+#define PICK_CHANNNEL_POS 380, 450
+
+
 DF::DF()
 {
     m_hBindWnd = 0;
+    m_roleOffsetY = 150;
     m_firstSectionTimer = nullptr;
 
     // Default arrow keys
@@ -21,6 +26,10 @@ DF::DF()
     m_arrowU = 38;
     m_arrowR = 39;
     m_arrowD = 40;
+
+    // Set mouse and key duration
+    setMouseDuration(50);
+    setKeyDuration(50);
 
     // Set mouse and key delay
     setMouseDelayDelta(0.2);
@@ -66,14 +75,14 @@ void DF::unbind()
     m_dm.UnBindWindow();
 }
 
-bool DF::restartClient()
+bool DF::startClient()
 {
     int hTGPWnd;
     unbind();
 
     // Terminate process
-    QProcess::startDetached("TASKKILL /IM DNF.exe");
-    msleep(10000);
+    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
+    msleep(5000);
 
 //    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
 //    if (hTGPWnd == 0) {
@@ -104,23 +113,74 @@ bool DF::restartClient()
     m_dm.SetWindowSize(hTGPWnd, 1020, 720);
     m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
 
-//    // Terminate client
-//    sendMouse(Left, 50, 120, 310);
-//    if ()kk
-//    sendMouse(Left, 50, 300, 100);
-
-//    QProcess::startDetached("TASKKILL /F /IM DNF.exe");
-//    msleep(3000);
-
     // Start client
-    sendMouse(Left, 50, 300, 100);
-    sendMouse(Left, 50, 300, 100);
-    sendMouse(Left, 900, 680, 100);
-    sendMouse(Left, 900, 680, 100);
+    sendMouse(Left, 50, 300, 300);
+    sendMouse(Left, 900, 680, 300);
     for (int i = 0; i < 60; ++i) {
-        if (window() != 0)
-            break;
+        if (window() != 0) {
+            return true;
+        }
         msleep(1000);
+    }
+
+    return false;
+}
+
+bool DF::waitForRoleList()
+{
+    QVariant vx, vy;
+
+    for (int i = 0; i < 20; ++i) {
+        if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+            return true;
+        }
+
+        approxSleep(1000);
+    }
+
+    return false;
+}
+
+bool DF::openSystemMenu()
+{
+    QVariant vx, vy;
+
+    for (int i = 0; i < 20; ++i) {
+        if (m_dm.FindPic(400, 450, 470, 480, "pick_channel.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+            sendKey(Stroke, 27, 1000);
+        } else {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool DF::closeSystemMenu()
+{
+    QVariant vx, vy;
+
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindPic(400, 450, 470, 480, "pick_channel.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+            return true;
+        } else {
+            sendKey(Stroke, 27, 1000);
+        }
+    }
+
+    return false;
+}
+
+bool DF::isDisconnected()
+{
+    QVariant vx, vy;
+
+    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+        return false;
+    }
+
+    if (m_dm.FindPic(300, 200, 500, 400, "announcement.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+        return false;
     }
 
     return true;
@@ -134,7 +194,7 @@ void DF::setArrowKey(int left, int up, int right, int down)
     m_arrowD = down;
 }
 
-void DF::switchRole(int index)
+void DF::pickRole(int index)
 {
     const int originalX = 128;
     const int originalY = 190;
@@ -142,6 +202,12 @@ void DF::switchRole(int index)
     const int offsetY = 210;
     int row = index%4;
     int column = index/4;
+
+    // Wait for role list
+    if (!waitForRoleList()) {
+        qDebug()<<"Failed to wait for role list";
+        throw DFRESTART;
+    }
 
     // Reset scroll bar
     sendMouse(LeftDown, 580, 290, 500);
@@ -152,18 +218,48 @@ void DF::switchRole(int index)
     if (column > 1) {
         column = 1;
         for (int i=0; i < column-1; ++i)
-            sendMouse(Left, 580, 495, 1000);
+            sendMouse(Left, 580, 495, 500);
     }
 
     // Pick role
     int roleX = originalX+offsetX*row;
     int roleY = originalY+offsetY*column;
     sendMouse(Left, roleX, roleY, 1000);
-    sendMouse(Left, roleX, roleY, 1000);
 
     // Game start
     sendMouse(Left, 400, 550, 1000);
-    sendMouse(Left, 400, 550, 1000);
+
+    // Use system menu to make sure role is switched successfully
+    // It'll also close ohter unknown window
+    if (!openSystemMenu()) {
+        qDebug()<<"Pick role: Failed to open system menu";
+        throw DFRESTART;
+    }
+
+    // Close system menu
+    if (!closeSystemMenu()) {
+        qDebug()<<"Pick role: Failed to close system menu";
+        throw DFRESTART;
+    }
+
+    // Wait for splash disappeared
+    approxSleep(5000);
+}
+
+void DF::backToRoleList()
+{
+    if (!openSystemMenu()) {
+        qDebug()<<"Back to role list: Failed to open system menu";
+        throw DFRESTART;
+    }
+
+    sendMouse(Left, PICK_CHANNNEL_POS, 1000);
+
+    // Wait for role list
+    if (!waitForRoleList()) {
+        qDebug()<<"Back to role list: Failed to wait for role list";
+        throw DFRESTART;
+    }
 }
 
 void DF::teleport(const QString &destination)
@@ -181,7 +277,7 @@ void DF::navigateOnMap(int x, int y, int time)
 {
     sendKey(Stroke, "N", 1000);
     sendMouse(Right, x, y, 1000);
-    sendKey(Stroke, "N", 1000);
+    sendKey(Stroke, "N");
     approxSleep(time);
 }
 
@@ -231,36 +327,114 @@ void DF::sellEquipment()
 
                 sendKey(Stroke, 32, 100);
                 sendKey(Stroke, 32, 100);
-
-//                for (int j = 0; j < 10; ++j) {
-//                    if (m_dm.FindPic(vx.toInt(), vy.toInt() - 100, 800, 500, "announcement.bmp", "000000", 1.0, 0, vx, vy) != -1)
-//                        break;
-//                    approxSleep(100);
-//                }
-//                sendMouse(Left, x, y, 100);
             }
         }
     }
 }
 
-bool DF::initSettings(const QString &file)
+bool DF::initDungeonSettings(const QString &dungeon)
 {
-    JSettings js(QApplication::applicationDirPath() + "/" + file);
-    m_pathList = js.value("GrandiPath").toList();
-    m_nodeList = js.value("GrandiNodes").toList();
-    if (m_pathList.isEmpty() || m_nodeList.isEmpty())
+    QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);
+
+    settings.beginGroup(dungeon);
+
+    // Get count of role that'll be automated
+    m_roleCount = settings.value("role_count", 0).toInt();
+
+    // Get last role index that was automating
+    QDateTime lastDateTime = settings.value("last_time").toDateTime();
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+
+    QDateTime thresholdDateTime;
+    thresholdDateTime.setDate(lastDateTime.date());
+    thresholdDateTime.setTime(QTime(6, 0, 0));
+    if (lastDateTime.time().hour() >= 6) {
+        thresholdDateTime = thresholdDateTime.addDays(1);
+    }
+
+    if (currentDateTime >= thresholdDateTime) {
+        settings.setValue("last_time", currentDateTime);
+        settings.setValue("role_index", 0);
+        settings.sync();
+    }
+
+    m_lastRoleIndex = settings.value("role_index", 0).toInt();
+
+    // Get dungeon settings
+    QString jsonFile = settings.value("json", "").toString();
+
+    settings.endGroup();
+
+    // Initialize dungeon settings
+    if (jsonFile.isEmpty()) {
+        qDebug()<<dungeon<<"Json file not exist";
         return false;
+    }
+
+    JSettings js(QApplication::applicationDirPath() + "/" + jsonFile);
+    m_pathList = js.value("Path").toList();
+    m_nodeList = js.value("Nodes").toList();
+    if (m_pathList.isEmpty() || m_nodeList.isEmpty()) {
+        qDebug()<<dungeon<<"Path or node is empty";
+        return false;
+    }
+
+    QVariantList mapRect = js.value("MapRect").toList();
+    if (mapRect.count() < 4) {
+        qDebug()<<dungeon<<"Map rect undefined";
+        return false;
+    }
+
+    m_dungeonMapX1 = mapRect.at(0).toInt();
+    m_dungeonMapY1 = mapRect.at(1).toInt();
+    m_dungeonMapX2 = mapRect.at(2).toInt();
+    m_dungeonMapY2 = mapRect.at(3).toInt();
 
     return true;
 }
 
-void DF::initDungeonMapRect(int x1, int y1, int x2, int y2)
+bool DF::updateRoleIndex(const QString &dungeon)
 {
-    m_dungeonMapX1 = x1;
-    m_dungeonMapY1 = y1;
-    m_dungeonMapX2 = x2;
-    m_dungeonMapY2 = y2;
+    QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);
+
+    m_lastRoleIndex += 1;
+    if (m_lastRoleIndex >= m_roleCount) {
+        return false;
+    }
+
+    settings.beginGroup(dungeon);
+
+    settings.setValue("role_index", m_lastRoleIndex);
+    settings.setValue("last_time", QDateTime::currentDateTime());
+
+    settings.endGroup();
+
+    return true;
 }
+
+void DF::pickRole()
+{
+    pickRole(m_lastRoleIndex);
+}
+
+//bool DF::initDungeonSettings(const QString &file)
+//{
+//    JSettings js(QApplication::applicationDirPath() + "/" + file);
+//    m_pathList = js.value("Path").toList();
+//    m_nodeList = js.value("Nodes").toList();
+//    if (m_pathList.isEmpty() || m_nodeList.isEmpty())
+//        return false;
+
+//    QVariantList mapRect = js.value("MapRect").toList();
+//    if (mapRect.count() < 4)
+//        return false;
+//    m_dungeonMapX1 = mapRect.at(0).toInt();
+//    m_dungeonMapY1 = mapRect.at(1).toInt();
+//    m_dungeonMapX2 = mapRect.at(2).toInt();
+//    m_dungeonMapY2 = mapRect.at(3).toInt();
+
+//    return true;
+//}
 
 bool DF::initRoleOffset()
 {
@@ -316,7 +490,6 @@ EnterDungeon:
 
     // Commit
     sendKey(Stroke, 32, 500);
-    sendKey(Stroke, 32, 500);
 
     // Wait
     for (int i = 0; i < 10; ++i) {
@@ -332,7 +505,6 @@ bool DF::reenterDungeon()
 {
     // Reenter
     sendKey(Stroke, 27, 1500);
-    sendKey(Stroke, 121, 500);
     sendKey(Stroke, 121, 500);
 
     // Wait
@@ -356,6 +528,16 @@ bool DF::isInDungeon()
     return true;
 }
 
+bool DF::isRoleDead()
+{
+    QVariant vx, vy;
+
+    if (m_dm.FindPic(420, 260, 480, 280, "revive.bmp", "000000", 1.0, 0, vx, vy) == -1)
+        return false;
+
+    return true;
+}
+
 bool DF::isDungeonEnded()
 {
     QVariant x, y;
@@ -366,11 +548,20 @@ bool DF::isDungeonEnded()
     return true;
 }
 
+bool DF::isNoDungeonPoint()
+{
+    if (m_dm.GetColor(339, 553).toUpper() == "008FF1") {
+        return false;
+    }
+
+    return true;
+}
+
 bool DF::summonSupporter()
 {
 //    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
         sendKey(Stroke, "z", 100);
-        sendKey(Stroke, 9, 100);  // Tab
+        sendKey(Stroke, 9, 300);  // Tab
         return true;
 //    }
 
@@ -685,8 +876,6 @@ bool DF::pickTrophies()
 
         if (hArrived && vArrived) {
             qDebug()<<"PickTrophies: Arrived";
-            moveRole(1, 1);
-            approxSleep(200);
             sendKey(Stroke, "x", 100);
             result = true;
             break;

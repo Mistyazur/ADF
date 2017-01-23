@@ -13,6 +13,8 @@ DmPrivate::DmPrivate(QObject *parent) :
     QThread(parent)
 {
     // Init
+    m_mouseDuration = 0;
+    m_keyDuration = 0;
     m_mouseDelayDelta = 0;
     m_keyDelayDelta = 0;
 
@@ -93,6 +95,14 @@ void DmPrivate::approxSleep(int msec, double delta)
     msleep(MEDIAN_RANDOM(min, max));
 }
 
+int DmPrivate::setMouseDuration(int duration)
+{
+    int old = m_mouseDuration;
+    m_mouseDuration = duration;
+
+    return old;
+}
+
 void DmPrivate::setMouseDelayDelta(double delta)
 {
     m_mouseDelayDelta = delta;
@@ -112,7 +122,9 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     case Move:
         break;
     case Left:
-        m_dm.LeftClick();
+        m_dm.LeftDown();
+        approxSleep(m_mouseDuration);
+        m_dm.LeftUp();
         break;
     case LeftDown:
         m_dm.LeftDown();
@@ -121,7 +133,9 @@ void DmPrivate::sendMouse(const MouseOper &oper,
         m_dm.LeftUp();
         break;
     case Right:
-        m_dm.RightClick();
+        m_dm.RightDown();
+        approxSleep(m_mouseDuration);
+        m_dm.RightUp();
         break;
     case RightDown:
         m_dm.RightDown();
@@ -145,6 +159,14 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     sendMouse(oper, x.toInt(), y.toInt(), delay);
 }
 
+int DmPrivate::setKeyDuration(int duration)
+{
+    int old = m_keyDuration;
+    m_keyDuration = duration;
+
+    return old;
+}
+
 void DmPrivate::setKeyDelayDelta(double delta)
 {
     m_keyDelayDelta = delta;
@@ -156,7 +178,9 @@ void DmPrivate::sendKey(const KeyOper &oper,
 {
     switch (oper) {
     case Stroke:
-        m_dm.KeyPress(vk);
+        m_dm.KeyDown(vk);
+        approxSleep(m_mouseDuration);
+        m_dm.KeyUp(vk);
         break;
     case Down:
         m_dm.KeyDown(vk);
