@@ -36,38 +36,6 @@ void GrandiRaider::run()
 
     while (true) {
         try {
-            // Check disconnected
-            if (isDisconnected()) {
-                qDebug()<<"Disconnected";
-                throw DFRESTART;
-            }
-
-            // Check timeout
-            if (flow != m_preFlow) {
-                timer.restart();
-                m_preFlow = flow;
-            } else {
-                timeElapsed = timer.elapsed();
-                if (flow > BindClient) {
-                    if (timeElapsed > 40000) {
-                        if (flow == Fight) {
-                            // Tempester may be disappeared
-                            summonSupporter();
-                            approxSleep(1000);
-                        }
-                    } else if (timeElapsed > 120000) {
-                        qDebug()<<"Timer hit 2 min:"<<flow;
-                        throw DFRESTART;
-                    }
-                }
-            }
-
-            // Check death
-            if (isRoleDead()) {
-                qDebug()<<"Role is dead";
-                throw DFRESTART;
-            }
-
             switch (flow) {
             case StartClient:
                 if (window() != 0) {
@@ -77,6 +45,8 @@ void GrandiRaider::run()
                 }
                 if (startClient()) {
                     flow = BindClient;
+                } else {
+                    qDebug()<<"StartClient failed";
                 }
                 break;
             case BindClient:
@@ -230,6 +200,38 @@ void GrandiRaider::run()
                 break;
             default:
                 break;
+            }
+
+            // Check disconnected
+            if (isDisconnected()) {
+                qDebug()<<"Disconnected";
+                throw DFRESTART;
+            }
+
+            // Check timeout
+            if (flow != m_preFlow) {
+                timer.restart();
+                m_preFlow = flow;
+            } else {
+                timeElapsed = timer.elapsed();
+                if (flow > BindClient) {
+                    if (timeElapsed > 40000) {
+                        if (flow == Fight) {
+                            // Tempester may be disappeared
+                            summonSupporter();
+                            approxSleep(1000);
+                        }
+                    } else if (timeElapsed > 120000) {
+                        qDebug()<<"Timer hit 2 min:"<<flow;
+                        throw DFRESTART;
+                    }
+                }
+            }
+
+            // Check death
+            if (isRoleDead()) {
+                qDebug()<<"Role is dead";
+                throw DFRESTART;
             }
 
         } catch(DFError e) {

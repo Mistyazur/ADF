@@ -84,6 +84,7 @@ void DF::closeClient()
 bool DF::startClient()
 {
     int hTGPWnd;
+    int hCheckingWnd;
 
 //    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
 //    if (hTGPWnd == 0) {
@@ -97,17 +98,31 @@ bool DF::startClient()
 //        msleep(1000);
 //    }
 
-    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
+    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
+        qDebug()<<"Can't find tgp window";
         return false;
     }
+    qDebug()<<"TGP"<<hTGPWnd;
 
     // Activate tgp
     if (m_dm.GetForegroundWindow() != hTGPWnd) {
         m_dm.SetWindowState(hTGPWnd, 1);
-    }
-    while (m_dm.GetForegroundWindow() != hTGPWnd) {
         msleep(1000);
+    }
+
+    // wait for tgp activated
+    bool ok = false;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.GetForegroundWindow() == hTGPWnd) {
+            ok = true;
+            break;
+        }
+        msleep(1000);
+    }
+    if (!ok) {
+        qDebug()<<"Can't activate tgp window";
+        return false;
     }
 
     // Bind tgp
@@ -120,8 +135,21 @@ bool DF::startClient()
     sendMouse(Left, 900, 680, 300);
     setMouseDuration(oldMouseDuration);
 
-    // Hide tgp
-    m_dm.SetWindowState(hTGPWnd, 2);
+    // Unbind tgp
+    m_dm.UnBindWindow();
+
+    // Skip checking window
+    for (int i = 0; i < 5; ++i) {
+        msleep(1000);
+
+        hCheckingWnd = m_dm.FindWindow("TWINCONTROL", "");
+        if (hCheckingWnd && (hCheckingWnd != hTGPWnd)) {
+            m_dm.BindWindow(hCheckingWnd, "normal", "normal", "normal", 0);
+            sendMouse(Left, 415, 60, 200);
+            m_dm.UnBindWindow();
+            break;
+        }
+    }
 
     // Wait for client
     for (int i = 0; i < 300; ++i) {
@@ -153,7 +181,7 @@ bool DF::openSystemMenu()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(400, 450, 470, 480, "pick_channel.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             sendKey(Stroke, 27, 1000);
         } else {
@@ -183,13 +211,13 @@ bool DF::isDisconnected()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "0F0F0F", 1.0, 0, vx, vy) == -1) {
         return false;
     }
 
-    if (m_dm.FindPic(300, 200, 500, 400, "announcement.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-        return false;
-    }
+//    if (m_dm.FindPic(300, 200, 500, 400, "announcement.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+//        return false;
+//    }
 
     return true;
 }
@@ -570,7 +598,11 @@ bool DF::summonSupporter()
 {
 //    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
         sendKey(Stroke, "z", 100);
-        sendKey(Stroke, 9, 300);  // Tab
+        sendKey(Stroke, 9, 100);  // Tab
+
+        // Colourless crystal may be locked, so press tab again
+        sendKey(Stroke, 9, 100);  // Tab
+
         return true;
 //    }
 
