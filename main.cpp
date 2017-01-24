@@ -10,25 +10,25 @@
 #include <QDebug>
 #include <windows.h>
 
+#define LOG_NAME QApplication::applicationDirPath() + "/record.log"
+
 void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     static QMutex mutex;
-    static QString logFileName = QApplication::applicationDirPath()
-            + "/" + QDateTime::currentDateTime().toString("yy_MM_dd__HH_mm_ss_zzz") + ".log";
 
     mutex.lock();
 
-    QFile file(logFileName);
-    if (file.open(QFile::ReadWrite|QFile::Append)) {
+    QFile log(LOG_NAME);
+    if (log.open(QFile::ReadWrite|QFile::Append)) {
         QByteArray localMsg = msg.toLocal8Bit();
         QString msgStr = QString("%1\t%2")
-                .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
+                .arg(QDateTime::currentDateTime().toString("MM-dd HH:mm:ss.zzz"))
                 .arg(localMsg.constData());
 
-        QTextStream out(&file);
+        QTextStream out(&log);
         out << msgStr << endl;
 
-        file.close();
+        log.close();
     }
 
 
@@ -46,9 +46,12 @@ void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
-//    qInstallMessageHandler(MsgRedirection);
-
     QApplication a(argc, argv);
+
+    QFile log(LOG_NAME);
+    if (log.exists()) {
+        qInstallMessageHandler(MsgRedirection);
+    }
 
     // Language
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));

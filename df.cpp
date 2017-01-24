@@ -251,7 +251,7 @@ void DF::pickRole(int index)
     }
 
     // Wait for splash disappeared
-    approxSleep(5000);
+    approxSleep(10000);
 }
 
 void DF::backToRoleList()
@@ -283,15 +283,9 @@ void DF::teleport(const QString &destination)
 
 void DF::navigateOnMap(int x, int y, int time)
 {
-    int oldKeyDuration = setKeyDuration(200);
-    int oldMouseDuration = setMouseDuration(200);
-
-    sendKey(Stroke, "N", 1000);
-    sendMouse(Right, x, y, 1000);
-    sendKey(Stroke, "N");
-
-    setKeyDuration(oldKeyDuration);
-    setMouseDuration(oldMouseDuration);
+    sendKey(Stroke, "N", 500);
+    sendMouse(Right, x, y, 500);
+    sendKey(Stroke, "N", 500);
 
     approxSleep(time);
 }
@@ -507,7 +501,7 @@ EnterDungeon:
     sendKey(Stroke, 32, 500);
 
     // Wait
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 20; ++i) {
         if (isInDungeon())
             return true;
         msleep(1000);

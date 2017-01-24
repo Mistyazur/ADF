@@ -105,6 +105,9 @@ void GrandiRaider::run()
                 if (enterDungeon(4, 2, false)) {
                     sectionIndex = 0;
                     flow = PreFight;
+                } else {
+                    qDebug()<<"Enter dungeon: failed";
+                    throw DFRESTART;
                 }
                 break;
             case PreFight:
@@ -116,8 +119,8 @@ void GrandiRaider::run()
                     buff();
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(-1, 390);
-                    navigate(200, -1);
+                    navigate(-1, 380);
+                    navigate(300, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     moveRole(0, 1, 2);
