@@ -19,7 +19,6 @@ DF::DF()
 {
     m_hBindWnd = 0;
     m_roleOffsetY = 150;
-    m_firstSectionTimer = nullptr;
 
     // Default arrow keys
     m_arrowL = 37;
@@ -38,10 +37,6 @@ DF::DF()
 
 DF::~DF()
 {
-    if (m_firstSectionTimer) {
-        delete m_firstSectionTimer;
-        m_firstSectionTimer = nullptr;
-    }
 }
 
 int DF::window()
@@ -644,27 +639,11 @@ void DF::rectifySectionIndex(int &sectionIndex)
         sectionIndex = rectifiedSectionIndex;
 }
 
-bool DF::isSectionClear(const QString &brightColor, bool isFirstSection)
+bool DF::isSectionClear(const QString &brightColor)
 {
     int x, y;
     ulong beforeBlocks[4][196] = {0};
 
-    // First section maybe not has clear effect
-    // So we assume it's clear, if it has costed 30 secs
-    if (isFirstSection) {
-        if (!m_firstSectionTimer) {
-            m_firstSectionTimer = new QTime();
-            m_firstSectionTimer->start();
-        } else {
-            if (m_firstSectionTimer->elapsed() > 30000)
-                return true;
-        }
-    } else {
-        if (m_firstSectionTimer) {
-            delete m_firstSectionTimer;
-            m_firstSectionTimer = nullptr;
-        }
-    }
 
     if (!getRoleCoordsInMap(x, y))
         return false;

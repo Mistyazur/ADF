@@ -102,11 +102,27 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear("216979-051F1F", sectionIndex == 0)) {
+                if (isSectionClear("216979-051F1F")) {
                     qDebug()<<"Section Clear";
                     approxSleep(200);
                     flow = PickTrophies;
                     break;
+                }
+
+                timeElapsed = timer.elapsed();
+                if (timeElapsed > 40000) {
+                    // Tempester may be disappeared
+                    summonSupporter();
+                    approxSleep(200);
+                } else if (timeElapsed > 60000) {
+                    // First section maybe not has clear effect
+                    // So we assume it's clear, if it has costed 30 secs
+                    if (sectionIndex == 0) {
+                        qDebug()<<"Section Clear[timeout]";
+                        approxSleep(200);
+                        flow = PickTrophies;
+                        break;
+                    }
                 }
 
                 if (sectionIndex == 4) {
@@ -213,15 +229,8 @@ void GrandiRaider::run()
                 timer.restart();
                 m_preFlow = flow;
             } else {
-                timeElapsed = timer.elapsed();
                 if (flow > BindClient) {
-                    if (timeElapsed > 40000) {
-                        if (flow == Fight) {
-                            // Tempester may be disappeared
-                            summonSupporter();
-                            approxSleep(1000);
-                        }
-                    } else if (timeElapsed > 120000) {
+                    if (timer.elapsed() > 120000) {
                         qDebug()<<"Timer hit 2 min:"<<flow;
                         throw DFRESTART;
                     }

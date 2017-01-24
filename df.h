@@ -62,7 +62,7 @@ protected:
     bool summonSupporter();
     void buff();
     void rectifySectionIndex(int &sectionIndex);
-    bool isSectionClear(const QString &brightColor, bool isFirstSection);
+    bool isSectionClear(const QString &brightColor);
     bool getTrophyCoords(int &x, int &y, bool &pickable);
     bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
@@ -74,7 +74,6 @@ protected:
 private:
     int m_hBindWnd;
     int m_roleOffsetY;
-    QTime *m_firstSectionTimer;
 };
 
 #endif // DF_H
