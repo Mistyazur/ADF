@@ -550,11 +550,11 @@ bool DF::isDungeonEnded()
 
 bool DF::isNoDungeonPoint()
 {
-    if (m_dm.GetColor(339, 553).toUpper() == "008FF1") {
-        return false;
+    if (m_dm.GetColor(339, 553) == "000000") {
+        return true;
     }
 
-    return true;
+    return false;
 }
 
 bool DF::summonSupporter()
