@@ -584,7 +584,16 @@ void DF::rectifySectionIndex(int &sectionIndex)
 {
     int x, y;
 
-    if (!getRoleCoordsInMap(x, y)) {
+    bool ok = false;
+    for (int i = 0; i < 10; ++i) {
+        if (getRoleCoordsInMap(x, y)) {
+            ok = true;
+            break;
+        }
+        approxSleep(500);
+    }
+    if (!ok) {
+        qDebug()<<"RecitySectionIndex: getRoleCoordsInMap failed";
         throw DFRESTART;
     }
 
@@ -844,6 +853,7 @@ bool DF::pickTrophies()
 
     // Avoid insisting picking a unpickable item
     if (counter++ > 10) {
+        qDebug()<<"Counter triggered";
         counter = 0;
         return false;
     }
@@ -869,6 +879,7 @@ bool DF::pickTrophies()
             if (navigateSection(sectionIndex, bossRoomArrived)) {
                 break;
             } else {
+                qDebug()<<"Pick trophies: navigateSection failed";
                 throw DFRESTART;
             }
 
@@ -937,12 +948,12 @@ bool DF::pickTrophies()
                     bool stucked = false;
                     for (int i=0; i<10; ++i) {
                         if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
-                            qDebug()<<"PickTrophies: Stuck";
                             stucked = true;
                             break;
                         }
                     }
                     if (stucked) {
+                        qDebug()<<"PickTrophies: Stuck";
                         result = false;
                         break;
                     }

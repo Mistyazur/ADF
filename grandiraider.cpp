@@ -78,6 +78,7 @@ void GrandiRaider::run()
                 if (bind(false)) {
                     flow = PickRole;
                 } else {
+                    qDebug()<<"Bind client failed";
                     throw DFRESTART;
                 }
                 break;
@@ -161,6 +162,7 @@ void GrandiRaider::run()
                     }
                     break;
                 } else {
+                    qDebug()<<"navigateSection failed";
                     throw DFRESTART;
                 }
                 break;
@@ -200,6 +202,7 @@ void GrandiRaider::run()
                         sectionIndex = 0;
                         continue;
                     } else {
+                        qDebug()<<"reenterDungeon failed";
                         throw DFRESTART;
                     }
                 }
