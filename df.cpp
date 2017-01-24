@@ -281,9 +281,16 @@ void DF::teleport(const QString &destination)
 
 void DF::navigateOnMap(int x, int y, int time)
 {
+    int oldKeyDuration = setKeyDuration(200);
+    int oldMouseDuration = setMouseDuration(200);
+
     sendKey(Stroke, "N", 1000);
     sendMouse(Right, x, y, 1000);
     sendKey(Stroke, "N");
+
+    setKeyDuration(oldKeyDuration);
+    setMouseDuration(oldMouseDuration);
+
     approxSleep(time);
 }
 
@@ -900,6 +907,17 @@ bool DF::pickTrophies()
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
+            if ((hDir == 0) && (vDir == 0)) {
+                if (qrand() % 2 == 0) {
+                    moveRole(1, 0, 2);
+                    approxSleep(200);
+                    moveRole(1, 0);
+                } else {
+                    moveRole(-1, 0, 2);
+                    approxSleep(200);
+                    moveRole(-1, 0);
+                }
+            }
             continue;
         }
         if (!getTrophyCoords(x, y, pickable)) {
@@ -1036,6 +1054,9 @@ bool DF::pickTrophies()
 
     moveRole(1, 1);
     approxSleep(100);
+
+    if (result == false)
+        counter = 0;
 
     return result;
 }

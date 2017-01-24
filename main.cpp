@@ -46,7 +46,7 @@ void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(MsgRedirection);
+//    qInstallMessageHandler(MsgRedirection);
 
     QApplication a(argc, argv);
 
