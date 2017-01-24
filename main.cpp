@@ -7,27 +7,30 @@
 #include <QMutex>
 #include <QFile>
 
+#include <QDebug>
+#include <windows.h>
+
 void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     static QMutex mutex;
-    static QFile file(QApplication::applicationDirPath() + "/" + QDateTime::currentDateTime().toString("yy_MM_dd__HH_mm_ss_zzz") + ".log");
-    static QTextStream out(&file);
+    static QString logFileName = QApplication::applicationDirPath()
+            + "/" + QDateTime::currentDateTime().toString("yy_MM_dd__HH_mm_ss_zzz") + ".log";
 
     mutex.lock();
 
-    if (!file.isOpen()) {
-        if (!file.open(QFile::ReadWrite|QFile::Append)) {
-            return;
-        }
+    QFile file(logFileName);
+    if (file.open(QFile::ReadWrite|QFile::Append)) {
+        QByteArray localMsg = msg.toLocal8Bit();
+        QString msgStr = QString("%1\t%2")
+                .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
+                .arg(localMsg.constData());
+
+        QTextStream out(&file);
+        out << msgStr << endl;
+
+        file.close();
     }
 
-    QByteArray localMsg = msg.toLocal8Bit();
-    QString msgStr = QString("%1\t%2")
-            .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
-            .arg(localMsg.constData());
-
-    out << msgStr << endl;
-    out.flush();
 
 //    switch (type) {
 //    case QtDebugMsg:

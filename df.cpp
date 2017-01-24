@@ -75,14 +75,15 @@ void DF::unbind()
     m_dm.UnBindWindow();
 }
 
+void DF::closeClient()
+{
+    // Terminate process
+    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
+}
+
 bool DF::startClient()
 {
     int hTGPWnd;
-    unbind();
-
-    // Terminate process
-    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
-    msleep(5000);
 
 //    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
 //    if (hTGPWnd == 0) {
@@ -116,6 +117,11 @@ bool DF::startClient()
     // Start client
     sendMouse(Left, 50, 300, 300);
     sendMouse(Left, 900, 680, 300);
+
+    // Hide tgp
+    m_dm.SetWindowState(hTGPWnd, 2);
+
+    // Wait for client
     for (int i = 0; i < 60; ++i) {
         if (window() != 0) {
             return true;

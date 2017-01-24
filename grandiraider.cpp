@@ -70,6 +70,11 @@ void GrandiRaider::run()
 
             switch (flow) {
             case StartClient:
+                if (window() != 0) {
+                    unbind();
+                    closeClient();
+                    msleep(5000);
+                }
                 if (startClient()) {
                     flow = BindClient;
                 }
@@ -212,6 +217,8 @@ void GrandiRaider::run()
             case BackToRoleList:
                 if (!updateRoleIndex(DUNGEON)) {
                     // Job finished
+                    qDebug()<<"Grandi automating finished";
+                    closeClient();
                     return;
                 }
 
