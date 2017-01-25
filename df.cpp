@@ -852,6 +852,7 @@ void DF::moveRole(int hDir, int vDir, int speed)
 bool DF::pickTrophies()
 {
     static int counter = 0;
+    int lostCounter = 0;
     bool result = false;
     bool hArrived = false;
     bool vArrived = false;
@@ -905,16 +906,13 @@ bool DF::pickTrophies()
 
         }
 
-        if (hArrived && vArrived) {
-            qDebug()<<"PickTrophies: Arrived";
-            sendKey(Stroke, "x", 100);
-            result = true;
-            break;
-        }
-
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
-            if ((hDir == 0) && (vDir == 0)) {
+            if (lostCounter++ > 200) {
+                qDebug()<<"Can't get role coords";
+                throw DFRESTART;
+            }
+            if ((hPreDir == 0) && (vPreDir == 0)) {
                 if (qrand() % 2 == 0) {
                     moveRole(1, 0, 2);
                     approxSleep(200);
@@ -925,8 +923,17 @@ bool DF::pickTrophies()
                     moveRole(-1, 0);
                 }
             }
+            msleep(10);
             continue;
         }
+
+        if (hArrived && vArrived) {
+            qDebug()<<"PickTrophies: Arrived";
+            sendKey(Stroke, "x", 100);
+            result = true;
+            break;
+        }
+
         if (!getTrophyCoords(x, y, pickable)) {
             qDebug()<<"PickTrophies: No Trophy";
             break;
