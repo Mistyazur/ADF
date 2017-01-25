@@ -137,10 +137,14 @@ void GrandiRaider::run()
                 }
                 break;
             case PickTrophies:
-                if (!pickTrophies()) {
+            {
+                static bool done = false;
+                pickTrophies(done);
+                if (done) {
                     flow = Navigate;
                 }
                 break;
+            }
             case Navigate:
             {
                 rectifySectionIndex(sectionIndex);

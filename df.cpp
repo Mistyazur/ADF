@@ -273,8 +273,8 @@ void DF::pickRole(int index)
         throw DFRESTART;
     }
 
-    // Wait for splash disappeared
-    approxSleep(10000);
+    // Wait for splash disappeared and unlocking colourless crystall
+    approxSleep(45000, 0);
 }
 
 void DF::backToRoleList()
@@ -595,9 +595,6 @@ bool DF::summonSupporter()
         sendKey(Stroke, "z", 100);
         sendKey(Stroke, 9, 100);  // Tab
 
-        // Colourless crystal may be locked, so press tab again
-        sendKey(Stroke, 9, 100);  // Tab
-
         return true;
 //    }
 
@@ -849,11 +846,10 @@ void DF::moveRole(int hDir, int vDir, int speed)
     }
 }
 
-bool DF::pickTrophies()
+void DF::pickTrophies(bool &done)
 {
     static int counter = 0;
-    int lostCounter = 0;
-    bool result = false;
+    QTime timer;
     bool hArrived = false;
     bool vArrived = false;
     int preRoleX = -1;
@@ -872,14 +868,22 @@ bool DF::pickTrophies()
     bool bossRoomArrived;
     bool pickable;
 
+    timer.start();
+
     // Avoid insisting picking a unpickable item
     if (counter++ > 10) {
-        qDebug()<<"Counter triggered";
+        qDebug()<<"pickTrophies: Counter triggered";
+        done = true;
         counter = 0;
-        return false;
+        return;
     }
 
     while (true) {
+        // Timeout
+        if (timer.elapsed() > 20000) {
+            done = true;
+            break;
+        }
 
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
@@ -895,23 +899,20 @@ bool DF::pickTrophies()
                 }
             }
 
+            // Get back to last section
             msleep(500);
             rectifySectionIndex(sectionIndex);
             if (navigateSection(sectionIndex, bossRoomArrived)) {
+                done = true;
                 break;
             } else {
                 qDebug()<<"Pick trophies: navigateSection failed";
                 throw DFRESTART;
             }
-
         }
 
-        // Get position
+        // Get position of role
         if (!getRoleCoords(roleX, roleY)) {
-            if (lostCounter++ > 200) {
-                qDebug()<<"Can't get role coords";
-                throw DFRESTART;
-            }
             if ((hPreDir == 0) && (vPreDir == 0)) {
                 if (qrand() % 2 == 0) {
                     moveRole(1, 0, 2);
@@ -927,15 +928,10 @@ bool DF::pickTrophies()
             continue;
         }
 
-        if (hArrived && vArrived) {
-            qDebug()<<"PickTrophies: Arrived";
-            sendKey(Stroke, "x", 100);
-            result = true;
-            break;
-        }
-
+        // Get postion of trophy
         if (!getTrophyCoords(x, y, pickable)) {
             qDebug()<<"PickTrophies: No Trophy";
+            done = true;
             break;
         }
 
@@ -945,12 +941,17 @@ bool DF::pickTrophies()
             moveRole(1, 1);
             approxSleep(200);
             sendKey(Stroke, "x", 100);
-            result = true;
+            done = false;
             break;
         }
 
-//        qDebug()<<QTime::currentTime().toString("HH:mm:ss.zzz")
-//               <<"role:"<<roleX<<roleY<<"|"<<"trophy:"<<x<<y<<"|"<<"dir:"<<hPreDir<<vPreDir<<"|"<<"arrived:"<<hArrived<<vArrived;
+        // Arrived
+        if (hArrived && vArrived) {
+            qDebug()<<"PickTrophies: Arrived";
+            sendKey(Stroke, "x", 100);
+            done = false;
+            break;
+        }
 
         if (((hPreDir != 0) || (vPreDir != 0))  // Moving
             && ((roleX == preRoleX) && (roleY == preRoleY))) {
@@ -992,7 +993,7 @@ bool DF::pickTrophies()
                     }
                     if (stucked) {
                         qDebug()<<"PickTrophies: Stuck";
-                        result = false;
+                        done = true;
                         break;
                     }
 
@@ -1069,10 +1070,8 @@ bool DF::pickTrophies()
     moveRole(1, 1);
     approxSleep(100);
 
-    if (result == false)
+    if (done)
         counter = 0;
-
-    return result;
 }
 
 bool DF::navigate(int x, int y, bool end)
@@ -1132,7 +1131,6 @@ bool DF::navigate(int x, int y, bool end)
         if (!getRoleCoords(roleX, roleY)) {
             continue;
         }
-//        qDebug()<<"Pos: "<<roleX<<roleY;
 
         if (((hPreDir != 0) || (vPreDir != 0))  // Moving
             && ((roleX == preRoleX) && (roleY == preRoleY))) {
