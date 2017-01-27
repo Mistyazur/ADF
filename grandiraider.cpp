@@ -36,6 +36,7 @@ void GrandiRaider::run()
 
     while (true) {
         try {
+            qDebug()<<"Flow"<<flow;
             switch (flow) {
             case StartClient:
                 if (window() != 0) {

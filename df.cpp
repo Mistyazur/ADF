@@ -850,7 +850,6 @@ void DF::moveRole(int hDir, int vDir, int speed)
 void DF::pickTrophies(bool &done)
 {
     static int counter = 0;
-    QTime timer;
     bool hArrived = false;
     bool vArrived = false;
     int preRoleX = -1;
@@ -861,7 +860,8 @@ void DF::pickTrophies(bool &done)
     int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
-    QTime blockTimer;
+    QTime timer;
+    QTime stuckTimer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
     int x, y;
@@ -931,14 +931,14 @@ void DF::pickTrophies(bool &done)
 
         // Get postion of trophy
         if (!getTrophyCoords(x, y, pickable)) {
-            qDebug()<<"PickTrophies: No Trophy";
+//            qDebug()<<"PickTrophies: No Trophy";
             done = true;
             break;
         }
 
         // Already stand on trophy
         if (pickable) {
-            qDebug()<<"PickTrophies: Stand On";
+//            qDebug()<<"PickTrophies: Stand On";
             moveRole(1, 1);
             approxSleep(200);
             sendKey(Stroke, "x", 100);
@@ -948,7 +948,7 @@ void DF::pickTrophies(bool &done)
 
         // Arrived
         if (hArrived && vArrived) {
-            qDebug()<<"PickTrophies: Arrived";
+//            qDebug()<<"PickTrophies: Arrived";
             sendKey(Stroke, "x", 100);
             done = false;
             break;
@@ -966,7 +966,7 @@ void DF::pickTrophies(bool &done)
                 continue;
             }
 
-            if (blockTimer.isNull()) {
+            if (stuckTimer.isNull()) {
                 // Get client color blocks
                 for (int i=0; i<10; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -974,10 +974,10 @@ void DF::pickTrophies(bool &done)
                 }
 
                 // Start timer
-                blockTimer.start();
+                stuckTimer.start();
             } else {
                 // Trigger checking every 100 msecs
-                if (blockTimer.elapsed() > 100) {
+                if (stuckTimer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -993,7 +993,7 @@ void DF::pickTrophies(bool &done)
                         }
                     }
                     if (stucked) {
-                        qDebug()<<"PickTrophies: Stuck";
+//                        qDebug()<<"PickTrophies: Stuck";
                         done = true;
                         break;
                     }
@@ -1002,7 +1002,7 @@ void DF::pickTrophies(bool &done)
                     memcpy(preClientBlocks, clientBlocks, 64000);
 
                     // Restart timer
-                    blockTimer.restart();
+                    stuckTimer.restart();
                 }
             }
         } else {
@@ -1089,6 +1089,7 @@ bool DF::navigate(int x, int y, bool end)
     int hDir = 0;
     int vDir = 0;
     QTime timer;
+    QTime stuckTimer;
     uchar preClientBlocks[10][6400] = {0};
     uchar clientBlocks[10][6400] = {0};
     QVariant vx, vy;
@@ -1098,7 +1099,14 @@ bool DF::navigate(int x, int y, bool end)
     if (-1 == y)
         vArrived = true;
 
+    timer.start();
+
     while (true) {
+        // Timeout
+        if (timer.elapsed() > 20000) {
+            return false;
+        }
+
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
             // Stop
@@ -1130,6 +1138,18 @@ bool DF::navigate(int x, int y, bool end)
 
         // Get position
         if (!getRoleCoords(roleX, roleY)) {
+            if ((hPreDir == 0) && (vPreDir == 0)) {
+                if (qrand() % 2 == 0) {
+                    moveRole(1, 0, 2);
+                    approxSleep(200);
+                    moveRole(1, 0);
+                } else {
+                    moveRole(-1, 0, 2);
+                    approxSleep(200);
+                    moveRole(-1, 0);
+                }
+            }
+            msleep(10);
             continue;
         }
 
@@ -1145,7 +1165,7 @@ bool DF::navigate(int x, int y, bool end)
                 continue;
             }
 
-            if (timer.isNull()) {
+            if (stuckTimer.isNull()) {
                 // Get client color blocks
                 for (int i=0; i<10; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1153,10 +1173,10 @@ bool DF::navigate(int x, int y, bool end)
                 }
 
                 // Start timer
-                timer.start();
+                stuckTimer.start();
             } else {
                 // Trigger checking every 100 msecs
-                if (timer.elapsed() > 100) {
+                if (stuckTimer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1176,7 +1196,7 @@ bool DF::navigate(int x, int y, bool end)
                     memcpy(preClientBlocks, clientBlocks, 64000);
 
                     // Restart timer
-                    timer.restart();
+                    stuckTimer.restart();
                 }
             }
         } else {
