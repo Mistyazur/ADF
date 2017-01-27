@@ -123,6 +123,7 @@ bool DF::startClient()
     // Bind tgp
     m_dm.SetWindowSize(hTGPWnd, 1020, 720);
     m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+    msleep(2000);
 
     // Start client
     int oldMouseDuration = setMouseDuration(200);
@@ -564,7 +565,7 @@ bool DF::isRoleDead()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(420, 260, 480, 280, "revive.bmp", "000000", 1.0, 0, vx, vy) == -1)
+    if (m_dm.FindPic(330, 420, 360, 450, "dead.bmp", "0F0F0F", 1.0, 0, vx, vy) == -1)
         return false;
 
     return true;
