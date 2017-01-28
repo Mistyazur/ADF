@@ -56,7 +56,7 @@ bool DF::bind(bool underground)
     if (underground)
         ret = m_dm.BindWindow(m_hBindWnd, "dx2", "dx", "dx", 101);
     else {
-        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+//        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
         ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 101);
     }
 
@@ -66,7 +66,7 @@ bool DF::bind(bool underground)
 
 void DF::unbind()
 {
-    SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+//    SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
     m_dm.UnBindWindow();
 }
 
@@ -123,11 +123,11 @@ bool DF::startClient()
     // Bind tgp
     m_dm.SetWindowSize(hTGPWnd, 1020, 720);
     m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
-    msleep(2000);
+    msleep(1000);
 
     // Start client
     int oldMouseDuration = setMouseDuration(200);
-    sendMouse(Left, 50, 300, 300);
+    sendMouse(Left, 50, 300, 3000);
     sendMouse(Left, 900, 680, 300);
     setMouseDuration(oldMouseDuration);
 
@@ -148,7 +148,7 @@ bool DF::startClient()
     }
 
     // Wait for client
-    for (int i = 0; i < 300; ++i) {
+    for (int i = 0; i < 200; ++i) {
         if (window() != 0) {
             return true;
         }
@@ -950,7 +950,7 @@ void DF::pickTrophies(bool &done)
         if (hArrived && vArrived) {
 //            qDebug()<<"PickTrophies: Arrived";
             sendKey(Stroke, "x", 100);
-            done = false;
+            done = true;
             break;
         }
 

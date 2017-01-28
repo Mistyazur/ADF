@@ -139,7 +139,7 @@ void GrandiRaider::run()
                 break;
             case PickTrophies:
             {
-                static bool done = false;
+                bool done = false;
                 pickTrophies(done);
                 if (done) {
                     flow = Navigate;
