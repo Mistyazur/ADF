@@ -41,9 +41,8 @@ void GrandiRaider::run()
             case StartClient:
                 if (window() != 0) {
                     unbind();
-                    closeClient();
-                    msleep(5000);
                 }
+                closeClient();
                 if (startClient()) {
                     flow = BindClient;
                 } else {

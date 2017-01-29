@@ -33,7 +33,7 @@ protected:
     void unbind();
     
     // Common functions
-    void closeClient();
+    bool closeClient();
     bool startClient();
     bool waitForRoleList();
     bool openSystemMenu();

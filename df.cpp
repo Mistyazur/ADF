@@ -70,10 +70,69 @@ void DF::unbind()
     m_dm.UnBindWindow();
 }
 
-void DF::closeClient()
+bool DF::closeClient()
 {
-    // Terminate process
+//    int hTGPWnd;
+//    int hConfirmWnd;
+
+//    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+//    if (hTGPWnd == 0) {
+//        qDebug()<<"Close Client: Can't find tgp window";
+//        return false;
+//    }
+
+//    // Activate tgp
+//    if (m_dm.GetForegroundWindow() != hTGPWnd) {
+//        m_dm.SetWindowState(hTGPWnd, 1);
+//        msleep(1000);
+//    }
+
+//    // wait for tgp activated
+//    bool ok = false;
+//    for (int i = 0; i < 10; ++i) {
+//        if (m_dm.GetForegroundWindow() == hTGPWnd) {
+//            ok = true;
+//            break;
+//        }
+//        msleep(1000);
+//    }
+//    if (!ok) {
+//        qDebug()<<"Close Client: Can't activate tgp window";
+//        return false;
+//    }
+
+//    // Bind tgp
+//    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+//    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+//    msleep(1000);
+
+//    // Close client
+//    sendMouse(Left, 120, 310, 3000);
+
+//    // Unbind tgp
+//    m_dm.UnBindWindow();
+
+//    // Confirm
+//    for (int i = 0; i < 5; ++i) {
+//        msleep(1000);
+
+//        hConfirmWnd = m_dm.FindWindow("TWINCONTROL", "");
+//        if (hConfirmWnd && (hConfirmWnd != hTGPWnd)) {
+//            m_dm.BindWindow(hConfirmWnd, "normal", "normal", "normal", 0);
+//            sendMouse(Left, 250, 170, 200);
+//            m_dm.UnBindWindow();
+//            return true;
+//        }
+//    }
+
+//    qDebug()<<"Close Client: failed";
+
     QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
+    msleep(2000);
+    QProcess::startDetached("TASKKILL /IM Client.exe /F /T");
+    msleep(3000);
+
+    return false;
 }
 
 bool DF::startClient()
@@ -81,24 +140,11 @@ bool DF::startClient()
     int hTGPWnd;
     int hCheckingWnd;
 
-//    hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
-//    if (hTGPWnd == 0) {
-////        QProcess::startDetached();
-//    }
-
-//    for (int i = 0; i < 60; ++i) {
-//        hTGPWnd = m_dm.FindWindow("", "腾讯游戏平台");
-//        if (hTGPWnd != 0)
-//            break;
-//        msleep(1000);
-//    }
-
     hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
-        qDebug()<<"Can't find tgp window";
+        qDebug()<<"Start Client: Can't find tgp window";
         return false;
     }
-    qDebug()<<"TGP"<<hTGPWnd;
 
     // Activate tgp
     if (m_dm.GetForegroundWindow() != hTGPWnd) {
@@ -116,20 +162,17 @@ bool DF::startClient()
         msleep(1000);
     }
     if (!ok) {
-        qDebug()<<"Can't activate tgp window";
+        qDebug()<<"Start Client: Can't activate tgp window";
         return false;
     }
 
     // Bind tgp
     m_dm.SetWindowSize(hTGPWnd, 1020, 720);
     m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
-    msleep(1000);
 
     // Start client
-    int oldMouseDuration = setMouseDuration(200);
     sendMouse(Left, 50, 300, 3000);
-    sendMouse(Left, 900, 680, 300);
-    setMouseDuration(oldMouseDuration);
+    sendMouse(Left, 900, 680, 1000);
 
     // Unbind tgp
     m_dm.UnBindWindow();
@@ -154,6 +197,8 @@ bool DF::startClient()
         }
         msleep(1000);
     }
+
+    qDebug()<<"Start Client: failed";
 
     return false;
 }
@@ -244,13 +289,13 @@ void DF::pickRole(int index)
     // Reset scroll bar
     sendMouse(LeftDown, 580, 290, 500);
     sendMouse(Move, 580, 100, 500);
-    sendMouse(LeftUp, -1, -1, 500);
+    sendMouse(LeftUp, -1, -1, 2500);
 
     // Scroll
     if (column > 1) {
-        column = 1;
         for (int i=0; i < column-1; ++i)
-            sendMouse(Left, 580, 495, 500);
+            sendMouse(Left, 580, 495, 1000);
+        column = 1;
     }
 
     // Pick role
@@ -273,9 +318,6 @@ void DF::pickRole(int index)
         qDebug()<<"Pick role: Failed to close system menu";
         throw DFRESTART;
     }
-
-    // Wait for splash disappeared and unlocking colourless crystall
-    approxSleep(45000, 0);
 }
 
 void DF::backToRoleList()
@@ -496,6 +538,9 @@ bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 {
     QVariant x, y;
+
+    // Wait for splash disappeared and unlocking colourless crystall
+    approxSleep(45000, 0);
 
     int directionKey = leftEntrance ? m_arrowL : m_arrowR;
 
