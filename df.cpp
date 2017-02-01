@@ -12,7 +12,7 @@
 
 #undef FindWindow
 
-#define PICK_CHANNNEL_POS 380, 450
+#define PICK_ROLE_POS 380, 450
 
 
 DF::DF()
@@ -127,10 +127,14 @@ bool DF::closeClient()
 
 //    qDebug()<<"Close Client: failed";
 
+    qDebug()<<"Close client start";
+
     QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
     msleep(2000);
     QProcess::startDetached("TASKKILL /IM Client.exe /F /T");
     msleep(3000);
+
+    qDebug()<<"Close client end";
 
     return false;
 }
@@ -223,8 +227,8 @@ bool DF::openSystemMenu()
     QVariant vx, vy;
 
     for (int i = 0; i < 10; ++i) {
-        if (m_dm.FindPic(400, 450, 470, 480, "pick_channel.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            sendKey(Stroke, 27, 1000);
+        if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+            sendKey(Stroke, 27, 500);
         } else {
             return true;
         }
@@ -238,10 +242,10 @@ bool DF::closeSystemMenu()
     QVariant vx, vy;
 
     for (int i = 0; i < 10; ++i) {
-        if (m_dm.FindPic(400, 450, 470, 480, "pick_channel.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+        if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             return true;
         } else {
-            sendKey(Stroke, 27, 1000);
+            sendKey(Stroke, 27, 500);
         }
     }
 
@@ -289,7 +293,9 @@ void DF::pickRole(int index)
     // Reset scroll bar
     sendMouse(LeftDown, 580, 290, 500);
     sendMouse(Move, 580, 100, 500);
-    sendMouse(LeftUp, -1, -1, 2500);
+    sendMouse(LeftUp, -1, -1, 500);
+
+    int oldMouseDuration = setMouseDuration(200);
 
     // Scroll
     if (column > 1) {
@@ -305,6 +311,8 @@ void DF::pickRole(int index)
 
     // Game start
     sendMouse(Left, 400, 550, 1000);
+
+    setMouseDuration(oldMouseDuration);
 
     // Use system menu to make sure role is switched successfully
     // It'll also close ohter unknown window
@@ -327,7 +335,7 @@ void DF::backToRoleList()
         throw DFRESTART;
     }
 
-    sendMouse(Left, PICK_CHANNNEL_POS, 1000);
+    sendMouse(Left, PICK_ROLE_POS, 1000);
 
     // Wait for role list
     if (!waitForRoleList()) {
@@ -404,6 +412,10 @@ void DF::sellEquipment()
                 sendKey(Stroke, 32, 100);
             }
         }
+
+        // Close packet
+        openSystemMenu();
+        closeSystemMenu();
     }
 }
 
@@ -514,11 +526,22 @@ void DF::pickRole()
 bool DF::initRoleOffset()
 {
     QVariant vx, vy;
-    if (!m_dm.FindMultiColor(0, 100, 800, 400,
-                        "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
-                        1.0, 0,
-                        vx, vy))
+
+    bool ok = false;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindMultiColor(0, 100, 800, 400,
+                                 "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
+                                 1.0, 0,
+                                 vx, vy)) {
+            ok = true;
+            break;
+        }
+        msleep(1000);
+    }
+    if (!ok) {
+        qDebug()<<"Initialize role offset failed";
         return false;
+    }
 
     m_roleOffsetY = 430 - vy.toInt();
     qDebug()<<"Role offset y: "<<m_roleOffsetY;
@@ -538,9 +561,6 @@ bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 {
     QVariant x, y;
-
-    // Wait for splash disappeared and unlocking colourless crystall
-    approxSleep(45000, 0);
 
     int directionKey = leftEntrance ? m_arrowL : m_arrowR;
 
@@ -582,7 +602,6 @@ EnterDungeon:
 bool DF::reenterDungeon()
 {
     // Reenter
-    sendKey(Stroke, 27, 1500);
     sendKey(Stroke, 121, 500);
 
     // Wait
@@ -639,6 +658,7 @@ bool DF::summonSupporter()
 {
 //    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
         sendKey(Stroke, "z", 100);
+        sendKey(Stroke, 9, 100);  // Tab
         sendKey(Stroke, 9, 100);  // Tab
 
         return true;

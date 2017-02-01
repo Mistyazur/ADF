@@ -39,9 +39,6 @@ void GrandiRaider::run()
             qDebug()<<"Flow"<<flow;
             switch (flow) {
             case StartClient:
-                if (window() != 0) {
-                    unbind();
-                }
                 closeClient();
                 if (startClient()) {
                     flow = BindClient;
@@ -60,15 +57,15 @@ void GrandiRaider::run()
             case PickRole:
                 pickRole();
 
+                if (initRoleOffset()) {
+                    flow = MoveToDungeon;
+                }
+
                 // Check dungeon point
                 if (isNoDungeonPoint()) {
                     flow = BackToRoleList;
                     break;
                 }
-
-                initRoleOffset();
-
-                flow = MoveToDungeon;
                 break;
             case MoveToDungeon:
                 navigateOnMap(645, 280, 15000);
@@ -189,7 +186,7 @@ void GrandiRaider::run()
 
                     // Check dungeon point
                     if (isNoDungeonPoint()) {
-                        sendKey(Stroke, 123, 1000);  // Esc
+                        sendKey(Stroke, 123, 5000);  // F12
                         flow = BackToRoleList;
                         break;
                     }
