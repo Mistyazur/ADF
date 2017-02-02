@@ -59,6 +59,7 @@ protected:
     bool isRoleDead();
     bool isDungeonEnded();
     bool isNoDungeonPoint();
+    void pickFreeGoldenCard();
     bool summonSupporter();
     void buff();
     void rectifySectionIndex(int &sectionIndex);

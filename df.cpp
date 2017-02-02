@@ -195,7 +195,7 @@ bool DF::startClient()
     }
 
     // Wait for client
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 240; ++i) {
         if (window() != 0) {
             return true;
         }
@@ -211,7 +211,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 60; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -259,10 +259,6 @@ bool DF::isDisconnected()
     if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "0F0F0F", 1.0, 0, vx, vy) == -1) {
         return false;
     }
-
-//    if (m_dm.FindPic(300, 200, 500, 400, "announcement.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-//        return false;
-//    }
 
     return true;
 }
@@ -652,6 +648,18 @@ bool DF::isNoDungeonPoint()
     }
 
     return false;
+}
+
+void DF::pickFreeGoldenCard()
+{
+    QVariant x, y;
+
+    for (int i = 0; i < 5; ++i) {
+        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "0F0F0F", 1.0, 1, x, y) != -1) {
+            sendKey(Stroke, 53, 100);
+        }
+        approxSleep(1000);
+    }
 }
 
 bool DF::summonSupporter()

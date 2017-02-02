@@ -56,16 +56,17 @@ void GrandiRaider::run()
                 break;
             case PickRole:
                 pickRole();
-
+                flow = Init;
+                break;
+            case Init:
                 if (initRoleOffset()) {
-                    flow = MoveToDungeon;
+                    // Check dungeon point
+                    if (isNoDungeonPoint())
+                        flow = BackToRoleList;
+                    else
+                        flow = MoveToDungeon;
                 }
 
-                // Check dungeon point
-                if (isNoDungeonPoint()) {
-                    flow = BackToRoleList;
-                    break;
-                }
                 break;
             case MoveToDungeon:
                 navigateOnMap(645, 280, 15000);
@@ -179,6 +180,9 @@ void GrandiRaider::run()
                     sendKey(Stroke, 189, 600);  // -
                     sendKey(Down, "x", 3000);
                     sendKey(Up, "x");
+
+                    // Get free card
+                    pickFreeGoldenCard();
 
                     // Sell trophies
                     sellEquipment();
