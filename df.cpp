@@ -211,7 +211,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 60; ++i) {
+    for (int i = 0; i < 180; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -306,7 +306,7 @@ void DF::pickRole(int index)
     sendMouse(Left, roleX, roleY, 1000);
 
     // Game start
-    sendMouse(Left, 400, 550, 1000);
+    sendMouse(Left, 400, 550, 5000);
 
     setMouseDuration(oldMouseDuration);
 
@@ -665,9 +665,9 @@ void DF::pickFreeGoldenCard()
 bool DF::summonSupporter()
 {
 //    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
+        sendKey(Stroke, 9, 500);  // Tab
+        sendKey(Stroke, 9, 100);  // Tab
         sendKey(Stroke, "z", 100);
-        sendKey(Stroke, 9, 100);  // Tab
-        sendKey(Stroke, 9, 100);  // Tab
 
         return true;
 //    }
