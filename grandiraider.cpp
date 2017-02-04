@@ -36,7 +36,6 @@ void GrandiRaider::run()
 
     while (true) {
         try {
-            qDebug()<<"Flow"<<flow;
             switch (flow) {
             case StartClient:
                 closeClient();
@@ -66,7 +65,6 @@ void GrandiRaider::run()
                     else
                         flow = MoveToDungeon;
                 }
-
                 break;
             case MoveToDungeon:
                 navigateOnMap(645, 280, 15000);
@@ -88,7 +86,7 @@ void GrandiRaider::run()
                 } else if (sectionIndex == 4) {
                     // Get close to generator
                     navigate(-1, 380);
-                    navigate(350, -1);
+                    navigate(320, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     moveRole(0, 1, 2);
@@ -231,6 +229,7 @@ void GrandiRaider::run()
 
             // Check timeout
             if (flow != m_preFlow) {
+                qDebug()<<"Flow: "<<flow;
                 timer.restart();
                 m_preFlow = flow;
             } else {

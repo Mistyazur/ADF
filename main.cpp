@@ -10,7 +10,7 @@
 #include <QDebug>
 #include <windows.h>
 
-#define LOG_NAME QApplication::applicationDirPath() + "/record.log"
+#define LOG_NAME QApplication::applicationDirPath() + "/debug.log"
 
 void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {

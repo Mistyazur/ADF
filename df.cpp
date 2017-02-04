@@ -1153,6 +1153,7 @@ bool DF::navigate(int x, int y, bool end)
     int checkBlackScreenCount = 0;
     bool hArrived = false;
     bool vArrived = false;
+    bool stucked = false;
     int preRoleX = -1;
     int preRoleY = -1;
     int roleX = -1;
@@ -1257,12 +1258,19 @@ bool DF::navigate(int x, int y, bool end)
                     }
 
                     // Check if role is stucked
+                    stucked = false;
                     for (int i=0; i<10; ++i) {
                         if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
-                            moveRole(1, 1);
-                            hPreDir = vPreDir = 0;
-                            return false;
+                            stucked = true;
+                            break;
                         }
+                    }
+                    if (stucked) {
+                        // Stucked, but also need to check blackscreen
+                        moveRole(1, 1);
+                        hPreDir = vPreDir = 0;
+                        hArrived = vArrived = true;
+                        continue;
                     }
 
                     // Save client blocks for checking next time
