@@ -88,7 +88,7 @@ void GrandiRaider::run()
                 } else if (sectionIndex == 4) {
                     // Get close to generator
                     navigate(-1, 380);
-                    navigate(300, -1);
+                    navigate(350, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     moveRole(0, 1, 2);

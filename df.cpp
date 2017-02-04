@@ -211,7 +211,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 180; ++i) {
+    for (int i = 0; i < 240; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -1023,7 +1023,7 @@ void DF::pickTrophies(bool &done)
         if (hArrived && vArrived) {
 //            qDebug()<<"PickTrophies: Arrived";
             sendKey(Stroke, "x", 100);
-            done = true;
+            done = false;
             break;
         }
 
