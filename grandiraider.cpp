@@ -98,7 +98,7 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear("216979-051F1F")) {
+                if (isSectionClear("2B6272-1F1F1F")) {
                     qDebug()<<"Section Clear";
                     approxSleep(200);
                     flow = PickTrophies;

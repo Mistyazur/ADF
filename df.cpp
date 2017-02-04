@@ -721,7 +721,7 @@ bool DF::isSectionClear(const QString &brightColor)
 
     ulong *data = nullptr;
     ulong size = 196;
-    int brightColorCountMin = 50;
+    int brightColorCountMin = 100;
     ulong count;
 
     memcpy(beforeBlocks[0], (uchar *)m_dm.GetScreenData(x-24, y-4, x-10, y+10), size*sizeof(ulong));
