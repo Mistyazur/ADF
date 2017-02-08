@@ -131,7 +131,7 @@ bool DF::closeClient()
 
     QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
     msleep(2000);
-    QProcess::startDetached("TASKKILL /IM Client.exe /F /T");
+    QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
     msleep(3000);
 
     qDebug()<<"Close client end";
@@ -188,7 +188,12 @@ bool DF::startClient()
         hCheckingWnd = m_dm.FindWindow("TWINCONTROL", "");
         if (hCheckingWnd && (hCheckingWnd != hTGPWnd)) {
             m_dm.BindWindow(hCheckingWnd, "normal", "normal", "normal", 0);
-            sendMouse(Left, 415, 60, 200);
+            for (int j = 0; j < 10; ++j) {
+                if (::IsWindow((HWND)hCheckingWnd)) {
+                    sendMouse(Left, 415, 60, 500);
+                    break;
+                }
+            }
             m_dm.UnBindWindow();
             break;
         }
@@ -644,7 +649,9 @@ bool DF::isDungeonEnded()
 bool DF::isNoDungeonPoint()
 {
     if (m_dm.GetColor(339, 553) == "000000") {
-        return true;
+        msleep(1000);
+        if (m_dm.GetColor(339, 553) == "000000")
+            return true;
     }
 
     return false;

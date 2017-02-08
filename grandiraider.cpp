@@ -20,7 +20,6 @@ void GrandiRaider::run()
 {
     Flow flow = StartClient;
     int sectionIndex = 0;
-    int timeElapsed = 0;
     QTime timer;
 
     timer.start();
@@ -58,6 +57,7 @@ void GrandiRaider::run()
                 flow = Init;
                 break;
             case Init:
+                msleep(1000);
                 if (initRoleOffset()) {
                     // Check dungeon point
                     if (isNoDungeonPoint())
@@ -99,26 +99,16 @@ void GrandiRaider::run()
             case Fight:
                 // Check section state
                 if (isSectionClear("2B6272-1F1F1F")) {
-                    qDebug()<<"Section Clear";
+//                    qDebug()<<"Section Clear";
                     approxSleep(200);
                     flow = PickTrophies;
                     break;
                 }
 
-                timeElapsed = timer.elapsed();
-                if (timeElapsed > 40000) {
+                if (timer.elapsed() > 40000) {
                     // Tempester may be disappeared
                     summonSupporter();
                     approxSleep(200);
-                } else if (timeElapsed > 60000) {
-                    // First section maybe not has clear effect
-                    // So we assume it's clear, if it has costed 30 secs
-                    if (sectionIndex == 0) {
-                        qDebug()<<"Section Clear[timeout]";
-                        approxSleep(200);
-                        flow = PickTrophies;
-                        break;
-                    }
                 }
 
                 if (sectionIndex == 4) {
@@ -139,28 +129,33 @@ void GrandiRaider::run()
                 if (done) {
                     flow = Navigate;
                 }
-                break;
             }
+                break;
             case Navigate:
             {
                 rectifySectionIndex(sectionIndex);
 
                 bool bossRoomArrived;
-                if (navigateSection(sectionIndex, bossRoomArrived)) {
+                bool ok = false;
+                for (int i=0; i<2; ++i) {
+                    if (navigateSection(sectionIndex, bossRoomArrived)) {
+                        ok = true;
+                        break;
+                    }
+                }
+                if (ok) {
                     ++sectionIndex;
-
                     if (bossRoomArrived) {
                         flow = PreBossFight;
                     } else {
                         flow = PreFight;
                     }
-                    break;
                 } else {
                     qDebug()<<"navigateSection failed";
                     throw DFRESTART;
                 }
-                break;
             }
+                break;
             case PreBossFight:
                 // Summon tempester
                 summonSupporter();
@@ -229,7 +224,7 @@ void GrandiRaider::run()
 
             // Check timeout
             if (flow != m_preFlow) {
-                qDebug()<<"Flow: "<<flow;
+//                qDebug()<<"Flow: "<<flow;
                 timer.restart();
                 m_preFlow = flow;
             } else {
