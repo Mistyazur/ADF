@@ -420,6 +420,44 @@ void DF::sellEquipment()
     }
 }
 
+void DF::updateShareStorage()
+{
+    QVariant vx, vy;
+
+    // Use system menu to make sure role is switched successfully
+    // It'll also close ohter unknown window
+    if (!openSystemMenu()) {
+        qDebug()<<"Pick role: Failed to open system menu";
+        throw DFRESTART;
+    }
+
+    // Close system menu
+    if (!closeSystemMenu()) {
+        qDebug()<<"Pick role: Failed to close system menu";
+        throw DFRESTART;
+    }
+
+    int oldMouseDuration = setMouseDuration(200);
+    int oldKeyDuration = setKeyDuration(200);
+
+    sendMouse(Left, 270, 370, 5000);  // Click storage
+    sendMouse(Left, 470, 360, 1000);  // Confirm
+    sendMouse(Left, 300, 128, 1000);  // Switch to share storage
+
+    // Save money
+    if (m_dm.FindPic(CLIENT_RECT, "save_gold.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+        sendMouse(Left, vx, vy, 1000);
+        sendMouse(Left, vx, vy, 1000);
+    }
+
+    // Save items
+    sendKey(Stroke, "A", 100);
+    sendKey(Stroke, 13, 100);
+
+    setMouseDuration(oldMouseDuration);
+    setKeyDuration(oldKeyDuration);
+}
+
 bool DF::initDungeonSettings(const QString &dungeon)
 {
     QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);

@@ -181,10 +181,10 @@ void GrandiRaider::run()
                     sellEquipment();
                     approxSleep(100);
 
-                    // Check dungeon point
+                    // Next role if no dungeon point
                     if (isNoDungeonPoint()) {
                         sendKey(Stroke, 123, 5000);  // F12
-                        flow = BackToRoleList;
+                        flow = UpdateShareStorage;
                         break;
                     }
 
@@ -201,6 +201,13 @@ void GrandiRaider::run()
 
                 fightBoss();
                 break;
+            case UpdateShareStorage:
+                backToRoleList();
+                approxSleep(1000);
+                sendKey(Stroke, 32, 1000);
+                sendKey(Stroke, 32, 1000);
+                updateShareStorage();
+                flow = BackToRoleList;
             case BackToRoleList:
                 if (!updateRoleIndex(DUNGEON)) {
                     // Job finished

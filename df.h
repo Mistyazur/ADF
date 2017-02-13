@@ -46,6 +46,7 @@ protected:
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y, int time);
     void sellEquipment();
+    void updateShareStorage();
 
     // Dungeon functions
 //    bool initDungeonSettings(const QString &file);
