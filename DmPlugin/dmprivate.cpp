@@ -115,7 +115,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
 {
     if ((x >= 0) && (y >= 0)) {
         m_dm.MoveTo(x,y);
-        approxSleep(delay, m_mouseDelayDelta);
+        approxSleep(50, m_mouseDelayDelta);
     }
 
     switch (oper) {
