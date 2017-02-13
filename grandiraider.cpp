@@ -160,22 +160,6 @@ void GrandiRaider::run()
                 // Summon tempester
                 summonSupporter();
 
-                // Destory rocks
-                approxSleep(1000);
-                moveRole(0, -1, 3);
-                approxSleep(1000);
-                moveRole(0, 1);
-                approxSleep(100);
-                moveRole(1, -1, 3);
-                approxSleep(2000);
-                moveRole(1, 1);
-                approxSleep(100);
-                for (int i = 0; i < 10; ++i) {
-                    sendKey(Stroke, m_arrowR, 30);
-                    for (int j = 0; j < 10; ++j)
-                        sendKey(Stroke, "x", 30);
-                }
-
                 flow = BossFight;
                 break;
             case BossFight:
