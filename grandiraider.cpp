@@ -61,7 +61,7 @@ void GrandiRaider::run()
                 if (initRoleOffset()) {
                     // Check dungeon point
                     if (isNoDungeonPoint())
-                        flow = BackToRoleList;
+                        flow = UpdateRoleIndex;
                     else
                         flow = MoveToDungeon;
                 }
@@ -171,7 +171,7 @@ void GrandiRaider::run()
 
                     // Pick trophies
                     sendKey(Stroke, 189, 600);  // -
-                    sendKey(Down, "x", 3000);
+                    sendKey(Down, "x", 4000);
                     sendKey(Up, "x");
 
                     // Get free card
@@ -207,8 +207,8 @@ void GrandiRaider::run()
                 sendKey(Stroke, 32, 1000);
                 sendKey(Stroke, 32, 1000);
                 updateShareStorage();
-                flow = BackToRoleList;
-            case BackToRoleList:
+                flow = UpdateRoleIndex;
+            case UpdateRoleIndex:
                 if (!updateRoleIndex(DUNGEON)) {
                     // Job finished
                     qDebug()<<"Grandi automating finished";

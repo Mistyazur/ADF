@@ -452,7 +452,7 @@ void DF::updateShareStorage()
 
     // Save items
     sendKey(Stroke, "A", 100);
-    sendKey(Stroke, 13, 100);
+    sendKey(Stroke, 13, 1000);
 
     setMouseDuration(oldMouseDuration);
     setKeyDuration(oldKeyDuration);
