@@ -167,7 +167,7 @@ void GrandiRaider::run()
                 if (isDungeonEnded()) {
                     moveRole(1, 1);
 
-                    approxSleep(3000, 0.2);
+                    approxSleep(1000, 0.2);
 
                     // Pick trophies
                     sendKey(Stroke, 189, 600);  // -

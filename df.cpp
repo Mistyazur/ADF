@@ -29,8 +29,12 @@ DF::DF()
     // Set mouse and key duration
     setMouseDuration(50);
     setKeyDuration(50);
+    setMouseDurationDelta(0.2);
+    setKeyDurationDelta(0.2);
 
     // Set mouse and key delay
+    setMouseDelay(50);
+    setKeyDelay(50);
     setMouseDelayDelta(0.2);
     setKeyDelayDelta(0.2);
 }
@@ -378,7 +382,7 @@ void DF::sellEquipment()
             found = true;
             break;
         }
-        msleep(200);
+        msleep(500);
     }
     if (!found) {
         qDebug()<<"sellEquipment error";
@@ -386,12 +390,13 @@ void DF::sellEquipment()
     }
 
     // Click sell button
-    sendMouse(Left, vx, vy, 300);
+    sendMouse(Left, vx, vy, 200);
+    sendMouse(Left, vx, vy, 200);
 
     // Search sort button
     if (m_dm.FindPic(0, 300, 800, 600, "sort.bmp", "000000", 1.0, 1, vx, vy) != -1) {
-        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);  // Click equipment button
-        sendMouse(Left, vx.toInt(), vy.toInt(), 100);  // Click sort button
+        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 200);  // Click equipment button
+        sendMouse(Left, vx.toInt(), vy.toInt(), 200);  // Click sort button
 
         ox = vx.toInt() - 190 + 4;
         oy = vy.toInt() - 240 + 36;
