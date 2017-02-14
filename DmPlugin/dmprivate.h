@@ -37,8 +37,17 @@ protected:
     dmsoft m_dm;
 
     void approxSleep(int msec, double delta=0.1);
+
     int setMouseDuration(int duration);
+    int setKeyDuration(int duration);
+    void setMouseDurationDelta(double delta);
+    void setKeyDurationDelta(double delta);
+
+    int setMouseDelay(int delay);
+    int setKeyDelay(int delay);
     void setMouseDelayDelta(double delta);
+    void setKeyDelayDelta(double delta);
+
     void sendMouse(const MouseOper &oper,
                const int &x=-1,
                const int &y=-1,
@@ -47,8 +56,6 @@ protected:
                const QVariant &x=-1,
                const QVariant &y=-1,
                int delay=-1);
-    int setKeyDuration(int duration);
-    void setKeyDelayDelta(double delta);
     void sendKey(const KeyOper &oper,
              const int &vk,
              int delay=0);
@@ -58,6 +65,11 @@ protected:
 private:
     int m_mouseDuration;
     int m_keyDuration;
+    double m_mouseDurationDelta;
+    double m_keyDurationDelta;
+
+    int m_mouseDelay;
+    int m_keyDelay;
     double m_mouseDelayDelta;
     double m_keyDelayDelta;
 };

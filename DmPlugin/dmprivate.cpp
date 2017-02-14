@@ -15,6 +15,11 @@ DmPrivate::DmPrivate(QObject *parent) :
     // Init
     m_mouseDuration = 0;
     m_keyDuration = 0;
+    m_mouseDurationDelta = 0;
+    m_keyDurationDelta = 0;
+
+    m_mouseDelay = 30;
+    m_keyDelay = 30;
     m_mouseDelayDelta = 0;
     m_keyDelayDelta = 0;
 
@@ -103,9 +108,48 @@ int DmPrivate::setMouseDuration(int duration)
     return old;
 }
 
+int DmPrivate::setKeyDuration(int duration)
+{
+    int old = m_keyDuration;
+    m_keyDuration = duration;
+
+    return old;
+}
+
+void DmPrivate::setMouseDurationDelta(double delta)
+{
+    m_mouseDurationDelta = delta;
+}
+
+void DmPrivate::setKeyDurationDelta(double delta)
+{
+    m_keyDurationDelta = delta;
+}
+
+int DmPrivate::setMouseDelay(int delay)
+{
+    int old = m_mouseDelay;
+    m_mouseDelay = delay;
+
+    return old;
+}
+
+int DmPrivate::setKeyDelay(int delay)
+{
+    int old = m_keyDelay;
+    m_keyDelay = delay;
+
+    return old;
+}
+
 void DmPrivate::setMouseDelayDelta(double delta)
 {
     m_mouseDelayDelta = delta;
+}
+
+void DmPrivate::setKeyDelayDelta(double delta)
+{
+    m_keyDelayDelta = delta;
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,
@@ -114,8 +158,8 @@ void DmPrivate::sendMouse(const MouseOper &oper,
                       const int delay)
 {
     if ((x >= 0) && (y >= 0)) {
-        m_dm.MoveTo(x,y);
-        approxSleep(50, m_mouseDelayDelta);
+        m_dm.MoveTo(x, y);
+        approxSleep(m_mouseDelay, m_mouseDelayDelta);
     }
 
     switch (oper) {
@@ -123,7 +167,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
         break;
     case Left:
         m_dm.LeftDown();
-        approxSleep(m_mouseDuration);
+        approxSleep(m_mouseDuration, m_mouseDurationDelta);
         m_dm.LeftUp();
         break;
     case LeftDown:
@@ -134,7 +178,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
         break;
     case Right:
         m_dm.RightDown();
-        approxSleep(m_mouseDuration);
+        approxSleep(m_mouseDuration, m_keyDurationDelta);
         m_dm.RightUp();
         break;
     case RightDown:
@@ -146,9 +190,10 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     default:
         break;
     }
+    if (oper != Move)
+        approxSleep(m_mouseDelay, m_mouseDelayDelta);
 
-    if (delay > 0)
-        approxSleep(delay, m_mouseDelayDelta);
+    approxSleep(delay);
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,
@@ -159,19 +204,6 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     sendMouse(oper, x.toInt(), y.toInt(), delay);
 }
 
-int DmPrivate::setKeyDuration(int duration)
-{
-    int old = m_keyDuration;
-    m_keyDuration = duration;
-
-    return old;
-}
-
-void DmPrivate::setKeyDelayDelta(double delta)
-{
-    m_keyDelayDelta = delta;
-}
-
 void DmPrivate::sendKey(const KeyOper &oper,
                     const int &vk,
                     int delay)
@@ -179,7 +211,7 @@ void DmPrivate::sendKey(const KeyOper &oper,
     switch (oper) {
     case Stroke:
         m_dm.KeyDown(vk);
-        approxSleep(m_mouseDuration);
+        approxSleep(m_keyDuration, m_keyDurationDelta);
         m_dm.KeyUp(vk);
         break;
     case Down:
@@ -191,9 +223,9 @@ void DmPrivate::sendKey(const KeyOper &oper,
     default:
         break;
     }
+    approxSleep(m_keyDelay, m_keyDelayDelta);
 
-    if (delay > 0)
-        approxSleep(delay, m_keyDelayDelta);
+    approxSleep(delay);
 }
 
 void DmPrivate::sendKey(const KeyOper &oper,
@@ -202,7 +234,9 @@ void DmPrivate::sendKey(const KeyOper &oper,
 {
     switch (oper) {
     case Stroke:
-        m_dm.KeyPressChar(vk);
+        m_dm.KeyDownChar(vk);
+        approxSleep(m_keyDuration, m_keyDurationDelta);
+        m_dm.KeyUpChar(vk);
         break;
     case Down:
         m_dm.KeyDownChar(vk);
@@ -213,7 +247,7 @@ void DmPrivate::sendKey(const KeyOper &oper,
     default:
         break;
     }
+    approxSleep(m_keyDelay, m_keyDelayDelta);
 
-    if (delay > 0)
-        approxSleep(delay, m_keyDelayDelta);
+    approxSleep(delay);
 }
