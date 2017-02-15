@@ -51,17 +51,17 @@ protected:
     void sendMouse(const MouseOper &oper,
                const int &x=-1,
                const int &y=-1,
-               const int delay=-1);
+               const int extraDelay=-1);
     void sendMouse(const MouseOper &oper,
                const QVariant &x=-1,
                const QVariant &y=-1,
-               int delay=-1);
+               int extraDelay=-1);
     void sendKey(const KeyOper &oper,
              const int &vk,
-             int delay=0);
+             int extraDelay=0);
     void sendKey(const KeyOper &oper,
              const QString &vk,
-             int delay=0);
+             int extraDelay=0);
 private:
     int m_mouseDuration;
     int m_keyDuration;

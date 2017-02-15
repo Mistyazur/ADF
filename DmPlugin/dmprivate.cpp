@@ -18,8 +18,8 @@ DmPrivate::DmPrivate(QObject *parent) :
     m_mouseDurationDelta = 0;
     m_keyDurationDelta = 0;
 
-    m_mouseDelay = 30;
-    m_keyDelay = 30;
+    m_mouseDelay = 0;
+    m_keyDelay = 0;
     m_mouseDelayDelta = 0;
     m_keyDelayDelta = 0;
 
@@ -28,6 +28,9 @@ DmPrivate::DmPrivate(QObject *parent) :
 
     // Ingore errors showed by dm plugin
     m_dm.SetShowErrorMsg(0);
+
+    m_dm.SetMouseDelay("normal", 0);
+    m_dm.SetKeypadDelay("normal", 0);
 }
 
 DmPrivate::~DmPrivate()
@@ -155,7 +158,7 @@ void DmPrivate::setKeyDelayDelta(double delta)
 void DmPrivate::sendMouse(const MouseOper &oper,
                       const int &x,
                       const int &y,
-                      const int delay)
+                      const int extraDelay)
 {
     if ((x >= 0) && (y >= 0)) {
         m_dm.MoveTo(x, y);
@@ -193,20 +196,20 @@ void DmPrivate::sendMouse(const MouseOper &oper,
     if (oper != Move)
         approxSleep(m_mouseDelay, m_mouseDelayDelta);
 
-    approxSleep(delay);
+    approxSleep(extraDelay);
 }
 
 void DmPrivate::sendMouse(const MouseOper &oper,
                       const QVariant &x,
                       const QVariant &y,
-                      int delay)
+                      int extraDelay)
 {
-    sendMouse(oper, x.toInt(), y.toInt(), delay);
+    sendMouse(oper, x.toInt(), y.toInt(), extraDelay);
 }
 
 void DmPrivate::sendKey(const KeyOper &oper,
                     const int &vk,
-                    int delay)
+                    int extraDelay)
 {
     switch (oper) {
     case Stroke:
@@ -225,12 +228,12 @@ void DmPrivate::sendKey(const KeyOper &oper,
     }
     approxSleep(m_keyDelay, m_keyDelayDelta);
 
-    approxSleep(delay);
+    approxSleep(extraDelay);
 }
 
 void DmPrivate::sendKey(const KeyOper &oper,
                     const QString &vk,
-                    int delay)
+                    int extraDelay)
 {
     switch (oper) {
     case Stroke:
@@ -249,5 +252,5 @@ void DmPrivate::sendKey(const KeyOper &oper,
     }
     approxSleep(m_keyDelay, m_keyDelayDelta);
 
-    approxSleep(delay);
+    approxSleep(extraDelay);
 }
