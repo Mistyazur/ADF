@@ -27,14 +27,14 @@ DF::DF()
     m_arrowD = 40;
 
     // Set mouse and key duration
-    setMouseDuration(50);
-    setKeyDuration(50);
+    setMouseDuration(30);
+    setKeyDuration(30);
     setMouseDurationDelta(0.2);
     setKeyDurationDelta(0.2);
 
     // Set mouse and key delay
-    setMouseDelay(50);
-    setKeyDelay(50);
+    setMouseDelay(20);
+    setKeyDelay(20);
     setMouseDelayDelta(0.2);
     setKeyDelayDelta(0.2);
 }
@@ -186,9 +186,7 @@ bool DF::startClient()
     m_dm.UnBindWindow();
 
     // Skip checking window
-    for (int i = 0; i < 5; ++i) {
-        msleep(1000);
-
+    for (int i = 0; i < 10; ++i) {
         hCheckingWnd = m_dm.FindWindow("TWINCONTROL", "");
         if (hCheckingWnd && (hCheckingWnd != hTGPWnd)) {
             m_dm.BindWindow(hCheckingWnd, "normal", "normal", "normal", 0);
@@ -201,6 +199,8 @@ bool DF::startClient()
             m_dm.UnBindWindow();
             break;
         }
+
+        msleep(500);
     }
 
     // Wait for client
@@ -237,7 +237,7 @@ bool DF::openSystemMenu()
 
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            sendKey(Stroke, 27, 500);
+            sendKey(Stroke, 27, 300);
         } else {
             return true;
         }
@@ -254,7 +254,7 @@ bool DF::closeSystemMenu()
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             return true;
         } else {
-            sendKey(Stroke, 27, 500);
+            sendKey(Stroke, 27, 300);
         }
     }
 
@@ -265,7 +265,7 @@ bool DF::isDisconnected()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "0F0F0F", 1.0, 0, vx, vy) == -1) {
+    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "101010", 1.0, 0, vx, vy) == -1) {
         return false;
     }
 
@@ -333,6 +333,27 @@ void DF::pickRole(int index)
     }
 }
 
+void DF::repickCurrentRole()
+{
+    backToRoleList();
+    approxSleep(1000);
+    sendKey(Stroke, 32, 1000);
+    sendKey(Stroke, 32, 1000);
+
+    // Use system menu to make sure role is switched successfully
+    // It'll also close ohter unknown window
+    if (!openSystemMenu()) {
+        qDebug()<<"Pick role: Failed to open system menu";
+        throw DFRESTART;
+    }
+
+    // Close system menu
+    if (!closeSystemMenu()) {
+        qDebug()<<"Pick role: Failed to close system menu";
+        throw DFRESTART;
+    }
+}
+
 void DF::backToRoleList()
 {
     if (!openSystemMenu()) {
@@ -362,23 +383,25 @@ void DF::teleport(const QString &destination)
 
 void DF::navigateOnMap(int x, int y, int time)
 {
-    sendKey(Stroke, "N", 500);
-    sendMouse(Right, x, y, 500);
-    sendKey(Stroke, "N", 500);
-
-    approxSleep(time);
+    sendKey(Stroke, "N", 1000);
+    sendMouse(Right, x, y, 100);
+    sendMouse(Right, x, y, 100);
+    sendKey(Stroke, "N", time);
 }
 
 void DF::sellEquipment()
 {
     QVariant vx, vy;
+    int sellX, sellY;
     int ox, oy;
     int x, y;
     bool found = false;
 
     // Wait for selling
-    for (int i = 0; i < 100; ++i) {
+    for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
+            sellX = vx.toInt();
+            sellY = vy.toInt();
             found = true;
             break;
         }
@@ -389,14 +412,11 @@ void DF::sellEquipment()
         return;
     }
 
-    // Click sell button
-    sendMouse(Left, vx, vy, 200);
-    sendMouse(Left, vx, vy, 200);
-
     // Search sort button
     if (m_dm.FindPic(0, 300, 800, 600, "sort.bmp", "000000", 1.0, 1, vx, vy) != -1) {
-        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 200);  // Click equipment button
-        sendMouse(Left, vx.toInt(), vy.toInt(), 200);  // Click sort button
+        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);  // Click equipment button
+        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);  // Click equipment button
+        sendMouse(Left, vx.toInt(), vy.toInt(), 100);  // Click sort button
 
         ox = vx.toInt() - 190 + 4;
         oy = vy.toInt() - 240 + 36;
@@ -411,11 +431,13 @@ void DF::sellEquipment()
 
             // Sell
             sendMouse(Move, x, y, 100);
-            if (m_dm.FindPic(0, 0, 800, 400, "unique.bmp|legendary.bmp|epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-                sendMouse(Left, x, y, 200);
+            if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+                sendMouse(Left, sellX, sellY, 100);  // Click sell button
+                sendMouse(Left, x, y, 100);  // Select
 
-                sendKey(Stroke, 32, 100);
-                sendKey(Stroke, 32, 100);
+                // Confirm
+                for (int i = 0; i < 2; ++i)
+                    sendMouse(Left, x, y, 50);
             }
         }
 
@@ -425,22 +447,26 @@ void DF::sellEquipment()
     }
 }
 
-void DF::updateShareStorage()
+void DF::checkMail()
 {
     QVariant vx, vy;
 
-    // Use system menu to make sure role is switched successfully
-    // It'll also close ohter unknown window
-    if (!openSystemMenu()) {
-        qDebug()<<"Pick role: Failed to open system menu";
-        throw DFRESTART;
+    for (int i = 0; i < 5; ++i) {
+        if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) == -1)
+            break;
+
+        sendMouse(Left, vx.toInt(), vy.toInt(), 1000);  // Open mail box
+        sendMouse(Left, 300, 465, 500);  // Receive all mails
+        openSystemMenu();
+        closeSystemMenu();
     }
 
-    // Close system menu
-    if (!closeSystemMenu()) {
-        qDebug()<<"Pick role: Failed to close system menu";
-        throw DFRESTART;
-    }
+    approxSleep(1000);
+}
+
+void DF::updateShareStorage()
+{
+    QVariant vx, vy;
 
     int oldMouseDuration = setMouseDuration(200);
     int oldKeyDuration = setKeyDuration(200);
@@ -461,6 +487,9 @@ void DF::updateShareStorage()
 
     setMouseDuration(oldMouseDuration);
     setKeyDuration(oldKeyDuration);
+
+    openSystemMenu();
+    closeSystemMenu();
 }
 
 bool DF::initDungeonSettings(const QString &dungeon)
@@ -483,11 +512,10 @@ bool DF::initDungeonSettings(const QString &dungeon)
         thresholdDateTime = thresholdDateTime.addDays(1);
     }
 
-    if (currentDateTime >= thresholdDateTime) {
-        settings.setValue("last_time", currentDateTime);
+    if (currentDateTime >= thresholdDateTime)
         settings.setValue("role_index", 0);
-        settings.sync();
-    }
+    settings.setValue("last_time", currentDateTime);
+    settings.sync();
 
     m_lastRoleIndex = settings.value("role_index", 0).toInt();
 
@@ -534,10 +562,7 @@ bool DF::updateRoleIndex(const QString &dungeon)
     }
 
     settings.beginGroup(dungeon);
-
     settings.setValue("role_index", m_lastRoleIndex);
-    settings.setValue("last_time", QDateTime::currentDateTime());
-
     settings.endGroup();
 
     return true;
@@ -673,7 +698,7 @@ bool DF::isRoleDead()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(330, 420, 360, 450, "dead.bmp", "0F0F0F", 1.0, 0, vx, vy) == -1)
+    if (m_dm.FindPic(330, 420, 360, 450, "dead.bmp", "101010", 1.0, 0, vx, vy) == -1)
         return false;
 
     return true;
@@ -681,9 +706,9 @@ bool DF::isRoleDead()
 
 bool DF::isDungeonEnded()
 {
-    QVariant x, y;
+    QVariant vx, vy;
 
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "000000", 0.9, 2, x, y) == -1)
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "1F1F1F", 1.0, 2, vx, vy) == -1)
         return false;
 
     return true;
@@ -691,11 +716,11 @@ bool DF::isDungeonEnded()
 
 bool DF::isNoDungeonPoint()
 {
-    if (m_dm.GetColor(339, 553) == "000000") {
-        msleep(1000);
-        if (m_dm.GetColor(339, 553) == "000000")
-            return true;
-    }
+    QVariant vx, vy;
+
+    sendMouse(Move, 400, 554, 500);
+    if (m_dm.FindPic(200, 450, 500, 550, "no_dungeon_point.bmp", "000000", 1.0, 1, vx, vy) != -1)
+        return true;
 
     return false;
 }
@@ -705,34 +730,42 @@ void DF::pickFreeGoldenCard()
     QVariant x, y;
 
     for (int i = 0; i < 5; ++i) {
-        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "0F0F0F", 1.0, 1, x, y) != -1) {
+        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, x, y) != -1) {
             sendKey(Stroke, 53, 100);
         }
         approxSleep(1000);
     }
 }
 
-bool DF::summonSupporter()
+bool DF::summonSupporter(bool first)
 {
-//    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35") {
-        sendKey(Stroke, 9, 500);  // Tab
-        sendKey(Stroke, 9, 100);  // Tab
-        sendKey(Stroke, "z", 100);
+//    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35")
+//        return false;
 
-        return true;
-//    }
+    // Tab to summon
+    sendKey(Stroke, 9, 100);
 
-        return false;
+    // Window maybe pop up when first summon
+    if (first) {
+        openSystemMenu();
+        closeSystemMenu();
+        sendKey(Stroke, 9, 100);
+    }
+
+    // Extra summon
+    sendKey(Stroke, "z", 100);
+
+    return true;
 }
 
 void DF::buff()
 {
-    sendKey(Stroke, m_arrowU, 50);
-    sendKey(Stroke, m_arrowD, 50);
-    sendKey(Stroke, 32, 1000);
+    sendKey(Stroke, m_arrowU);
+    sendKey(Stroke, m_arrowD);
+    sendKey(Stroke, 32, 2000);
 
-    sendKey(Stroke, m_arrowD, 50);
-    sendKey(Stroke, m_arrowU, 50);
+    sendKey(Stroke, m_arrowD);
+    sendKey(Stroke, m_arrowU);
     sendKey(Down, 32, 2000);
     sendKey(Up, 32, 100);
 }
@@ -951,19 +984,19 @@ void DF::moveRole(int hDir, int vDir, int speed)
                 sendKey(Down, vHeldKey);
         } else if (speed == 3) {
             if (hHeldKey) {
-                sendKey(Stroke, hHeldKey, 20);
-                sendKey(Down, hHeldKey, 20);
+                sendKey(Stroke, hHeldKey);
+                sendKey(Down, hHeldKey);
             }
             if (vHeldKey) {
                 if (!hHeldKey) {
-                    sendKey(Stroke, m_arrowL, 20);
-                    sendKey(Stroke, m_arrowL, 20);
-                    sendKey(Stroke, m_arrowR, 20);
-                    sendKey(Down, m_arrowR, 20);
+                    sendKey(Stroke, m_arrowL);
+                    sendKey(Stroke, m_arrowL);
+                    sendKey(Stroke, m_arrowR);
+                    sendKey(Down, m_arrowR);
                 }
-                sendKey(Down, vHeldKey, 20);
+                sendKey(Down, vHeldKey);
                 if (!hHeldKey) {
-                    sendKey(Up, m_arrowR, 20);
+                    sendKey(Up, m_arrowR);
                 }
             }
         }
@@ -1038,16 +1071,11 @@ void DF::pickTrophies(bool &done)
         // Get position of role
         if (!getRoleCoords(roleX, roleY)) {
             if ((hPreDir == 0) && (vPreDir == 0)) {
-                if (qrand() % 2 == 0) {
-                    moveRole(1, 0, 2);
-                    approxSleep(200);
-                    moveRole(1, 0);
-                } else {
-                    moveRole(-1, 0, 2);
-                    approxSleep(200);
-                    moveRole(-1, 0);
-                }
+                moveRole(0, -1, 2);
+                approxSleep(500);
+                moveRole(0, 1);
             }
+
             msleep(10);
             continue;
         }
@@ -1447,15 +1475,6 @@ bool DF::fightBoss()
 
     bx = vx.toInt() + 50;
     by = vy.toInt() + 150;
-
-//    qDebug()<<rx<<ry<<"|"<<bx<<by;
-
-//    if (abs(ry- by) < 200) {
-//        moveRole(0, (by < 350) ? 1 : -1, 2);
-//        approxSleep(100);
-//    } else {
-//        summonSupporter();
-//    }
 
     if (abs(rx- bx) < 250) {
         moveRole((bx < 400) ? 1 : -1, 0, 3);

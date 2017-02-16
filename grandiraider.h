@@ -5,7 +5,7 @@
 
 class GrandiRaider : public DF
 {
-    enum Flow{StartClient, BindClient, PickRole, Init, MoveToDungeon, PreFight, Fight, PickTrophies, Navigate, PreBossFight, BossFight, UpdateShareStorage, UpdateRoleIndex};
+    enum Flow{StartClient, BindClient, PickRole, Init, MoveToDungeon, PreFight, Fight, PickTrophies, Navigate, PreBossFight, BossFight, RoleSummary, UpdateRoleIndex};
 public:
     GrandiRaider();
     ~GrandiRaider();

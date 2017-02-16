@@ -42,10 +42,12 @@ protected:
     void setArrowKey(int left, int up, int right, int down);
     bool isBlackScreen(int x1, int y1, int x2, int y2);
     void pickRole(int index);
+    void repickCurrentRole();
     void backToRoleList();
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y, int time);
     void sellEquipment();
+    void checkMail();
     void updateShareStorage();
 
     // Dungeon functions
@@ -61,7 +63,7 @@ protected:
     bool isDungeonEnded();
     bool isNoDungeonPoint();
     void pickFreeGoldenCard();
-    bool summonSupporter();
+    bool summonSupporter(bool first = false);
     void buff();
     void rectifySectionIndex(int &sectionIndex);
     bool isSectionClear(const QString &brightColor);

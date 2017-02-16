@@ -57,7 +57,6 @@ void GrandiRaider::run()
                 flow = Init;
                 break;
             case Init:
-                msleep(1000);
                 if (initRoleOffset()) {
                     // Check dungeon point
                     if (isNoDungeonPoint())
@@ -78,19 +77,19 @@ void GrandiRaider::run()
                 break;
             case PreFight:
                 // Summon tempester
-                summonSupporter();
+                summonSupporter((sectionIndex == 0));
 
                 if (sectionIndex == 0) {
                     // Buff
                     buff();
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(-1, 380);
-                    navigate(320, -1);
+                    navigate(-1, 390);
+                    navigate(350, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     moveRole(0, 1, 2);
-                    approxSleep(2000, 0.3);
+                    approxSleep(500);
                     moveRole(0, 1);
                 }
 
@@ -113,13 +112,14 @@ void GrandiRaider::run()
 
                 if (sectionIndex == 4) {
                     // Destory generator
-                    sendKey(Stroke, m_arrowL, 30);
+                    sendKey(Down, m_arrowL, 500);
+                    sendKey(Up, m_arrowL);
                     for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x", 30);
+                        sendKey(Stroke, "x");
                 } else {
                     // Normal attack
                     for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x", 30);
+                        sendKey(Stroke, "x");
                 }
                 break;
             case PickTrophies:
@@ -167,12 +167,16 @@ void GrandiRaider::run()
                 if (isDungeonEnded()) {
                     moveRole(1, 1);
 
-                    approxSleep(1000, 0.2);
+                    // Wait for thophies fall on ground
+                    approxSleep(3000);
+
+                    // Move trophies
+                    sendKey(Stroke, 189, 500);  // -
 
                     // Pick trophies
-                    sendKey(Stroke, 189, 600);  // -
-                    sendKey(Down, "x", 4000);
-                    sendKey(Up, "x");
+                    for (int i = 0; i < 50; ++i) {
+                        sendKey(Stroke, "x");
+                    }
 
                     // Get free card
                     pickFreeGoldenCard();
@@ -184,7 +188,7 @@ void GrandiRaider::run()
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {
                         sendKey(Stroke, 123, 5000);  // F12
-                        flow = UpdateShareStorage;
+                        flow = RoleSummary;
                         break;
                     }
 
@@ -201,11 +205,9 @@ void GrandiRaider::run()
 
                 fightBoss();
                 break;
-            case UpdateShareStorage:
-                backToRoleList();
-                approxSleep(1000);
-                sendKey(Stroke, 32, 1000);
-                sendKey(Stroke, 32, 1000);
+            case RoleSummary:
+                checkMail();
+                repickCurrentRole();
                 updateShareStorage();
                 flow = UpdateRoleIndex;
             case UpdateRoleIndex:
@@ -250,7 +252,7 @@ void GrandiRaider::run()
             }
 
         } catch(DFError e) {
-            qDebug()<<"DFError"<<e;
+            qDebug()<<"DFError"<<e<<m_lastRoleIndex;
             if (e == DFSettingError) {
                 return;
             } else if (e == DFRESTART) {
