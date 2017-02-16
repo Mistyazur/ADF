@@ -395,9 +395,13 @@ void DF::sellEquipment()
     int sellX, sellY;
     int ox, oy;
     int x, y;
-    bool found = false;
+    bool found;
+
+    // Reset mouse because it may be cover something I'll search for
+    sendMouse(Move, 0, 0);
 
     // Wait for selling
+    found = false;
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
             sellX = vx.toInt();
@@ -407,44 +411,55 @@ void DF::sellEquipment()
         }
         msleep(500);
     }
-    if (!found) {
-        qDebug()<<"sellEquipment error";
+    if (!found)
         return;
-    }
 
     // Search sort button
-    if (m_dm.FindPic(0, 300, 800, 600, "sort.bmp", "000000", 1.0, 1, vx, vy) != -1) {
-        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);  // Click equipment button
-        sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);  // Click equipment button
-        sendMouse(Left, vx.toInt(), vy.toInt(), 100);  // Click sort button
+    found = false;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindPic(0, 300, 800, 600, "sort.bmp", "000000", 1.0, 1, vx, vy) != -1) {
+            found = true;
+            break;
+        }
+        msleep(500);
+    }
+    if (!found)
+        return;
 
-        ox = vx.toInt() - 190 + 4;
-        oy = vy.toInt() - 240 + 36;
-        for (int i = 0; i < 32; ++i) {
-            x = ox + ((i % 8) * 30);
-            y = oy + ((i / 8) * 30);
+    // Click equipment button
+    sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);
+    sendMouse(Left, vx.toInt() - 190, vy.toInt() - 240, 100);
 
-            // Check empty
-            if (m_dm.GetColor(x, y - 14) == "000000") {
-                break;
-            }
+    // Click sort button
+    sendMouse(Left, vx.toInt(), vy.toInt(), 100);
 
-            // Sell
-            sendMouse(Move, x, y, 100);
-            if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-                sendMouse(Left, sellX, sellY, 100);  // Click sell button
-                sendMouse(Left, x, y, 100);  // Select
+    // Select item
+    ox = vx.toInt() - 190 + 4;
+    oy = vy.toInt() - 240 + 36;
+    for (int i = 0; i < 32; ++i) {
+        x = ox + ((i % 8) * 30);
+        y = oy + ((i / 8) * 30);
 
-                // Confirm
-                for (int i = 0; i < 2; ++i)
-                    sendMouse(Left, x, y, 50);
-            }
+        // Check empty
+        if (m_dm.GetColor(x, y - 14) == "000000") {
+            break;
         }
 
-        // Close packet
-        openSystemMenu();
-        closeSystemMenu();
+        // Sell
+        sendMouse(Move, x, y, 100);
+        if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+            sendMouse(Left, sellX, sellY, 100);  // Click sell button
+            sendMouse(Left, x, y, 100);  // Select
+
+            // Confirm
+            for (int i = 0; i < 2; ++i)
+                sendMouse(Left, x, y, 50);
+        }
     }
+
+    // Close packet
+    openSystemMenu();
+    closeSystemMenu();
 }
 
 void DF::checkMail()
@@ -455,7 +470,7 @@ void DF::checkMail()
         if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) == -1)
             break;
 
-        sendMouse(Left, vx.toInt(), vy.toInt(), 1000);  // Open mail box
+        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
         sendMouse(Left, 300, 465, 500);  // Receive all mails
         openSystemMenu();
         closeSystemMenu();
