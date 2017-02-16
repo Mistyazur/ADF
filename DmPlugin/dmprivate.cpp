@@ -97,10 +97,9 @@ void DmPrivate::setResourcePath(const QString &path)
 
 void DmPrivate::approxSleep(int msec, double delta)
 {
-    int max = msec*(1+delta);
-    int min = msec*(1-delta);
-
-    msleep(MEDIAN_RANDOM(min, max));
+    if (msec > 0) {
+        msleep(MEDIAN_RANDOM((int)(msec*(1-delta)), (int)(msec*(1+delta))));
+    }
 }
 
 int DmPrivate::setMouseDuration(int duration)
