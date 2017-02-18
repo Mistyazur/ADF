@@ -76,69 +76,58 @@ void DF::unbind()
 
 bool DF::closeClient()
 {
-//    int hTGPWnd;
-//    int hConfirmWnd;
+    int hTGPWnd;
+    int hCheckingWnd;
 
-//    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
-//    if (hTGPWnd == 0) {
-//        qDebug()<<"Close Client: Can't find tgp window";
-//        return false;
-//    }
+    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+    if (hTGPWnd == 0) {
+        qDebug()<<"Start Client: Can't find tgp window";
+        return false;
+    }
 
-//    // Activate tgp
-//    if (m_dm.GetForegroundWindow() != hTGPWnd) {
-//        m_dm.SetWindowState(hTGPWnd, 1);
-//        msleep(1000);
-//    }
+    // Activate tgp
+    if (m_dm.GetForegroundWindow() != hTGPWnd) {
+        m_dm.SetWindowState(hTGPWnd, 1);
+        msleep(1000);
+    }
 
-//    // wait for tgp activated
-//    bool ok = false;
-//    for (int i = 0; i < 10; ++i) {
-//        if (m_dm.GetForegroundWindow() == hTGPWnd) {
-//            ok = true;
-//            break;
-//        }
-//        msleep(1000);
-//    }
-//    if (!ok) {
-//        qDebug()<<"Close Client: Can't activate tgp window";
-//        return false;
-//    }
+    // wait for tgp activated
+    bool ok = false;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.GetForegroundWindow() == hTGPWnd) {
+            ok = true;
+            break;
+        }
+        msleep(1000);
+    }
+    if (!ok) {
+        qDebug()<<"Start Client: Can't activate tgp window";
+        return false;
+    }
 
-//    // Bind tgp
-//    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
-//    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
-//    msleep(1000);
+    // Bind tgp
+    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
 
-//    // Close client
-//    sendMouse(Left, 120, 310, 3000);
+    // Close client
+    QVariant vx, vy;
+    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game.bmp", "101010", 1.0, 0, vx, vy) != -1) {
+        sendMouse(Left, vx.toInt() + 10, vy.toInt() + 10, 2000);
+        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game_confirm.bmp", "101010", 1.0, 0, vx, vy) != -1)
+            sendMouse(Left, vx.toInt(), vy.toInt());
+    }
 
-//    // Unbind tgp
-//    m_dm.UnBindWindow();
+    // Unbind tgp
+    m_dm.UnBindWindow();
 
-//    // Confirm
-//    for (int i = 0; i < 5; ++i) {
-//        msleep(1000);
-
-//        hConfirmWnd = m_dm.FindWindow("TWINCONTROL", "");
-//        if (hConfirmWnd && (hConfirmWnd != hTGPWnd)) {
-//            m_dm.BindWindow(hConfirmWnd, "normal", "normal", "normal", 0);
-//            sendMouse(Left, 250, 170, 200);
-//            m_dm.UnBindWindow();
-//            return true;
-//        }
-//    }
-
-//    qDebug()<<"Close Client: failed";
-
-    qDebug()<<"Close client start";
-
-    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
-    msleep(2000);
-    QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
     msleep(5000);
 
-    qDebug()<<"Close client end";
+    qDebug()<<"Close client";
+
+//    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
+//    msleep(2000);
+//    QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
+//    msleep(5000);
 
     return false;
 }
@@ -182,21 +171,16 @@ bool DF::startClient()
     sendMouse(Left, 50, 300, 3000);
     sendMouse(Left, 900, 680, 1000);
 
+    // Skip checking window
+    QVariant vx, vy;
+    for (int i = 0; i < 5; ++i) {
+        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_dnf_skip_check.bmp", "101010", 1.0, 0, vx, vy) != -1)
+            sendMouse(Left, vx.toInt() + 25, vy.toInt() + 6, 1000);
+        msleep(1000);
+    }
+
     // Unbind tgp
     m_dm.UnBindWindow();
-
-    // Skip checking window
-    for (int i = 0; i < 10; ++i) {
-        hCheckingWnd = m_dm.FindWindow("TWINCONTROL", "");
-        if (hCheckingWnd && (hCheckingWnd != hTGPWnd)) {
-            m_dm.BindWindow(hCheckingWnd, "normal", "normal", "normal", 0);
-            msleep(5000);
-            sendMouse(Left, 415, 60);
-            m_dm.UnBindWindow();
-            break;
-        }
-        msleep(500);
-    }
 
     // Wait for client
     for (int i = 0; i < 240; ++i) {
