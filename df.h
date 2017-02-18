@@ -58,12 +58,12 @@ protected:
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);
     bool reenterDungeon();
-    bool isInDungeon();
+    bool waitForDungeonBeign();
     bool isRoleDead();
     bool isDungeonEnded();
     bool isNoDungeonPoint();
     void pickFreeGoldenCard();
-    bool summonSupporter(bool first = false);
+    void summonSupporter();
     void buff();
     void rectifySectionIndex(int &sectionIndex);
     bool isSectionClear(const QString &brightColor);

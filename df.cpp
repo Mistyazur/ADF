@@ -77,7 +77,8 @@ void DF::unbind()
 bool DF::closeClient()
 {
     int hTGPWnd;
-    int hCheckingWnd;
+
+    qDebug()<<"Close client";
 
     hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
@@ -120,9 +121,8 @@ bool DF::closeClient()
     // Unbind tgp
     m_dm.UnBindWindow();
 
-    msleep(5000);
+    msleep(2000);
 
-    qDebug()<<"Close client";
 
 //    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
 //    msleep(2000);
@@ -135,7 +135,6 @@ bool DF::closeClient()
 bool DF::startClient()
 {
     int hTGPWnd;
-    int hCheckingWnd;
 
     hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
@@ -614,7 +613,7 @@ bool DF::initRoleOffset()
 
 bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 {
-    int blackCount = m_dm.GetColorNum(x1, y1, x2, y2, "000000", 1.0);
+    int blackCount = m_dm.GetColorNum(x1, y1, x2, y2, "000000-202020", 1.0);
     int totalCount = (x2-x1)*(y2-y1);
     if (blackCount < totalCount*0.8)
         return false;
@@ -658,13 +657,7 @@ EnterDungeon:
     setKeyDuration(oldKeyDuration);
 
     // Wait
-    for (int i = 0; i < 20; ++i) {
-        if (isInDungeon())
-            return true;
-        msleep(1000);
-    }
-
-    return false;
+    return waitForDungeonBeign();
 }
 
 bool DF::reenterDungeon()
@@ -673,24 +666,27 @@ bool DF::reenterDungeon()
     sendKey(Stroke, 121, 500);
 
     // Wait
-    for (int i = 0; i < 20; ++i) {
-        if (isInDungeon()) {
-            return true;
+    return waitForDungeonBeign();
+}
+
+bool DF::waitForDungeonBeign()
+{
+    QVariant x, y;
+
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.GetColorNum(300, 575, 500, 595, "FFFF00", 1.0) > 100) {
+            for (int j = 0; j < 10; ++j) {
+                if (m_dm.GetColorNum(300, 575, 500, 595, "FFFF00", 1.0) == 0) {
+                    msleep(1000);
+                    return true;
+                }
+                msleep(1000);
+            }
         }
         msleep(1000);
     }
 
     return false;
-}
-
-bool DF::isInDungeon()
-{
-    QVariant x, y;
-
-    if (m_dm.FindPic(770, 0, 800, 30, "dungeon_in.bmp", "000000", 1.0, 0, x, y) == -1)
-        return false;
-
-    return true;
 }
 
 bool DF::isRoleDead()
@@ -707,7 +703,7 @@ bool DF::isDungeonEnded()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "1F1F1F", 1.0, 2, vx, vy) == -1)
+    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "202020", 1.0, 2, vx, vy) == -1)
         return false;
 
     return true;
@@ -726,35 +722,22 @@ bool DF::isNoDungeonPoint()
 
 void DF::pickFreeGoldenCard()
 {
-    QVariant x, y;
+    QVariant vx, vy;
 
     for (int i = 0; i < 5; ++i) {
-        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, x, y) != -1) {
+        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1)
             sendKey(Stroke, 53, 100);
-        }
         approxSleep(1000);
     }
 }
 
-bool DF::summonSupporter(bool first)
+void DF::summonSupporter()
 {
-//    if (m_dm.GetColor(695, 510).toUpper() == "7F7B35")
-//        return false;
-
     // Tab to summon
     sendKey(Stroke, 9, 100);
 
-    // Window maybe pop up when first summon
-    if (first) {
-        openSystemMenu();
-        closeSystemMenu();
-        sendKey(Stroke, 9, 100);
-    }
-
     // Extra summon
     sendKey(Stroke, "z", 100);
-
-    return true;
 }
 
 void DF::buff()
@@ -766,7 +749,7 @@ void DF::buff()
     sendKey(Stroke, m_arrowD);
     sendKey(Stroke, m_arrowU);
     sendKey(Down, 32, 2000);
-    sendKey(Up, 32, 100);
+    sendKey(Up, 32, 1000);
 }
 
 void DF::rectifySectionIndex(int &sectionIndex)
@@ -781,10 +764,8 @@ void DF::rectifySectionIndex(int &sectionIndex)
         }
         approxSleep(500);
     }
-    if (!ok) {
-        qDebug()<<"RecitySectionIndex: getRoleCoordsInMap failed";
-        throw DFRESTART;
-    }
+    if (!ok)
+        return;
 
     QVariantList node = QVariantList({x , y});
     int rectifiedSectionIndex = m_nodeList.indexOf(node);

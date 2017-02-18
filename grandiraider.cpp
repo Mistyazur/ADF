@@ -28,10 +28,8 @@ void GrandiRaider::run()
     if (!initDungeonSettings(DUNGEON))
         return;
     
-
 //    flow = PreFight;
 //    bind(false);
-
 
     while (true) {
         try {
@@ -77,14 +75,21 @@ void GrandiRaider::run()
                 break;
             case PreFight:
                 // Summon tempester
-                summonSupporter((sectionIndex == 0));
+                summonSupporter();
 
                 if (sectionIndex == 0) {
+                    // Window maybe pop up when first summon
+                    sendKey(Down, 32, 200);
+                    sendKey(Up, 32, 100);
+
+                    // Summon tempester
+                    summonSupporter();
+
                     // Buff
                     buff();
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(-1, 380);
+                    navigate(-1, 390);
                     navigate(300, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
@@ -151,7 +156,7 @@ void GrandiRaider::run()
                         flow = PreFight;
                     }
                 } else {
-                    qDebug()<<"navigateSection failed";
+                    qDebug()<<"NavigateSection failed: Index"<<sectionIndex;
                     throw DFRESTART;
                 }
             }
@@ -171,8 +176,9 @@ void GrandiRaider::run()
                     // 3000 is minimum
                     approxSleep(3000);
 
-                    // Move trophies
-                    sendKey(Stroke, 189, 100);  // -
+                    // Move trophies (-)
+                    sendKey(Down, 189, 200);
+                    sendKey(Up, 189, 100);
 
                     // Pick trophies
                     for (int i = 0; i < 80; ++i) {
@@ -188,7 +194,9 @@ void GrandiRaider::run()
 
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {
-                        sendKey(Stroke, 123, 5000);  // F12
+                        // F12
+                        sendKey(Down, 123, 200);
+                        sendKey(Up, 123, 5000);
                         flow = RoleSummary;
                         break;
                     }
