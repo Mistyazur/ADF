@@ -18,19 +18,19 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
+    static Flow preFlow = (Flow)-1;
     Flow flow = StartClient;
     int sectionIndex = 0;
-    QTime timer;
 
+    QTime timer;
     timer.start();
-    m_preFlow = (Flow)-1;
+
+//    flow = PreFight;
+//    bind(false);
 
     if (!initDungeonSettings(DUNGEON))
         return;
     
-//    flow = PreFight;
-//    bind(false);
-
     while (true) {
         try {
             switch (flow) {
@@ -165,6 +165,11 @@ void GrandiRaider::run()
                 // Summon tempester
                 summonSupporter();
 
+                // Move a litte to make boss not able to teleport
+                moveRole(1, -1, 3);
+                approxSleep(500);
+                moveRole(1, 1);
+
                 flow = BossFight;
                 break;
             case BossFight:
@@ -241,10 +246,10 @@ void GrandiRaider::run()
             }
 
             // Check timeout
-            if (flow != m_preFlow) {
+            if (flow != preFlow) {
 //                qDebug()<<"Flow: "<<flow;
                 timer.restart();
-                m_preFlow = flow;
+                preFlow = flow;
             } else {
                 if (flow > BindClient) {
                     if (timer.elapsed() > 120000) {

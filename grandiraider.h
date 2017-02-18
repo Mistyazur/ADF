@@ -10,8 +10,6 @@ public:
     GrandiRaider();
     ~GrandiRaider();
     void run();
-private:
-    Flow m_preFlow;
 };
 
 #endif // GRANDIRAIDER_H

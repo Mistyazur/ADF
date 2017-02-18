@@ -724,9 +724,15 @@ void DF::pickFreeGoldenCard()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 5; ++i) {
-        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1)
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1)
+            return;
+
+        if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1) {
             sendKey(Stroke, 53, 100);
+            break;
+        }
+
         approxSleep(1000);
     }
 }
