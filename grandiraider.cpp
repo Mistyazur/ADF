@@ -84,8 +84,8 @@ void GrandiRaider::run()
                     buff();
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(-1, 390);
-                    navigate(350, -1);
+                    navigate(-1, 380);
+                    navigate(300, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     moveRole(0, 1, 2);
@@ -112,7 +112,7 @@ void GrandiRaider::run()
 
                 if (sectionIndex == 4) {
                     // Destory generator
-                    sendKey(Down, m_arrowL, 500);
+                    sendKey(Down, m_arrowL, 100);
                     sendKey(Up, m_arrowL);
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x");
@@ -168,13 +168,13 @@ void GrandiRaider::run()
                     moveRole(1, 1);
 
                     // Wait for thophies fall on ground
-                    approxSleep(3000);
+                    approxSleep(2000);
 
                     // Move trophies
-                    sendKey(Stroke, 189, 500);  // -
+                    sendKey(Stroke, 189, 100);  // -
 
                     // Pick trophies
-                    for (int i = 0; i < 50; ++i) {
+                    for (int i = 0; i < 80; ++i) {
                         sendKey(Stroke, "x");
                     }
 

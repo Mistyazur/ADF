@@ -136,7 +136,7 @@ bool DF::closeClient()
     QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
     msleep(2000);
     QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
-    msleep(3000);
+    msleep(5000);
 
     qDebug()<<"Close client end";
 
@@ -190,16 +190,11 @@ bool DF::startClient()
         hCheckingWnd = m_dm.FindWindow("TWINCONTROL", "");
         if (hCheckingWnd && (hCheckingWnd != hTGPWnd)) {
             m_dm.BindWindow(hCheckingWnd, "normal", "normal", "normal", 0);
-            for (int j = 0; j < 10; ++j) {
-                if (::IsWindow((HWND)hCheckingWnd)) {
-                    sendMouse(Left, 415, 60, 500);
-                    break;
-                }
-            }
+            msleep(5000);
+            sendMouse(Left, 415, 60);
             m_dm.UnBindWindow();
             break;
         }
-
         msleep(500);
     }
 
@@ -220,7 +215,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 240; ++i) {
+    for (int i = 0; i < 300; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -660,18 +655,23 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
     return false;
 
 EnterDungeon:
+
+    int oldKeyDuration = setKeyDuration(200);
+
     // Pick dungeon
     for (int i=0; i<index; ++i)
-        sendKey(Stroke, m_arrowU, 200);
+        sendKey(Stroke, m_arrowU, 100);
 
     // Pick difficulty
-    for (int i=0; i<8; ++i)
-        sendKey(Stroke, m_arrowL, 50);
+    for (int i=0; i<6; ++i)
+        sendKey(Stroke, m_arrowL);
     for (int i=0; i<difficulty; ++i)
-        sendKey(Stroke, m_arrowR, 200);
+        sendKey(Stroke, m_arrowR, 100);
 
     // Commit
     sendKey(Stroke, 32, 500);
+
+    setKeyDuration(oldKeyDuration);
 
     // Wait
     for (int i = 0; i < 20; ++i) {
@@ -1107,7 +1107,7 @@ void DF::pickTrophies(bool &done)
 //            qDebug()<<"PickTrophies: Stand On";
             moveRole(1, 1);
             approxSleep(200);
-            sendKey(Stroke, "x", 100);
+            sendKey(Stroke, "x", 200);
             done = false;
             break;
         }
@@ -1115,7 +1115,7 @@ void DF::pickTrophies(bool &done)
         // Arrived
         if (hArrived && vArrived) {
 //            qDebug()<<"PickTrophies: Arrived";
-            sendKey(Stroke, "x", 100);
+            sendKey(Stroke, "x", 200);
             done = false;
             break;
         }
@@ -1175,11 +1175,11 @@ void DF::pickTrophies(bool &done)
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
-                if (abs(hDir) <= 5) {
+                if (abs(hDir) < 5) {
                     moveRole(1, 0);
                     hPreDir = 0;
                     hArrived = true;
-                } else if (abs(hDir) <= 20) {
+                } else if (abs(hDir) < 20) {
                     if (hPreDir == 0) {
                         moveRole(hDir, 0, 2);
                     } else {
@@ -1202,11 +1202,11 @@ void DF::pickTrophies(bool &done)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) <= 5) {
+                if (abs(vDir) < 5) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
-                } else if (abs(vDir) <= 20) {
+                } else if (abs(vDir) < 20) {
                     if (vPreDir == 0) {
                         moveRole(0, vDir, 2);
                     } else {
@@ -1378,11 +1378,11 @@ bool DF::navigate(int x, int y, bool end)
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
-                if (abs(hDir) <= 5) {
+                if (abs(hDir) < 5) {
                     moveRole(1, 0);
                     hPreDir = 0;
                     hArrived = true;
-                } else if (abs(hDir) <= 20) {
+                } else if (abs(hDir) < 20) {
                     if (hPreDir == 0) {
                         moveRole(hDir, 0, 1);
                     } else {
@@ -1405,11 +1405,11 @@ bool DF::navigate(int x, int y, bool end)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) <= 5) {
+                if (abs(vDir) < 5) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
-                } else if (abs(vDir) <= 20) {
+                } else if (abs(vDir) < 20) {
                     if (vPreDir == 0) {
                         moveRole(0, vDir, 1);
                     } else {
