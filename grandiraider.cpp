@@ -168,7 +168,8 @@ void GrandiRaider::run()
                     moveRole(1, 1);
 
                     // Wait for thophies fall on ground
-                    approxSleep(2000);
+                    // 3000 is minimum
+                    approxSleep(3000);
 
                     // Move trophies
                     sendKey(Stroke, 189, 100);  // -

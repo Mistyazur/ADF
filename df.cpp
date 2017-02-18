@@ -230,9 +230,9 @@ bool DF::openSystemMenu()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 50; ++i) {
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            sendKey(Stroke, 27, 300);
+            sendKey(Stroke, 27, 200);
         } else {
             return true;
         }
@@ -245,11 +245,11 @@ bool DF::closeSystemMenu()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 50; ++i) {
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             return true;
         } else {
-            sendKey(Stroke, 27, 300);
+            sendKey(Stroke, 27, 200);
         }
     }
 
@@ -387,7 +387,6 @@ void DF::navigateOnMap(int x, int y, int time)
 void DF::sellEquipment()
 {
     QVariant vx, vy;
-    int sellX, sellY;
     int ox, oy;
     int x, y;
     bool found;
@@ -399,8 +398,6 @@ void DF::sellEquipment()
     found = false;
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
-            sellX = vx.toInt();
-            sellY = vy.toInt();
             found = true;
             break;
         }
@@ -408,6 +405,9 @@ void DF::sellEquipment()
     }
     if (!found)
         return;
+
+    // Click sell button
+    sendMouse(Left, vx, vy, 100);
 
     // Search sort button
     found = false;
@@ -443,12 +443,12 @@ void DF::sellEquipment()
         // Sell
         sendMouse(Move, x, y, 100);
         if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            sendMouse(Left, sellX, sellY, 100);  // Click sell button
-            sendMouse(Left, x, y, 100);  // Select
+            // Select
+            sendMouse(Left, x, y, 100);
 
             // Confirm
             for (int i = 0; i < 2; ++i)
-                sendMouse(Left, x, y, 50);
+                sendKey(Stroke, 13, 50);
         }
     }
 
