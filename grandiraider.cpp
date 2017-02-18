@@ -87,15 +87,23 @@ void GrandiRaider::run()
 
                     // Buff
                     buff();
+
+                    // Awaken monsters
+                    navigate(470, -1);
+                    sendKey(Down, m_arrowL, 100);
+                    sendKey(Up, m_arrowL);
+                } else if (sectionIndex == 2) {
+                    // Awaken monsters
+                    navigate(470, -1);
+                    sendKey(Down, m_arrowL, 100);
+                    sendKey(Up, m_arrowL);
                 } else if (sectionIndex == 4) {
                     // Get close to generator
                     navigate(-1, 390);
                     navigate(300, -1);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
-                    moveRole(0, 1, 2);
-                    approxSleep(500);
-                    moveRole(0, 1);
+                    navigate(-1, 0);
                 }
 
                 flow = Fight;
@@ -166,9 +174,7 @@ void GrandiRaider::run()
                 summonSupporter();
 
                 // Move a litte to make boss not able to teleport
-                moveRole(1, -1, 3);
-                approxSleep(500);
-                moveRole(1, 1);
+                navigate(350, -1);
 
                 flow = BossFight;
                 break;

@@ -1146,7 +1146,7 @@ void DF::pickTrophies(bool &done)
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
-                if (abs(hDir) < 5) {
+                if (abs(hDir) < 10) {
                     moveRole(1, 0);
                     hPreDir = 0;
                     hArrived = true;
@@ -1173,7 +1173,7 @@ void DF::pickTrophies(bool &done)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 5) {
+                if (abs(vDir) < 10) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
@@ -1206,7 +1206,6 @@ void DF::pickTrophies(bool &done)
     }
 
     moveRole(1, 1);
-    approxSleep(100);
 
     if (done)
         counter = 0;
@@ -1349,7 +1348,7 @@ bool DF::navigate(int x, int y, bool end)
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
-                if (abs(hDir) < 5) {
+                if (abs(hDir) < 10) {
                     moveRole(1, 0);
                     hPreDir = 0;
                     hArrived = true;
@@ -1376,7 +1375,7 @@ bool DF::navigate(int x, int y, bool end)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 5) {
+                if (abs(vDir) < 10) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
@@ -1407,8 +1406,6 @@ bool DF::navigate(int x, int y, bool end)
 
         msleep(1);
     }
-
-    approxSleep(100);
 
     return false;
 }
