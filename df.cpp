@@ -391,6 +391,7 @@ void DF::sellEquipment()
 
     // Click sell button
     sendMouse(Left, vx, vy, 100);
+    sendMouse(Left, vx, vy, 100);
 
     // Search sort button
     found = false;
