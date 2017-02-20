@@ -854,24 +854,33 @@ bool DF::isSectionClear(const QString &brightColor)
     return false;
 }
 
-bool DF::getTrophyCoords(int &x, int &y, bool &pickable)
+bool DF::isPickable()
 {
     QVariant vx, vy;
 
-    int index = m_dm.FindPic(0, 0, 800, 480, "trophy_pickable.bmp|trophy.bmp", "3F3F3F", 1.0, 1, vx, vy);
-    if (index != -1) {
-        if (index == 0)
-            pickable = true;
-        else
-            pickable = false;
-
-        x = vx.toInt() + 50;
-        y = vy.toInt() + 30;
-
+    if (m_dm.FindPic(0, 0, 800, 480, "trophy_pickable.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
         return true;
-    }
 
     return false;
+}
+
+bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
+{
+    QString res;
+
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy.bmp", "3F3F3F", 1.0, 1);
+    if (res.isEmpty())
+        return false;
+
+    res = m_dm.FindNearestPos(res, 0, x, y);
+    QStringList resList = res.split(",", QString::SkipEmptyParts);
+    if (resList.size() != 3)
+        return false;
+
+    nx = resList.at(1).toInt() + 50;
+    ny = resList.at(2).toInt() + 30;
+
+    return true;
 }
 
 bool DF::getRoleCoordsInMap(int &x, int &y)
@@ -1010,7 +1019,6 @@ void DF::pickTrophies(bool &done)
     int x, y;
     int sectionIndex;
     bool bossRoomArrived;
-    bool pickable;
 
     timer.start();
 
@@ -1067,20 +1075,20 @@ void DF::pickTrophies(bool &done)
             continue;
         }
 
-        // Get postion of trophy
-        if (!getTrophyCoords(x, y, pickable)) {
-//            qDebug()<<"PickTrophies: No Trophy";
-            done = true;
-            break;
-        }
-
         // Already stand on trophy
-        if (pickable) {
+        if (isPickable()) {
 //            qDebug()<<"PickTrophies: Stand On";
             moveRole(1, 1);
             approxSleep(200);
             sendKey(Stroke, "x", 200);
             done = false;
+            break;
+        }
+
+        // Get postion of trophy
+        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
+//            qDebug()<<"PickTrophies: No Trophy";
+            done = true;
             break;
         }
 
