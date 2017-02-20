@@ -935,6 +935,7 @@ bool DF::getRoleCoords(int &x, int &y)
     return false;
 }
 
+/*
 void DF::moveRole(int hDir, int vDir, int speed)
 // speed :  0 - relese direction key if direction is zero
 //			1 - click direction key
@@ -994,6 +995,74 @@ void DF::moveRole(int hDir, int vDir, int speed)
                 if (!hHeldKey) {
                     sendKey(Up, m_arrowR);
                 }
+            }
+        }
+    }
+}
+*/
+
+void DF::moveRole(int hDir, int vDir, int speed)
+// speed :  0 - relese direction key if direction is zero
+//			1 - click direction key
+//          2 - hold direction key
+//          3 - double click then hold direction key
+{
+    static int hHeldKey = 0;
+    static int vHeldKey = 0;
+    static int hKey = 0;
+    static int vKey = 0;
+
+    if (speed <= 1) {
+        if (hDir && hHeldKey) {
+            sendKey(Up, hHeldKey);
+            hHeldKey = 0;
+        }
+        if (vDir && vHeldKey) {
+            sendKey(Up, vHeldKey);
+            vHeldKey = 0;
+        }
+    }
+
+    if (hDir)
+        hKey = (hDir > 0) ? m_arrowR : m_arrowL;
+    else
+        hKey = 0;
+    if (vDir)
+        vKey = (vDir > 0) ? m_arrowD : m_arrowU;
+    else
+        vKey = 0;
+
+    if (speed == 1) {
+        if (hKey)
+            sendKey(Stroke, hKey);
+        if (vKey)
+            sendKey(Stroke, vKey);
+    } else if (speed == 2) {
+        if (hKey) {
+            sendKey(Down, hKey);
+            hHeldKey = hKey;
+        }
+        if (vKey) {
+            sendKey(Down, vKey);
+            vHeldKey = vKey;
+        }
+    } else if (speed == 3) {
+        if (hKey) {
+            sendKey(Stroke, hKey);
+            sendKey(Down, hKey);
+            hHeldKey = hKey;
+        }
+        if (vKey) {
+            if (!hKey && !hHeldKey) {
+                sendKey(Stroke, m_arrowL);
+                sendKey(Stroke, m_arrowL);
+                sendKey(Stroke, m_arrowR);
+                sendKey(Down, m_arrowR);
+            }
+            sendKey(Down, vKey);
+            vHeldKey = vKey;
+            if (!hKey && !hHeldKey) {
+                sendKey(Up, m_arrowR);
             }
         }
     }
