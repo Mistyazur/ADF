@@ -22,8 +22,8 @@ public:
     ~MainWindow();
 
 public slots:
-    void hotkeyStartTriggerd();
-    void hotkeyStopTriggerd();
+    void on_btnStart_clicked();
+    void on_btnStop_clicked();
 private:
     Ui::MainWindow *ui;
     DF *m_df;
