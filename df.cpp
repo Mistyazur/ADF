@@ -492,26 +492,14 @@ bool DF::initDungeonSettings(const QString &dungeon)
 
     settings.beginGroup(dungeon);
 
-    // Get count of role that'll be automated
-    m_roleCount = settings.value("role_count", 0).toInt();
-
-    // Get last role index that was automating
-    QDateTime lastDateTime = settings.value("last_time").toDateTime();
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-
-    QDateTime thresholdDateTime;
-    thresholdDateTime.setDate(lastDateTime.date());
-    thresholdDateTime.setTime(QTime(6, 0, 0));
-    if (lastDateTime.time().hour() >= 6) {
-        thresholdDateTime = thresholdDateTime.addDays(1);
+    // Reset last role index
+    if (!resetRoleIndex(dungeon)) {
+        // Get last role index that was automating
+        m_lastRoleIndex = settings.value("role_index", 0).toInt();
     }
 
-    if (currentDateTime >= thresholdDateTime)
-        settings.setValue("role_index", 0);
-    settings.setValue("last_time", currentDateTime);
-    settings.sync();
-
-    m_lastRoleIndex = settings.value("role_index", 0).toInt();
+    // Get count of role that'll be automated
+    m_roleCount = settings.value("role_count", 0).toInt();
 
     // Get dungeon settings
     QString jsonFile = settings.value("json", "").toString();
@@ -544,6 +532,37 @@ bool DF::initDungeonSettings(const QString &dungeon)
     m_dungeonMapY2 = mapRect.at(3).toInt();
 
     return true;
+}
+
+bool DF::resetRoleIndex(const QString &dungeon)
+{
+    bool reseted = false;
+
+    QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);
+
+    settings.beginGroup(dungeon);
+
+    QDateTime lastDateTime = settings.value("last_time").toDateTime();
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+
+    QDateTime thresholdDateTime;
+    thresholdDateTime.setDate(lastDateTime.date());
+    thresholdDateTime.setTime(QTime(6, 0, 0));
+    if (lastDateTime.time().hour() >= 6) {
+        thresholdDateTime = thresholdDateTime.addDays(1);
+    }
+
+    if (currentDateTime >= thresholdDateTime) {
+        settings.setValue("role_index", 0);
+        m_lastRoleIndex = 0;
+        reseted = true;
+    }
+    settings.setValue("last_time", currentDateTime);
+    settings.sync();
+
+    settings.endGroup();
+
+    return reseted;
 }
 
 bool DF::updateRoleIndex(const QString &dungeon)

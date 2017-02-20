@@ -34,6 +34,12 @@ void GrandiRaider::run()
     while (true) {
         try {
             switch (flow) {
+            case WaitForReset:
+                if (resetRoleIndex(DUNGEON)) {
+                    flow = StartClient;
+                }
+                approxSleep(300000, 0.3);
+                break;
             case StartClient:
                 closeClient();
                 if (startClient()) {
@@ -231,11 +237,16 @@ void GrandiRaider::run()
                 updateShareStorage();
                 flow = UpdateRoleIndex;
             case UpdateRoleIndex:
-                if (!updateRoleIndex(DUNGEON)) {
-                    // Job finished
-                    qDebug()<<"Grandi automating finished";
-                    closeClient();
-                    return;
+                if (!resetRoleIndex(DUNGEON)) {
+                    if (!updateRoleIndex(DUNGEON)) {
+                        // Job finished
+                        qDebug()<<"Grandi automating completed";
+
+                        // Close client and wait for game reset
+                        closeClient();
+                        flow = WaitForReset;
+                        break;
+                    }
                 }
 
                 backToRoleList();
@@ -253,7 +264,6 @@ void GrandiRaider::run()
 
             // Check timeout
             if (flow != preFlow) {
-//                qDebug()<<"Flow: "<<flow;
                 timer.restart();
                 preFlow = flow;
             } else {

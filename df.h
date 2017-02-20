@@ -53,6 +53,7 @@ protected:
     // Dungeon functions
 //    bool initDungeonSettings(const QString &file);
     bool initDungeonSettings(const QString &dungeon);
+    bool resetRoleIndex(const QString &dungeon);
     bool updateRoleIndex(const QString &dungeon);
     void pickRole();
     bool initRoleOffset();
