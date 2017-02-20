@@ -1031,26 +1031,26 @@ void DF::moveRole(int hDir, int vDir, int speed)
     static int hKey = 0;
     static int vKey = 0;
 
-    if (speed <= 1) {
-        if (hDir && hHeldKey) {
-            sendKey(Up, hHeldKey);
-            hHeldKey = 0;
-        }
-        if (vDir && vHeldKey) {
-            sendKey(Up, vHeldKey);
-            vHeldKey = 0;
-        }
-    }
+    hKey = 0;
+    vKey = 0;
 
+    //  Get direction key
     if (hDir)
         hKey = (hDir > 0) ? m_arrowR : m_arrowL;
-    else
-        hKey = 0;
     if (vDir)
         vKey = (vDir > 0) ? m_arrowD : m_arrowU;
-    else
-        vKey = 0;
 
+    // Stop
+    if (hDir && hHeldKey) {
+        sendKey(Up, hHeldKey);
+        hHeldKey = 0;
+    }
+    if (vDir && vHeldKey) {
+        sendKey(Up, vHeldKey);
+        vHeldKey = 0;
+    }
+
+    // Move
     if (speed == 1) {
         if (hKey)
             sendKey(Stroke, hKey);
@@ -1080,9 +1080,8 @@ void DF::moveRole(int hDir, int vDir, int speed)
             }
             sendKey(Down, vKey);
             vHeldKey = vKey;
-            if (!hKey && !hHeldKey) {
+            if (!hKey && !hHeldKey)
                 sendKey(Up, m_arrowR);
-            }
         }
     }
 }
