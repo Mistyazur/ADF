@@ -1,6 +1,8 @@
 #include "dmprivate.h"
 
 #include <QApplication>
+#include <QMessageBox>
+#include <QClipboard>
 #include <QProcess>
 #include <QDebug>
 
@@ -71,6 +73,12 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag, const QStri
         int code = dm.Reg(key, flag);
         if (code != 1) {
             qWarning() << "Register failed:" <<code;
+            if (code == 5) {
+                QApplication::clipboard()->setText(dm.GetMachineCode());
+                QMessageBox msgBox;
+                msgBox.setText("Please send code in clipboard to me.");
+                msgBox.exec();
+            }
             return false;
         }
 
