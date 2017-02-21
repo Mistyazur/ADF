@@ -36,6 +36,7 @@ public slots:
 protected:
     dmsoft m_dm;
 
+    void activateWindow(HWND hWnd);
     void approxSleep(int msec, double delta=0.1);
 
     int setMouseDuration(int duration);

@@ -105,8 +105,7 @@ void GrandiRaider::run()
                     sendKey(Up, m_arrowL);
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(-1, 390);
-                    navigate(300, -1);
+                    navigate(300, 390);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     navigate(-1, 0);

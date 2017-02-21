@@ -103,6 +103,23 @@ void DmPrivate::setResourcePath(const QString &path)
     m_dm.SetPath(qApp->applicationDirPath()+"/"+path);
 }
 
+void DmPrivate::activateWindow(HWND hWnd)
+{
+    typedef void (WINAPI *PROCSWITCHTOTHISWINDOW)(HWND, BOOL);
+
+    // Get proc address
+    static PROCSWITCHTOTHISWINDOW SwitchToThisWindow = nullptr;
+    if (SwitchToThisWindow == nullptr) {
+        HMODULE hUser32 = GetModuleHandle(L"User32");
+        SwitchToThisWindow = ( PROCSWITCHTOTHISWINDOW)GetProcAddress(hUser32, "SwitchToThisWindow");
+    }
+
+    // Call proc
+    if (SwitchToThisWindow != nullptr) {
+        SwitchToThisWindow(hWnd, TRUE);
+    }
+}
+
 void DmPrivate::approxSleep(int msec, double delta)
 {
     if (msec > 0) {

@@ -88,7 +88,7 @@ bool DF::closeClient()
 
     // Activate tgp
     if (m_dm.GetForegroundWindow() != hTGPWnd) {
-        m_dm.SetWindowState(hTGPWnd, 1);
+        activateWindow((HWND)hTGPWnd);
         msleep(1000);
     }
 
@@ -144,7 +144,7 @@ bool DF::startClient()
 
     // Activate tgp
     if (m_dm.GetForegroundWindow() != hTGPWnd) {
-        m_dm.SetWindowState(hTGPWnd, 1);
+        activateWindow((HWND)hTGPWnd);
         msleep(1000);
     }
 
@@ -339,6 +339,7 @@ void DF::backToRoleList()
         throw DFRESTART;
     }
 
+    approxSleep(1000);
     sendMouse(Left, PICK_ROLE_POS, 1000);
 
     // Wait for role list
