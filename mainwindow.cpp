@@ -47,8 +47,8 @@ void MainWindow::on_btnStart_clicked()
         ui->btnStart->setEnabled(false);
         ui->btnStop->setEnabled(true);
 
-//        m_df = new GrandiRaider();
-//        m_df->start();
+        m_df = new GrandiRaider();
+        m_df->start();
     }
 }
 
@@ -59,7 +59,7 @@ void MainWindow::on_btnStop_clicked()
         ui->btnStart->setEnabled(true);
         ui->btnStop->setEnabled(false);
 
-//        m_df->terminate();
-//        m_df->deleteLater();
+        m_df->terminate();
+        m_df->deleteLater();
     }
 }

@@ -449,8 +449,8 @@ void DF::checkMail()
         if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) == -1)
             break;
 
-        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
-        sendMouse(Left, 300, 465, 500);  // Receive all mails
+        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 500);  // Open mail box
+        sendMouse(Left, 300, 465, 1000);  // Receive all mails
         openSystemMenu();
         closeSystemMenu();
     }
