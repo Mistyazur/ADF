@@ -762,8 +762,10 @@ void DF::summonSupporter()
 {
     // Tab to summon
     sendKey(Stroke, 9, 100);
+}
 
-    // Extra summon
+void DF::useOwnSkill()
+{
     sendKey(Stroke, "z", 100);
 }
 
@@ -888,7 +890,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
 {
     QString res;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy.bmp", "3F3F3F", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1);
     if (res.isEmpty())
         return false;
 
@@ -1507,15 +1509,15 @@ bool DF::navigate(int x, int y, bool end)
     return false;
 }
 
-bool DF::navigateSection(int sectionIndex, bool &bossRoomArrived)
+bool DF::navigateSection(int sectionIndex, bool &boss)
 {
     bool end = false;
 
     if (sectionIndex < m_pathList.count()) {
         if (sectionIndex == m_pathList.count()-1) {
-            bossRoomArrived = true;
+            boss = true;
         } else {
-            bossRoomArrived = false;
+            boss = false;
         }
 
         const QVariantList &sectionPathList = m_pathList.at(sectionIndex).toList();

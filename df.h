@@ -65,6 +65,7 @@ protected:
     bool isNoDungeonPoint();
     void pickFreeGoldenCard();
     void summonSupporter();
+    void useOwnSkill();
     void buff();
     void rectifySectionIndex(int &sectionIndex);
     bool isSectionClear(const QString &brightColor);
@@ -75,7 +76,7 @@ protected:
     void moveRole(int hDir, int vDir, int speed=0);
     void pickTrophies(bool &done);
     bool navigate(int x, int y, bool end=false);
-    bool navigateSection(int sectionIndex, bool &bossRoomArrived);
+    bool navigateSection(int sectionIndex, bool &boss);
     bool fightBoss();
 private:
     int m_hBindWnd;

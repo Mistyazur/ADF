@@ -80,7 +80,6 @@ void GrandiRaider::run()
                 }
                 break;
             case PreFight:
-                // Summon tempester
                 summonSupporter();
 
                 if (sectionIndex == 0) {
@@ -88,10 +87,8 @@ void GrandiRaider::run()
                     sendKey(Down, 32, 200);
                     sendKey(Up, 32, 100);
 
-                    // Summon tempester
                     summonSupporter();
-
-                    // Buff
+                    useOwnSkill();
                     buff();
 
                     // Awaken monsters
@@ -105,7 +102,7 @@ void GrandiRaider::run()
                     sendKey(Up, m_arrowL);
                 } else if (sectionIndex == 4) {
                     // Get close to generator
-                    navigate(300, 390);
+                    navigate(350, 390);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
                     navigate(-1, 0);
@@ -116,7 +113,9 @@ void GrandiRaider::run()
             case Fight:
                 // Check section state
                 if (isSectionClear("2B6272-1F1F1F")) {
-//                    qDebug()<<"Section Clear";
+                    useOwnSkill();
+                    summonSupporter();
+
                     approxSleep(200);
                     flow = PickTrophies;
                     break;
