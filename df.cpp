@@ -76,58 +76,58 @@ void DF::unbind()
 
 bool DF::closeClient()
 {
-    int hTGPWnd;
+//    int hTGPWnd;
 
-    qDebug()<<"Close client";
+//    qDebug()<<"Close client";
 
-    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
-    if (hTGPWnd == 0) {
-        qDebug()<<"Start Client: Can't find tgp window";
-        return false;
-    }
+//    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+//    if (hTGPWnd == 0) {
+//        qDebug()<<"Start Client: Can't find tgp window";
+//        return false;
+//    }
 
-    // Activate tgp
-    if (m_dm.GetForegroundWindow() != hTGPWnd) {
-        activateWindow((HWND)hTGPWnd);
-        msleep(1000);
-    }
+//    // Activate tgp
+//    if (m_dm.GetForegroundWindow() != hTGPWnd) {
+//        activateWindow((HWND)hTGPWnd);
+//        msleep(1000);
+//    }
 
-    // wait for tgp activated
-    bool ok = false;
-    for (int i = 0; i < 10; ++i) {
-        if (m_dm.GetForegroundWindow() == hTGPWnd) {
-            ok = true;
-            break;
-        }
-        msleep(1000);
-    }
-    if (!ok) {
-        qDebug()<<"Start Client: Can't activate tgp window";
-        return false;
-    }
+//    // wait for tgp activated
+//    bool ok = false;
+//    for (int i = 0; i < 10; ++i) {
+//        if (m_dm.GetForegroundWindow() == hTGPWnd) {
+//            ok = true;
+//            break;
+//        }
+//        msleep(1000);
+//    }
+//    if (!ok) {
+//        qDebug()<<"Start Client: Can't activate tgp window";
+//        return false;
+//    }
 
-    // Bind tgp
-    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
-    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+//    // Bind tgp
+//    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+//    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
 
-    // Close client
-    QVariant vx, vy;
-    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game.bmp", "101010", 1.0, 0, vx, vy) != -1) {
-        sendMouse(Left, vx.toInt() + 10, vy.toInt() + 10, 2000);
-        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game_confirm.bmp", "101010", 1.0, 0, vx, vy) != -1)
-            sendMouse(Left, vx.toInt(), vy.toInt());
-    }
+//    // Close client
+//    QVariant vx, vy;
+//    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game.bmp", "101010", 1.0, 0, vx, vy) != -1) {
+//        sendMouse(Left, vx.toInt() + 10, vy.toInt() + 10, 2000);
+//        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game_confirm.bmp", "101010", 1.0, 0, vx, vy) != -1)
+//            sendMouse(Left, vx.toInt(), vy.toInt());
+//    }
 
-    // Unbind tgp
-    m_dm.UnBindWindow();
+//    // Unbind tgp
+//    m_dm.UnBindWindow();
 
-    msleep(2000);
-
-
-//    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
 //    msleep(2000);
-//    QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
-//    msleep(5000);
+
+
+    QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
+    msleep(2000);
+    QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
+    msleep(3000);
 
     return false;
 }
@@ -1362,7 +1362,7 @@ bool DF::navigate(int x, int y, bool end)
         if (hArrived && vArrived) {
             // Check black screen for secs
             if (end) {
-                if (checkBlackScreenCount++ < 200) {
+                if (checkBlackScreenCount++ < 100) {
                     msleep(50);
                     continue;
                 }
