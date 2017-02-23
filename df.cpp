@@ -685,6 +685,7 @@ bool DF::reenterDungeon()
 {
     // Reenter
     sendKey(Stroke, 121, 500);
+    sendKey(Stroke, 121, 500);
 
     // Wait
     return waitForDungeonBeign();

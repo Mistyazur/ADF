@@ -88,8 +88,8 @@ void GrandiRaider::run()
                     sendKey(Up, 32, 100);
 
                     summonSupporter();
-                    useOwnSkill();
                     buff();
+                    useOwnSkill();
 
                     // Awaken monsters
                     navigate(470, -1);
