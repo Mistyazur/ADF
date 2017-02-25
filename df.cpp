@@ -1170,8 +1170,8 @@ void DF::pickTrophies(bool &done)
         if (isPickable()) {
 //            qDebug()<<"PickTrophies: Stand On";
             moveRole(1, 1);
-            approxSleep(200);
-            sendKey(Stroke, "x", 200);
+            approxSleep(100);
+            sendKey(Stroke, "x", 100);
             done = false;
             break;
         }
@@ -1186,7 +1186,8 @@ void DF::pickTrophies(bool &done)
         // Arrived
         if (hArrived && vArrived) {
 //            qDebug()<<"PickTrophies: Arrived";
-            sendKey(Stroke, "x", 200);
+            approxSleep(100);
+            sendKey(Stroke, "x", 100);
             done = false;
             break;
         }
@@ -1413,7 +1414,7 @@ bool DF::navigate(int x, int y, bool end)
                 stuckTimer.start();
             } else {
                 // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);

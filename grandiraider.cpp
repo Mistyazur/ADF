@@ -123,6 +123,7 @@ void GrandiRaider::run()
 
                 if (timer.elapsed() > 40000) {
                     // Tempester may be disappeared
+                    useOwnSkill();
                     summonSupporter();
                     approxSleep(200);
                 }
@@ -178,7 +179,7 @@ void GrandiRaider::run()
                 summonSupporter();
 
                 // Move a litte to make boss not able to teleport
-                navigate(350, -1);
+                navigate(350, 400);
 
                 flow = BossFight;
                 break;
