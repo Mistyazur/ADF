@@ -115,7 +115,6 @@ void GrandiRaider::run()
                 if (isSectionClear("2B6272-1F1F1F")) {
                     useOwnSkill();
                     summonSupporter();
-
                     approxSleep(200);
                     flow = PickTrophies;
                     break;
@@ -175,7 +174,7 @@ void GrandiRaider::run()
             }
                 break;
             case PreBossFight:
-                // Summon tempester
+                useOwnSkill();
                 summonSupporter();
 
                 // Move a litte to make boss not able to teleport

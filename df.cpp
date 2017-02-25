@@ -1187,7 +1187,8 @@ void DF::pickTrophies(bool &done)
         if (hArrived && vArrived) {
 //            qDebug()<<"PickTrophies: Arrived";
             approxSleep(100);
-            sendKey(Stroke, "x", 100);
+            if (isPickable())
+                sendKey(Stroke, "x", 100);
             done = false;
             break;
         }
