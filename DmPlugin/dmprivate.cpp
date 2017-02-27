@@ -105,6 +105,10 @@ void DmPrivate::setResourcePath(const QString &path)
 
 void DmPrivate::activateWindow(HWND hWnd)
 {
+    // Open iconic window
+    if (IsIconic(hWnd))
+        OpenIcon(hWnd);
+
     typedef void (WINAPI *PROCSWITCHTOTHISWINDOW)(HWND, BOOL);
 
     // Get proc address

@@ -429,7 +429,7 @@ void DF::sellEquipment()
         sendMouse(Move, x, y, 100);
         if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             // Select
-            sendMouse(Left, x, y, 100);
+            sendMouse(Left, x, y, 50);
 
             // Confirm
             for (int i = 0; i < 2; ++i)
@@ -900,7 +900,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
     if (resList.size() != 3)
         return false;
 
-    nx = resList.at(1).toInt() + 50;
+    nx = resList.at(1).toInt() + 30;
     ny = resList.at(2).toInt() + 30;
 
     return true;
@@ -925,7 +925,7 @@ bool DF::getRoleCoords(int &x, int &y)
 {
     QVariant vx, vy;
 
-    if (m_dm.FindMultiColor(0, 100, 800, 400,
+    if (m_dm.FindMultiColor(CLIENT_RECT,
                         "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
                         1.0, 0,
                         vx, vy)) {
@@ -935,7 +935,7 @@ bool DF::getRoleCoords(int &x, int &y)
         return true;
     }
 
-    if (m_dm.FindMultiColor(0, 100, 800, 400,
+    if (m_dm.FindMultiColor(CLIENT_RECT,
                         "FF00FF-000F00", "0|1|FFFFFF, 0|2|FF00FF-000F00, 0|3|FFFFFF",
                         1.0, 0,
                         vx, vy)) {
@@ -945,7 +945,7 @@ bool DF::getRoleCoords(int &x, int &y)
         return true;
     }
 
-    if (m_dm.FindMultiColor(0, 100, 800, 400,
+    if (m_dm.FindMultiColor(CLIENT_RECT,
                         "FFFFFF", "0|1|FF00FF-000F00, 0|2|FFFFFF, 0|3|FF00FF-000F00",
                         1.0, 0,
                         vx, vy)) {
@@ -1275,7 +1275,7 @@ void DF::pickTrophies(bool &done)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 10) {
+                if (abs(vDir) < 5) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
@@ -1415,7 +1415,7 @@ bool DF::navigate(int x, int y, bool end)
                 stuckTimer.start();
             } else {
                 // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 50) {
+                if (stuckTimer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1477,7 +1477,7 @@ bool DF::navigate(int x, int y, bool end)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 10) {
+                if (abs(vDir) < 5) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
