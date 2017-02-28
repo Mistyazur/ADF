@@ -184,6 +184,7 @@ bool DF::startClient()
     // Wait for client
     for (int i = 0; i < 240; ++i) {
         if (window() != 0) {
+            activateWindow((HWND)window());
             return true;
         }
         msleep(1000);
@@ -198,7 +199,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 300; ++i) {
+    for (int i = 0; i < 60; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -293,7 +294,8 @@ void DF::pickRole(int index)
     sendMouse(Left, roleX, roleY, 1000);
 
     // Game start
-    sendMouse(Left, 400, 550, 5000);
+    sendKey(Stroke, 32, 100);
+    sendKey(Stroke, 32, 5000);
 
     setMouseDuration(oldMouseDuration);
 
@@ -363,8 +365,8 @@ void DF::teleport(const QString &destination)
 void DF::navigateOnMap(int x, int y, int time)
 {
     sendKey(Stroke, "N", 1000);
-    sendMouse(Right, x, y, 100);
-    sendMouse(Right, x, y, 100);
+    sendMouse(Right, x, y, 200);
+    sendMouse(Right, x, y, 200);
     sendKey(Stroke, "N", time);
 }
 
@@ -900,7 +902,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
     if (resList.size() != 3)
         return false;
 
-    nx = resList.at(1).toInt() + 30;
+    nx = resList.at(1).toInt() + 50;
     ny = resList.at(2).toInt() + 30;
 
     return true;
@@ -1215,8 +1217,8 @@ void DF::pickTrophies(bool &done)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1245,6 +1247,9 @@ void DF::pickTrophies(bool &done)
                 }
             }
         } else {
+            // Reset stuck timer
+            stuckTimer = QTime();
+
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
@@ -1414,8 +1419,8 @@ bool DF::navigate(int x, int y, bool end)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<10; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1446,6 +1451,8 @@ bool DF::navigate(int x, int y, bool end)
                 }
             }
         } else {
+            // Reset stuck timer
+            stuckTimer = QTime();
 
             // Horizontal moving
             if (!hArrived) {
