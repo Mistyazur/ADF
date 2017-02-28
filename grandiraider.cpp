@@ -70,7 +70,7 @@ void GrandiRaider::run()
                 }
                 break;
             case MoveToDungeon:
-                navigateOnMap(645, 280, 15000);
+                navigateOnMap(644, 280, 15000);
                 if (enterDungeon(4, 2, false)) {
                     sectionIndex = 0;
                     flow = PreFight;
@@ -179,6 +179,7 @@ void GrandiRaider::run()
 
                 // Move a litte to make boss not able to teleport
                 navigate(350, 400);
+                approxSleep(2000);
 
                 flow = BossFight;
                 break;

@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
     // Init dm plugin
     DmPrivate::dmPluginSetup(true);
     if (!DmPrivate::dmPluginReg("FateCyn220d1daf6c3e4a132d4da742b5fc3691",
-//                                QApplication::applicationDisplayName(), "block"))
-                                QApplication::applicationDisplayName(), "b2"))
+                                QApplication::applicationDisplayName(), "block"))
+//                                QApplication::applicationDisplayName(), "b2"))
         return 0;
 
     MainWindow w;

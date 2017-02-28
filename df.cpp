@@ -184,6 +184,7 @@ bool DF::startClient()
     // Wait for client
     for (int i = 0; i < 240; ++i) {
         if (window() != 0) {
+            activateWindow((HWND)window());
             return true;
         }
         msleep(1000);
@@ -198,7 +199,7 @@ bool DF::waitForRoleList()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 300; ++i) {
+    for (int i = 0; i < 60; ++i) {
         if (m_dm.FindPic(500, 530, 600, 560, "terminate_game.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
@@ -293,7 +294,8 @@ void DF::pickRole(int index)
     sendMouse(Left, roleX, roleY, 1000);
 
     // Game start
-    sendMouse(Left, 400, 550, 5000);
+    sendKey(Stroke, 32, 100);
+    sendKey(Stroke, 32, 5000);
 
     setMouseDuration(oldMouseDuration);
 
@@ -363,8 +365,8 @@ void DF::teleport(const QString &destination)
 void DF::navigateOnMap(int x, int y, int time)
 {
     sendKey(Stroke, "N", 1000);
-    sendMouse(Right, x, y, 100);
-    sendMouse(Right, x, y, 100);
+    sendMouse(Right, x, y, 200);
+    sendMouse(Right, x, y, 200);
     sendKey(Stroke, "N", time);
 }
 
@@ -451,7 +453,7 @@ void DF::checkMail()
             break;
 
         sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 500);  // Open mail box
-        sendMouse(Left, 300, 465, 1000);  // Receive all mails
+        sendMouse(Left, 300, 465, 3000);  // Receive all mails
         openSystemMenu();
         closeSystemMenu();
     }
@@ -774,12 +776,12 @@ void DF::buff()
 {
     sendKey(Stroke, m_arrowU);
     sendKey(Stroke, m_arrowD);
-    sendKey(Stroke, 32, 2000);
+    sendKey(Stroke, 32, 1500);
 
     sendKey(Stroke, m_arrowD);
     sendKey(Stroke, m_arrowU);
-    sendKey(Down, 32, 2000);
-    sendKey(Up, 32, 1000);
+    sendKey(Down, 32, 1500);
+    sendKey(Up, 32);
 }
 
 void DF::rectifySectionIndex(int &sectionIndex)
@@ -900,7 +902,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
     if (resList.size() != 3)
         return false;
 
-    nx = resList.at(1).toInt() + 30;
+    nx = resList.at(1).toInt() + 50;
     ny = resList.at(2).toInt() + 30;
 
     return true;
@@ -925,7 +927,7 @@ bool DF::getRoleCoords(int &x, int &y)
 {
     QVariant vx, vy;
 
-    if (m_dm.FindMultiColor(CLIENT_RECT,
+    if (m_dm.FindMultiColor(0, 100, 800, 500,
                         "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
                         1.0, 0,
                         vx, vy)) {
@@ -935,7 +937,7 @@ bool DF::getRoleCoords(int &x, int &y)
         return true;
     }
 
-    if (m_dm.FindMultiColor(CLIENT_RECT,
+    if (m_dm.FindMultiColor(0, 100, 800, 500,
                         "FF00FF-000F00", "0|1|FFFFFF, 0|2|FF00FF-000F00, 0|3|FFFFFF",
                         1.0, 0,
                         vx, vy)) {
@@ -945,7 +947,7 @@ bool DF::getRoleCoords(int &x, int &y)
         return true;
     }
 
-    if (m_dm.FindMultiColor(CLIENT_RECT,
+    if (m_dm.FindMultiColor(0, 100, 800, 500,
                         "FFFFFF", "0|1|FF00FF-000F00, 0|2|FFFFFF, 0|3|FF00FF-000F00",
                         1.0, 0,
                         vx, vy)) {
@@ -1105,8 +1107,8 @@ void DF::pickTrophies(bool &done)
     int vDir = 0;
     QTime timer;
     QTime stuckTimer;
-    uchar preClientBlocks[10][6400] = {0};
-    uchar clientBlocks[10][6400] = {0};
+    uchar preClientBlocks[5][6400] = {0};
+    uchar clientBlocks[5][6400] = {0};
     int x, y;
     int sectionIndex;
     bool bossRoomArrived;
@@ -1207,7 +1209,7 @@ void DF::pickTrophies(bool &done)
 
             if (stuckTimer.isNull()) {
                 // Get client color blocks
-                for (int i=0; i<10; ++i) {
+                for (int i=0; i<5; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
                     memcpy(preClientBlocks[i], data, 6400);
                 }
@@ -1215,17 +1217,17 @@ void DF::pickTrophies(bool &done)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
-                    for (int i=0; i<10; ++i) {
+                    for (int i=0; i<5; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
                         memcpy(clientBlocks[i], data, 6400);
                     }
 
                     // Check if role is stucked
                     bool stucked = false;
-                    for (int i=0; i<10; ++i) {
+                    for (int i=0; i<5; ++i) {
                         if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
                             stucked = true;
                             break;
@@ -1238,7 +1240,7 @@ void DF::pickTrophies(bool &done)
                     }
 
                     // Save client blocks for checking next time
-                    memcpy(preClientBlocks, clientBlocks, 64000);
+                    memcpy(preClientBlocks, clientBlocks, 32000);
 
                     // Restart timer
                     stuckTimer.restart();
@@ -1329,8 +1331,8 @@ bool DF::navigate(int x, int y, bool end)
     int vDir = 0;
     QTime timer;
     QTime stuckTimer;
-    uchar preClientBlocks[10][6400] = {0};
-    uchar clientBlocks[10][6400] = {0};
+    uchar preClientBlocks[5][6400] = {0};
+    uchar clientBlocks[5][6400] = {0};
     QVariant vx, vy;
 
     if (-1 == x)
@@ -1406,7 +1408,7 @@ bool DF::navigate(int x, int y, bool end)
 
             if (stuckTimer.isNull()) {
                 // Get client color blocks
-                for (int i=0; i<10; ++i) {
+                for (int i=0; i<5; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
                     memcpy(preClientBlocks[i], data, 6400);
                 }
@@ -1414,17 +1416,17 @@ bool DF::navigate(int x, int y, bool end)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
-                    for (int i=0; i<10; ++i) {
+                    for (int i=0; i<5; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
                         memcpy(clientBlocks[i], data, 6400);
                     }
 
                     // Check if role is stucked
                     stucked = false;
-                    for (int i=0; i<10; ++i) {
+                    for (int i=0; i<5; ++i) {
                         if (memcmp(clientBlocks[i], preClientBlocks[i], 6400) == 0) {
                             stucked = true;
                             break;
@@ -1439,14 +1441,13 @@ bool DF::navigate(int x, int y, bool end)
                     }
 
                     // Save client blocks for checking next time
-                    memcpy(preClientBlocks, clientBlocks, 64000);
+                    memcpy(preClientBlocks, clientBlocks, 32000);
 
                     // Restart timer
                     stuckTimer.restart();
                 }
             }
         } else {
-
             // Horizontal moving
             if (!hArrived) {
                 hDir = x-roleX;
