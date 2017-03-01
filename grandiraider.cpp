@@ -105,7 +105,7 @@ void GrandiRaider::run()
                     navigate(350, 390);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
-                    navigate(-1, 0);
+                    navigate(400, 500);
                 }
 
                 flow = Fight;
@@ -179,7 +179,7 @@ void GrandiRaider::run()
 
                 // Move a litte to make boss not able to teleport
                 navigate(350, 400);
-                approxSleep(2000);
+                approxSleep(4000);
 
                 flow = BossFight;
                 break;

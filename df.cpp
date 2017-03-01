@@ -903,7 +903,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
         return false;
 
     nx = resList.at(1).toInt() + 50;
-    ny = resList.at(2).toInt() + 30;
+    ny = resList.at(2).toInt() + 35;
 
     return true;
 }
