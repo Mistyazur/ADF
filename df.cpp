@@ -1138,6 +1138,16 @@ void DF::pickTrophies(bool &done)
             }
         }
 
+        // Already stand on trophy
+        if (isPickable()) {
+//            qDebug()<<"PickTrophies: Stand On";
+            moveRole(1, 1);
+            approxSleep(100);
+            sendKey(Stroke, "x", 100);
+            done = false;
+            break;
+        }
+
         // Get position of role
         if (!getRoleCoords(roleX, roleY)) {
             if ((hPreDir == 0) && (vPreDir == 0)) {
@@ -1150,19 +1160,8 @@ void DF::pickTrophies(bool &done)
             continue;
         }
 
-        // Already stand on trophy
-        if (isPickable()) {
-//            qDebug()<<"PickTrophies: Stand On";
-            moveRole(1, 1);
-            approxSleep(100);
-            sendKey(Stroke, "x", 100);
-            done = false;
-            break;
-        }
-
         // Get postion of trophy
-//        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
-        if (!getTrophyCoords(x, y)) {
+        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
 //            qDebug()<<"PickTrophies: No Trophy";
             done = true;
             break;
@@ -1200,8 +1199,8 @@ void DF::pickTrophies(bool &done)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 50 msecs
-                if (stuckTimer.elapsed() > 50) {
+                // Trigger checking every 100 msecs
+                if (stuckTimer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1401,8 +1400,8 @@ bool DF::navigate(int x, int y, bool end)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 50 msecs
-                if (stuckTimer.elapsed() > 50) {
+                // Trigger checking every 100 msecs
+                if (stuckTimer.elapsed() > 100) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);

@@ -107,7 +107,7 @@ void GrandiRaider::run()
                     navigate(350, 390);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
-                    navigate(400, 500);
+                    navigate(-1, 0);
                 }
 
                 flow = Fight;
