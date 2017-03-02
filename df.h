@@ -49,6 +49,7 @@ protected:
     void sellEquipment();
     void checkMail();
     void updateShareStorage();
+    void cancelCrystalContract();
 
     // Dungeon functions
 //    bool initDungeonSettings(const QString &file);

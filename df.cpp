@@ -488,6 +488,22 @@ void DF::updateShareStorage()
     closeSystemMenu();
 }
 
+void DF::cancelCrystalContract()
+{
+    // Open packet
+    sendKey(Stroke, "i", 500);
+
+    // Switch to material
+    sendMouse(Left, 590, 250, 200);
+
+    // Cancel contract
+    sendMouse(Left, 745, 470, 100);
+    sendMouse(Left, 745, 470, 100);
+
+    // Close packet
+    sendKey(Stroke, "i", 500);
+}
+
 bool DF::initDungeonSettings(const QString &dungeon)
 {
     QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);

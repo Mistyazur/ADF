@@ -65,8 +65,10 @@ void GrandiRaider::run()
                     // Check dungeon point
                     if (isNoDungeonPoint())
                         flow = UpdateRoleIndex;
-                    else
+                    else {
+                        cancelCrystalContract();
                         flow = MoveToDungeon;
+                    }
                 }
                 break;
             case MoveToDungeon:
