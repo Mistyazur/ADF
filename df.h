@@ -68,7 +68,7 @@ protected:
     void useOwnSkill();
     void buff();
     void rectifySectionIndex(int &sectionIndex);
-    bool isSectionClear(const QString &brightColor);
+    bool isSectionClear(const QString &brightColor, const int threshold);
     bool isPickable();
     bool getNearestTrophyCoords(int x, int y, int &nx, int &ny);
     bool getRoleCoordsInMap(int &x, int &y);

@@ -112,7 +112,7 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 // Check section state
-                if (isSectionClear("2B6272-1F1F1F")) {
+                if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
                     useOwnSkill();
                     summonSupporter();
                     approxSleep(200);

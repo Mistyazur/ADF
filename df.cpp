@@ -804,76 +804,29 @@ void DF::rectifySectionIndex(int &sectionIndex)
         sectionIndex = rectifiedSectionIndex;
 }
 
-bool DF::isSectionClear(const QString &brightColor)
+bool DF::isSectionClear(const QString &brightColor, const int threshold)
 {
     int x, y;
-    ulong beforeBlocks[4][196] = {0};
-
-
     if (!getRoleCoordsInMap(x, y))
         return false;
 
-    ulong *data = nullptr;
-    ulong size = 196;
-    int brightColorCountMin = 100;
-    ulong count;
+//    qDebug()<<x<<y;
 
-    memcpy(beforeBlocks[0], (uchar *)m_dm.GetScreenData(x-24, y-4, x-10, y+10), size*sizeof(ulong));
-    memcpy(beforeBlocks[1], (uchar *)m_dm.GetScreenData(x+12, y-4, x+26, y+10), size*sizeof(ulong));
-    memcpy(beforeBlocks[2], (uchar *)m_dm.GetScreenData(x-6, y-22, x+8, y-8), size*sizeof(ulong));
-    memcpy(beforeBlocks[3], (uchar *)m_dm.GetScreenData(x-6, y+14, x+8, y+28), size*sizeof(ulong));
+//    qDebug()<<"L"<<m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0);
+    if (m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0) > threshold)
+        return true;
 
-    for (int i=0; i<5; ++i) {
-        msleep(50);
+//    qDebug()<<"R"<<m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0);
+    if (m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0) > threshold)
+        return true;
 
-        if (m_dm.GetColorNum(x-24, y-4, x-10, y+10, brightColor, 1.0) > brightColorCountMin) {
-            count = 0;
-            data = (ulong *)m_dm.GetScreenData(x-24, y-4, x-10, y+10);
-            for (ulong j=0; j<size; ++j) {
-                if (*(data+j) != beforeBlocks[0][j])
-                    ++count;
-            }
-            if (count == size) {
-                return true;
-            }
-        }
+//    qDebug()<<"D"<<m_dm.GetColorNum(x-6, y-22, x+10, y-6, brightColor, 1.0);
+    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > threshold)
+        return true;
 
-        if (m_dm.GetColorNum(x+12, y-4, x+26, y+10, brightColor, 1.0) > brightColorCountMin) {
-            count = 0;
-            data = (ulong *)m_dm.GetScreenData(x+12, y-4, x+26, y+10);
-            for (ulong j=0; j<size; ++j) {
-                if (*(data+j) != beforeBlocks[1][j])
-                    ++count;
-            }
-            if (count == size) {
-                return true;
-            }
-        }
-
-        if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > brightColorCountMin) {
-            count = 0;
-            data = (ulong *)m_dm.GetScreenData(x-6, y-22, x+8, y-8);
-            for (ulong j=0; j<size; ++j) {
-                if (*(data+j) != beforeBlocks[2][j])
-                    ++count;
-            }
-            if (count == size) {
-                return true;
-            }
-        }
-
-        if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > brightColorCountMin) {
-            count = 0;
-            data = (ulong *)m_dm.GetScreenData(x-6, y+14, x+8, y+28);
-            for (ulong j=0; j<size; ++j) {
-                if (*(data+j) != beforeBlocks[3][j])
-                    ++count;
-            }
-            if (count == size) {
-                return true;
-            }
-        }
-    }
+//    qDebug()<<"U"<<m_dm.GetColorNum(x-6, y+14, x+10, y+30, brightColor, 1.0);
+    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > threshold)
+        return true;
 
     return false;
 }
