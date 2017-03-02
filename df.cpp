@@ -860,6 +860,18 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
     return true;
 }
 
+bool DF::getTrophyCoords(int &nx, int &ny)
+{
+    QVariant vx, vy;
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1, vx, vy) == -1)
+        return false;
+
+    nx = vx.toInt() + 50;
+    ny = vy.toInt() + 35;
+
+    return true;
+}
+
 bool DF::getRoleCoordsInMap(int &x, int &y)
 {
     QVariant vx, vy;
@@ -1133,7 +1145,8 @@ void DF::pickTrophies(bool &done)
         }
 
         // Get postion of trophy
-        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
+//        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
+        if (!getTrophyCoords(x, y)) {
 //            qDebug()<<"PickTrophies: No Trophy";
             done = true;
             break;
