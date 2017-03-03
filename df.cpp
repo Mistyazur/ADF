@@ -372,6 +372,7 @@ void DF::navigateOnMap(int x, int y, int time)
 void DF::sellEquipment()
 {
     QVariant vx, vy;
+    int sellX, sellY;
     int ox, oy;
     int x, y;
     bool found;
@@ -383,6 +384,8 @@ void DF::sellEquipment()
     found = false;
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
+            sellX = vx.toInt();
+            sellY = vy.toInt();
             found = true;
             break;
         }
@@ -390,10 +393,6 @@ void DF::sellEquipment()
     }
     if (!found)
         return;
-
-    // Click sell button
-    sendMouse(Left, vx, vy, 100);
-    sendMouse(Left, vx, vy, 100);
 
     // Search sort button
     found = false;
@@ -429,12 +428,15 @@ void DF::sellEquipment()
         // Sell
         sendMouse(Move, x, y, 100);
         if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
+            // Click sell button
+            sendMouse(Left, sellX, sellY, 50);
+
             // Select
             sendMouse(Left, x, y, 50);
 
             // Confirm
             for (int i = 0; i < 2; ++i)
-                sendKey(Stroke, 13, 50);
+                sendMouse(Left, x, y, 50);
         }
     }
 
@@ -784,18 +786,18 @@ void DF::summonSupporter()
 
 void DF::useOwnSkill()
 {
-    sendKey(Stroke, "z", 100);
+    sendKey(Stroke, "z", 500);
 }
 
 void DF::buff()
 {
     sendKey(Stroke, m_arrowU);
     sendKey(Stroke, m_arrowD);
-    sendKey(Stroke, 32, 1500);
+    sendKey(Stroke, 32, 2000);
 
     sendKey(Stroke, m_arrowD);
     sendKey(Stroke, m_arrowU);
-    sendKey(Down, 32, 1500);
+    sendKey(Down, 32, 2000);
     sendKey(Up, 32);
 }
 
@@ -857,13 +859,20 @@ bool DF::isPickable()
     return false;
 }
 
-bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
+bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 {
     QString res;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1);
     if (res.isEmpty())
         return false;
+
+    if (res.startsWith("0")) {
+        pickable = true;
+        return true;
+    } else {
+        pickable = false;
+    }
 
     res = m_dm.FindNearestPos(res, 0, x, y);
     QStringList resList = res.split(",", QString::SkipEmptyParts);
@@ -872,18 +881,6 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny)
 
     nx = resList.at(1).toInt() + 50;
     ny = resList.at(2).toInt() + 35;
-
-    return true;
-}
-
-bool DF::getTrophyCoords(int &nx, int &ny)
-{
-    QVariant vx, vy;
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1, vx, vy) == -1)
-        return false;
-
-    nx = vx.toInt() + 50;
-    ny = vy.toInt() + 35;
 
     return true;
 }
@@ -1093,7 +1090,8 @@ void DF::pickTrophies(bool &done)
     static uchar clientBlocks[blockCount][blockSize] = {0};
     int x, y;
     int sectionIndex;
-    bool bossRoomArrived;
+    bool bossArrived;
+    bool pickable;
 
     timer.start();
 
@@ -1129,7 +1127,7 @@ void DF::pickTrophies(bool &done)
             // Get back to last section
             msleep(500);
             rectifySectionIndex(sectionIndex);
-            if (navigateSection(sectionIndex, bossRoomArrived)) {
+            if (navigateSection(sectionIndex, bossArrived)) {
                 done = true;
                 break;
             } else {
@@ -1138,12 +1136,13 @@ void DF::pickTrophies(bool &done)
             }
         }
 
-        // Already stand on trophy
-        if (isPickable()) {
-//            qDebug()<<"PickTrophies: Stand On";
+        // Arrived
+        if (hArrived && vArrived) {
+//            qDebug()<<"PickTrophies: Arrived";
             moveRole(1, 1);
-            approxSleep(100);
-            sendKey(Stroke, "x", 100);
+            approxSleep(50);
+            if (isPickable())
+                sendKey(Stroke, "x", 100);
             done = false;
             break;
         }
@@ -1161,18 +1160,18 @@ void DF::pickTrophies(bool &done)
         }
 
         // Get postion of trophy
-        if (!getNearestTrophyCoords(roleX, roleY, x, y)) {
+        if (!getNearestTrophyCoords(roleX, roleY, x, y, pickable)) {
 //            qDebug()<<"PickTrophies: No Trophy";
             done = true;
             break;
         }
 
-        // Arrived
-        if (hArrived && vArrived) {
-//            qDebug()<<"PickTrophies: Arrived";
+        // Already stand on trophy
+        if (pickable) {
+//            qDebug()<<"PickTrophies: Stand On";
+            moveRole(1, 1);
             approxSleep(100);
-            if (isPickable())
-                sendKey(Stroke, "x", 100);
+            sendKey(Stroke, "x", 100);
             done = false;
             break;
         }
@@ -1539,6 +1538,7 @@ bool DF::fightBoss()
                         "FF00FF", "1|0|FF00FF, 2|0|FF00FF, 3|0|FF00FF",
                         1.0, 0,
                         vx, vy)) {
+        useOwnSkill();
         summonSupporter();
         return true;
     }
@@ -1550,6 +1550,7 @@ bool DF::fightBoss()
         moveRole((bx < 400) ? 1 : -1, 0, 3);
         approxSleep(100);
     } else {
+        useOwnSkill();
         summonSupporter();
     }
 

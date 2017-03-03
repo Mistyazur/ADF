@@ -21,7 +21,7 @@ void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QSt
     QFile log(LOG_NAME);
     if (log.open(QFile::ReadWrite|QFile::Append)) {
         QByteArray localMsg = msg.toLocal8Bit();
-        QString msgStr = QString("%1\t%2")
+        QString msgStr = QString("%1 %2")
                 .arg(QDateTime::currentDateTime().toString("MM-dd HH:mm:ss.zzz"))
                 .arg(localMsg.constData());
 

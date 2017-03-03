@@ -92,22 +92,15 @@ void GrandiRaider::run()
                     summonSupporter();
                     buff();
                     useOwnSkill();
-
-                    // Awaken monsters
-                    navigate(470, -1);
-                    sendKey(Down, m_arrowL, 100);
-                    sendKey(Up, m_arrowL);
                 } else if (sectionIndex == 2) {
                     // Awaken monsters
-                    navigate(470, -1);
-                    sendKey(Down, m_arrowL, 100);
-                    sendKey(Up, m_arrowL);
+                    navigate(600, -1);
                 } else if (sectionIndex == 4) {
                     // Get close to generator
                     navigate(350, 390);
                 } else if (sectionIndex == 5) {
                     // Avoid damage
-                    navigate(-1, 0);
+                    navigate(0, -1);
                 }
 
                 flow = Fight;
@@ -137,8 +130,9 @@ void GrandiRaider::run()
                         sendKey(Stroke, "x");
                 } else {
                     // Normal attack
-                    for (int i=0; i<10; ++i)
+                    for (int i=0; i<5; ++i)
                         sendKey(Stroke, "x");
+                    approxSleep(100);
                 }
                 break;
             case PickTrophies:
@@ -176,12 +170,11 @@ void GrandiRaider::run()
             }
                 break;
             case PreBossFight:
-                useOwnSkill();
                 summonSupporter();
 
                 // Move a litte to make boss not able to teleport
                 navigate(350, 400);
-                approxSleep(4000);
+                approxSleep(1000);
 
                 flow = BossFight;
                 break;
