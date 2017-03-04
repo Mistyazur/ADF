@@ -432,7 +432,7 @@ void DF::sellEquipment()
             sendMouse(Left, sellX, sellY, 50);
 
             // Select
-            sendMouse(Left, x, y, 50);
+            sendMouse(Left, x, y, 100);
 
             // Confirm
             for (int i = 0; i < 2; ++i)
@@ -853,7 +853,7 @@ bool DF::isPickable()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 480, "trophy_pickable.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -863,6 +863,8 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 {
     QString res;
 
+    pickable = false;
+
     res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1);
     if (res.isEmpty())
         return false;
@@ -870,8 +872,6 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
     if (res.startsWith("0")) {
         pickable = true;
         return true;
-    } else {
-        pickable = false;
     }
 
     res = m_dm.FindNearestPos(res, 0, x, y);
@@ -1025,11 +1025,11 @@ void DF::moveRole(int hDir, int vDir, int speed)
 
     // Stop
     if (hDir && hHeldKey) {
-        sendKey(Up, hHeldKey);
+        sendKey(Up, hHeldKey, 30);
         hHeldKey = 0;
     }
     if (vDir && vHeldKey) {
-        sendKey(Up, vHeldKey);
+        sendKey(Up, vHeldKey, 30);
         vHeldKey = 0;
     }
 
@@ -1136,17 +1136,6 @@ void DF::pickTrophies(bool &done)
             }
         }
 
-        // Arrived
-        if (hArrived && vArrived) {
-//            qDebug()<<"PickTrophies: Arrived";
-            moveRole(1, 1);
-            approxSleep(50);
-            if (isPickable())
-                sendKey(Stroke, "x", 100);
-            done = false;
-            break;
-        }
-
         // Get position of role
         if (!getRoleCoords(roleX, roleY)) {
             if ((hPreDir == 0) && (vPreDir == 0)) {
@@ -1161,17 +1150,23 @@ void DF::pickTrophies(bool &done)
 
         // Get postion of trophy
         if (!getNearestTrophyCoords(roleX, roleY, x, y, pickable)) {
-//            qDebug()<<"PickTrophies: No Trophy";
             done = true;
             break;
         }
 
         // Already stand on trophy
         if (pickable) {
-//            qDebug()<<"PickTrophies: Stand On";
             moveRole(1, 1);
             approxSleep(100);
             sendKey(Stroke, "x", 100);
+            done = false;
+            break;
+        }
+
+        // Arrived but nothing is pickable
+        if (hArrived && vArrived) {
+            moveRole(1, 1);
+            approxSleep(50);
             done = false;
             break;
         }
@@ -1258,7 +1253,7 @@ void DF::pickTrophies(bool &done)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 5) {
+                if (abs(vDir) < 10) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
@@ -1290,7 +1285,9 @@ void DF::pickTrophies(bool &done)
         msleep(1);
     }
 
+    // Must have a delay, can't be optimized
     moveRole(1, 1);
+    approxSleep(50);
 
     if (done)
         counter = 0;
@@ -1461,7 +1458,7 @@ bool DF::navigate(int x, int y, bool end)
             // Vertical moving
             if (!vArrived) {
                 vDir = y-roleY;
-                if (abs(vDir) < 5) {
+                if (abs(vDir) < 10) {
                     moveRole(0, 1);
                     vPreDir = 0;
                     vArrived = true;
@@ -1492,6 +1489,10 @@ bool DF::navigate(int x, int y, bool end)
 
         msleep(1);
     }
+
+    // Must have a delay, can't be optimized
+    moveRole(1, 1);
+    approxSleep(50);
 
     return false;
 }
