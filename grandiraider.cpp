@@ -18,9 +18,11 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    static Flow preFlow = (Flow)-1;
+    Flow preFlow = (Flow)-1;
     Flow flow = StartClient;
     int sectionIndex = 0;
+    bool ok = false;
+    bool bossArrived = false;
 
     QTime timer;
     timer.start();
@@ -110,7 +112,6 @@ void GrandiRaider::run()
                 if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
                     useOwnSkill();
                     summonSupporter();
-                    approxSleep(200);
                     flow = PickTrophies;
                     break;
                 }
@@ -129,36 +130,36 @@ void GrandiRaider::run()
                     for (int i=0; i<10; ++i)
                         sendKey(Stroke, "x");
                 } else {
-                    // Normal attack
-                    for (int i=0; i<5; ++i)
-                        sendKey(Stroke, "x");
-                    approxSleep(100);
+                    // Pick trophies
+                    if (isTrophyExisting()) {
+                        approxSleep(200);
+                        pickTrophies(ok);
+                    } else {
+                        // Normal attack
+                        for (int i=0; i<10; ++i)
+                            sendKey(Stroke, "x");
+                    }
                 }
                 break;
             case PickTrophies:
-            {
-                bool done = false;
-                pickTrophies(done);
-                if (done) {
+                pickTrophies(ok);
+                if (ok) {
                     flow = Navigate;
                 }
-            }
                 break;
             case Navigate:
-            {
                 rectifySectionIndex(sectionIndex);
 
-                bool bossRoomArrived;
-                bool ok = false;
+                ok = false;
                 for (int i=0; i<2; ++i) {
-                    if (navigateSection(sectionIndex, bossRoomArrived)) {
+                    if (navigateSection(sectionIndex, bossArrived)) {
                         ok = true;
                         break;
                     }
                 }
                 if (ok) {
                     ++sectionIndex;
-                    if (bossRoomArrived) {
+                    if (bossArrived) {
                         flow = PreBossFight;
                     } else {
                         flow = PreFight;
@@ -167,7 +168,6 @@ void GrandiRaider::run()
                     qDebug()<<"NavigateSection failed: Index"<<sectionIndex;
                     throw DFRESTART;
                 }
-            }
                 break;
             case PreBossFight:
                 summonSupporter();
@@ -202,6 +202,9 @@ void GrandiRaider::run()
                     // Sell trophies
                     sellEquipment();
                     approxSleep(100);
+
+                    // Get exp capsule
+                    sendMouse(Left, 780, 590, 100);
 
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {

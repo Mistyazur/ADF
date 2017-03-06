@@ -275,7 +275,7 @@ void DF::pickRole(int index)
     }
 
     // Reset scroll bar
-    for (int i = 0; i < 30; ++i)
+    for (int i = 0; i < 50; ++i)
         sendMouse(Left, 580, 90);
 
     int oldMouseDuration = setMouseDuration(200);
@@ -786,7 +786,7 @@ void DF::summonSupporter()
 
 void DF::useOwnSkill()
 {
-    sendKey(Stroke, "z", 500);
+    sendKey(Stroke, "z", 200);
 }
 
 void DF::buff()
@@ -854,6 +854,16 @@ bool DF::isPickable()
     QVariant vx, vy;
 
     if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
+        return true;
+
+    return false;
+}
+
+bool DF::isTrophyExisting()
+{
+    QVariant vx, vy;
+
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -1096,7 +1106,7 @@ void DF::pickTrophies(bool &done)
     timer.start();
 
     // Avoid insisting picking a unpickable item
-    if (counter++ > 10) {
+    if (counter++ > 5) {
         qDebug()<<"pickTrophies: Counter triggered";
         done = true;
         counter = 0;
@@ -1193,8 +1203,8 @@ void DF::pickTrophies(bool &done)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
@@ -1396,8 +1406,8 @@ bool DF::navigate(int x, int y, bool end)
                 // Start timer
                 stuckTimer.start();
             } else {
-                // Trigger checking every 100 msecs
-                if (stuckTimer.elapsed() > 100) {
+                // Trigger checking every 50 msecs
+                if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);

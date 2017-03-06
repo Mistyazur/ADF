@@ -71,6 +71,7 @@ protected:
     void rectifySectionIndex(int &sectionIndex);
     bool isSectionClear(const QString &brightColor, const int threshold);
     bool isPickable();
+    bool isTrophyExisting();
     bool getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable);
     bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
