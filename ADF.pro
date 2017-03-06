@@ -29,3 +29,8 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui
 
 RC_FILE = icon.rc
+
+win32 {
+CONFIG += embed_manifest_exe
+QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:level=\'requireAdministrator\'
+}
