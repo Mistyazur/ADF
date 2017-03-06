@@ -13,9 +13,6 @@
   <property name="windowTitle">
    <string>X</string>
   </property>
-  <property name="windowOpacity">
-   <double>0.500000000000000</double>
-  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -60,8 +57,30 @@
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuGlobal_Config">
+    <property name="title">
+     <string>Global</string>
+    </property>
+    <addaction name="actionStart_with_windows"/>
+    <addaction name="separator"/>
+    <addaction name="actionStart_TGP"/>
+   </widget>
+   <addaction name="menuGlobal_Config"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionStart_with_windows">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Start with windows</string>
+   </property>
+  </action>
+  <action name="actionStart_TGP">
+   <property name="text">
+    <string>Start TGP</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

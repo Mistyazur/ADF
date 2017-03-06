@@ -889,7 +889,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
     if (resList.size() != 3)
         return false;
 
-    nx = resList.at(1).toInt() + 50;
+    nx = resList.at(1).toInt() + 45;
     ny = resList.at(2).toInt() + 35;
 
     return true;
