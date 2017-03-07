@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QSettings>
+#include <QFileInfo>
 #include <QProcess>
 #include <QTime>
 #include <QDebug>
@@ -43,35 +44,100 @@ DF::~DF()
 {
 }
 
-int DF::window()
+bool DF::startTGP()
 {
-    return m_dm.FindWindow("地下城与勇士", "地下城与勇士");
+    QSettings settings("Mistyazur", QApplication::applicationName());
+
+    QString path = settings.value("tgp/path", "").toString();
+    if (path.isEmpty())
+        return false;
+
+   if (!QFileInfo(path).exists())
+        return false;
+
+   return QProcess::startDetached("\"" + path + "\"");
 }
 
-
-bool DF::bind(bool underground)
+bool DF::startClient()
 {
-    bool ret = false;
+    bool ok = false;
+    int hTGPWnd;
 
-    m_hBindWnd = window();
-    if (0 == m_hBindWnd)
-        return ret;
+    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+    if (hTGPWnd == 0) {
+        if (!startTGP()) {
+            qDebug()<<"Start Client: Can't start TGP";
+            return false;
+        }
 
-    if (underground)
-        ret = m_dm.BindWindow(m_hBindWnd, "dx2", "dx", "dx", 101);
-    else {
-//        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
-        ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 101);
+        ok = false;
+        for (int i = 0; i < 90; ++i) {
+            hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+            if (hTGPWnd != 0) {
+                ok = true;
+                break;
+            }
+            approxSleep(1000);
+        }
+        if (!ok) {
+            qDebug()<<"Start Client: Can't wait for TGP";
+            return false;
+        }
+
+        approxSleep(10000);
     }
 
-    approxSleep(2000);
-    return ret;
-}
+    // Activate tgp
+    if (m_dm.GetForegroundWindow() != hTGPWnd) {
+        activateWindow((HWND)hTGPWnd);
+        msleep(1000);
+    }
 
-void DF::unbind()
-{
-//    SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+    // wait for tgp activated
+    ok = false;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.GetForegroundWindow() == hTGPWnd) {
+            ok = true;
+            break;
+        }
+        msleep(1000);
+    }
+    if (!ok) {
+        qDebug()<<"Start Client: Can't activate tgp window";
+        return false;
+    }
+
+    // Bind tgp
+    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+
+    // Start client
+    sendMouse(Left, 50, 300, 3000);
+    sendMouse(Left, 900, 680, 1000);
+
+    // Skip checking window
+    QVariant vx, vy;
+    for (int i = 0; i < 5; ++i) {
+        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_dnf_skip_check.bmp", "101010", 1.0, 0, vx, vy) != -1)
+            sendMouse(Left, vx.toInt() + 25, vy.toInt() + 6, 1000);
+        msleep(1000);
+    }
+
+    // Unbind tgp
     m_dm.UnBindWindow();
+
+    // Wait for client
+    for (int i = 0; i < 240; ++i) {
+        if (window() != 0) {
+            activateWindow((HWND)window());
+            return true;
+        }
+        msleep(1000);
+    }
+
+    qDebug()<<"Start Client: failed";
+
+    return false;
 }
 
 bool DF::closeClient()
@@ -132,67 +198,34 @@ bool DF::closeClient()
     return false;
 }
 
-bool DF::startClient()
+int DF::window()
 {
-    int hTGPWnd;
+    return m_dm.FindWindow("地下城与勇士", "地下城与勇士");
+}
 
-    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
-    if (hTGPWnd == 0) {
-        qDebug()<<"Start Client: Can't find tgp window";
-        return false;
+bool DF::bind(bool underground)
+{
+    bool ret = false;
+
+    m_hBindWnd = window();
+    if (0 == m_hBindWnd)
+        return ret;
+
+    if (underground)
+        ret = m_dm.BindWindow(m_hBindWnd, "dx2", "dx", "dx", 101);
+    else {
+//        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+        ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 101);
     }
 
-    // Activate tgp
-    if (m_dm.GetForegroundWindow() != hTGPWnd) {
-        activateWindow((HWND)hTGPWnd);
-        msleep(1000);
-    }
+    approxSleep(2000);
+    return ret;
+}
 
-    // wait for tgp activated
-    bool ok = false;
-    for (int i = 0; i < 10; ++i) {
-        if (m_dm.GetForegroundWindow() == hTGPWnd) {
-            ok = true;
-            break;
-        }
-        msleep(1000);
-    }
-    if (!ok) {
-        qDebug()<<"Start Client: Can't activate tgp window";
-        return false;
-    }
-
-    // Bind tgp
-    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
-    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
-
-    // Start client
-    sendMouse(Left, 50, 300, 3000);
-    sendMouse(Left, 900, 680, 1000);
-
-    // Skip checking window
-    QVariant vx, vy;
-    for (int i = 0; i < 5; ++i) {
-        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_dnf_skip_check.bmp", "101010", 1.0, 0, vx, vy) != -1)
-            sendMouse(Left, vx.toInt() + 25, vy.toInt() + 6, 1000);
-        msleep(1000);
-    }
-
-    // Unbind tgp
+void DF::unbind()
+{
+//    SetWindowPos((HWND)m_hBindWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
     m_dm.UnBindWindow();
-
-    // Wait for client
-    for (int i = 0; i < 240; ++i) {
-        if (window() != 0) {
-            activateWindow((HWND)window());
-            return true;
-        }
-        msleep(1000);
-    }
-
-    qDebug()<<"Start Client: failed";
-
-    return false;
 }
 
 bool DF::waitForRoleList()

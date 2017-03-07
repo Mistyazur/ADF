@@ -26,15 +26,15 @@ protected:
     QVariantList m_pathList;
     QVariantList m_nodeList;
 
-
     // Client functions
+    bool startTGP();
+    bool startClient();
+    bool closeClient();
     int window();
     bool bind(bool underground=false);
     void unbind();
     
     // Common functions
-    bool closeClient();
-    bool startClient();
     bool waitForRoleList();
     bool openSystemMenu();
     bool closeSystemMenu();

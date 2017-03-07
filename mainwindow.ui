@@ -63,7 +63,7 @@
     </property>
     <addaction name="actionStart_with_windows"/>
     <addaction name="separator"/>
-    <addaction name="actionStart_TGP"/>
+    <addaction name="actionSet_tgp_path"/>
    </widget>
    <addaction name="menuGlobal_Config"/>
   </widget>
@@ -73,12 +73,12 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Start with windows</string>
+    <string>Start With Windows</string>
    </property>
   </action>
-  <action name="actionStart_TGP">
+  <action name="actionSet_tgp_path">
    <property name="text">
-    <string>Start TGP</string>
+    <string>Set TGP Path</string>
    </property>
   </action>
  </widget>

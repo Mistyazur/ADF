@@ -5,9 +5,10 @@
 #include <QTextCodec>
 #include <QTextStream>
 #include <QMutex>
+#include <QTimer>
 #include <QFile>
-
 #include <QDebug>
+
 #include <windows.h>
 
 #define LOG_NAME QApplication::applicationDirPath() + "/debug.log"
@@ -46,8 +47,19 @@ void MsgRedirection(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
+    bool startUp = false;
+
     QApplication a(argc, argv);
 
+    // Arguments
+    QStringList args = QApplication::arguments();
+    if (args.count() > 2) {
+        if (args.at(1) == "-a") {
+            startUp = true;
+        }
+    }
+
+    // Log
     QFile log(LOG_NAME);
     if (log.exists()) {
         qInstallMessageHandler(MsgRedirection);
@@ -56,16 +68,20 @@ int main(int argc, char *argv[])
     // Language
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));
 
-
     // Init dm plugin
     DmPrivate::dmPluginSetup(true);
     if (!DmPrivate::dmPluginReg("FateCyn220d1daf6c3e4a132d4da742b5fc3691",
                                 QApplication::applicationDisplayName(), "block"))
-//                                QApplication::applicationDisplayName(), "b2"))
         return 0;
 
+    // GUI
     MainWindow w;
     w.show();
+
+    // Start with windows
+    if (startUp) {
+        QTimer::singleShot(10000, &w, SLOT(on_btnStart_clicked()));
+    }
 
     return a.exec();
 }

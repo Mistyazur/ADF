@@ -37,8 +37,9 @@ void SetAutoStartEnabled(bool enabled)
     QSettings *settings = new QSettings(REG_RUN, QSettings::NativeFormat);
     if(enabled)
     {
-        QString application_path = QApplication::applicationFilePath();
-        settings->setValue(appName, application_path.replace("/", "\\"));
+        QString cmd = QString("\"%1\" -a")
+                .arg(QApplication::applicationFilePath().replace("/", "\\"));
+        settings->setValue(appName, cmd);
     }
     else
     {
@@ -62,9 +63,6 @@ MainWindow::MainWindow(QWidget *parent) :
     move(QApplication::desktop()->availableGeometry().width() - (winRect.right - winRect.left),
          QApplication::desktop()->availableGeometry().height() - (winRect.bottom - winRect.top));
 
-    m_started = false;
-    m_settings = new QSettings("Mistyazur", QApplication::applicationName());
-
     ui->btnStop->setEnabled(false);
 
     // Hotkeys
@@ -76,22 +74,17 @@ MainWindow::MainWindow(QWidget *parent) :
     // Auto-start
     if (IsAutoStartEnbaled()) {
         ui->actionStart_with_windows->setChecked(true);
-
-        QTimer::singleShot(10000, this, SLOT(on_actionStart_TGP_triggered()));
-        QTimer::singleShot(90000, this, SLOT(on_btnStart_clicked()));
     }
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete m_settings;
 }
 
 void MainWindow::on_btnStart_clicked()
 {
-    if(!m_started) {
-        m_started = true;
+    if(ui->btnStart->isEnabled()) {
         ui->btnStart->setEnabled(false);
         ui->btnStop->setEnabled(true);
 
@@ -102,8 +95,7 @@ void MainWindow::on_btnStart_clicked()
 
 void MainWindow::on_btnStop_clicked()
 {
-    if(m_started) {
-        m_started = false;
+    if(ui->btnStop->isEnabled()) {
         ui->btnStart->setEnabled(true);
         ui->btnStop->setEnabled(false);
 
@@ -117,27 +109,11 @@ void MainWindow::on_actionStart_with_windows_triggered(bool checked)
     SetAutoStartEnabled(checked);
 }
 
-void MainWindow::on_actionStart_TGP_triggered(bool checked)
+void MainWindow::on_actionSet_tgp_path_triggered(bool checked)
 {
-    bool existed = false;
-
-    m_tgpPath = m_settings->value("tgp/path", "").toString();
-    qDebug()<<m_tgpPath;
-    if (m_tgpPath.isEmpty()) {
-        m_tgpPath = QFileDialog::getOpenFileName(this, tr("Select TGP"), "C:/", tr("TGP (tgp_daemon.exe)"));
-        if (!m_tgpPath.isEmpty()) {
-            m_settings->setValue("TGP/path", m_tgpPath);
-            QProcess::startDetached("\"" + m_tgpPath + "\"");
-        }
-    } else {
-        if (!QFileInfo(m_tgpPath).exists()) {
-            m_tgpPath = QFileDialog::getOpenFileName(this, tr("Select TGP"), "C:/", tr("TGP (tgp_daemon.exe)"));
-            if (!m_tgpPath.isEmpty()) {
-                m_settings->setValue("TGP/path", m_tgpPath);
-                QProcess::startDetached("\"" + m_tgpPath + "\"");
-            }
-        } else {
-            QProcess::startDetached("\"" + m_tgpPath + "\"");
-        }
+    QSettings settings("Mistyazur", QApplication::applicationName());
+    QString path = QFileDialog::getOpenFileName(this, tr("Select TGP"), "C:/", tr("TGP (tgp_daemon.exe)"));
+    if (!path.isEmpty()) {
+        settings.setValue("TGP/path", path);
     }
 }
