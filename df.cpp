@@ -431,11 +431,8 @@ void DF::sellEquipment()
             // Click sell button
             sendMouse(Left, sellX, sellY, 50);
 
-            // Select
-            sendMouse(Left, x, y, 100);
-
-            // Confirm
-            for (int i = 0; i < 2; ++i)
+            // Select and confirm
+            for (int i = 0; i < 5; ++i)
                 sendMouse(Left, x, y, 50);
         }
     }
@@ -646,7 +643,6 @@ bool DF::initRoleOffset()
     }
 
     m_roleOffsetY = 430 - vy.toInt();
-    qDebug()<<"Role offset y: "<<m_roleOffsetY;
 
     return true;
 }
@@ -1107,7 +1103,6 @@ void DF::pickTrophies(bool &done)
 
     // Avoid insisting picking a unpickable item
     if (counter++ > 5) {
-        qDebug()<<"pickTrophies: Counter triggered";
         done = true;
         counter = 0;
         return;

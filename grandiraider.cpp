@@ -108,19 +108,19 @@ void GrandiRaider::run()
                 flow = Fight;
                 break;
             case Fight:
-                // Check section state
-                if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
-                    useOwnSkill();
-                    summonSupporter();
-                    flow = PickTrophies;
-                    break;
-                }
-
                 if (timer.elapsed() > 40000) {
                     // Tempester may be disappeared
                     useOwnSkill();
                     summonSupporter();
                     approxSleep(200);
+                } else if (timer.elapsed() > 5000) {
+                    // Check section state
+                    if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
+                        useOwnSkill();
+                        summonSupporter();
+                        flow = PickTrophies;
+                        break;
+                    }
                 }
 
                 if (sectionIndex == 4) {
@@ -165,7 +165,7 @@ void GrandiRaider::run()
                         flow = PreFight;
                     }
                 } else {
-                    qDebug()<<"NavigateSection failed: Index"<<sectionIndex;
+                    qDebug()<<"NavigateSection failed: Section index is"<<sectionIndex;
                     throw DFRESTART;
                 }
                 break;
@@ -237,7 +237,7 @@ void GrandiRaider::run()
                 if (!resetRoleIndex(DUNGEON)) {
                     if (!updateRoleIndex(DUNGEON)) {
                         // Job finished
-                        qDebug()<<"Grandi automating completed";
+                        qDebug()<<"GRANDI: COMPLETED";
 
                         // Close client and wait for game reset
                         closeClient();
@@ -266,7 +266,7 @@ void GrandiRaider::run()
             } else {
                 if (flow > BindClient) {
                     if (timer.elapsed() > 120000) {
-                        qDebug()<<"Timer hit 2 min:"<<flow;
+                        qDebug()<<"Timer hit 2 min: Flow is"<<flow;
                         throw DFRESTART;
                     }
                 }
@@ -279,10 +279,11 @@ void GrandiRaider::run()
             }
 
         } catch(DFError e) {
-            qDebug()<<"DFError"<<e<<m_lastRoleIndex;
             if (e == DFSettingError) {
+                qDebug()<<"Error[Settings]";
                 return;
             } else if (e == DFRESTART) {
+                qDebug()<<"Error[Restart]:"<<"Role index is"<<m_lastRoleIndex;
                 flow = StartClient;
                 continue;
             }
