@@ -113,7 +113,7 @@ void GrandiRaider::run()
                     useOwnSkill();
                     summonSupporter();
                     approxSleep(200);
-                } else if (timer.elapsed() > 5000) {
+                } else if (timer.elapsed() > 2000) {
                     // Check section state
                     if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
                         useOwnSkill();
@@ -136,7 +136,7 @@ void GrandiRaider::run()
                         pickTrophies(ok);
                     } else {
                         // Normal attack
-                        for (int i=0; i<10; ++i)
+                        for (int i=0; i<5; ++i)
                             sendKey(Stroke, "x");
                     }
                 }
