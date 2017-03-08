@@ -21,11 +21,10 @@
 
 bool IsAutoStartEnbaled()
 {
-    QString appName = QApplication::applicationName();
     QSettings *settings = new QSettings(REG_RUN, QSettings::NativeFormat);
     QString application_path = QApplication::applicationFilePath();
 
-    if (settings->value(appName).isNull())
+    if (settings->value(QApplication::applicationName()).isNull())
         return false;
 
     return true;

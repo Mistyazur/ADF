@@ -23,15 +23,15 @@ void GrandiRaider::run()
     int sectionIndex = 0;
     bool ok = false;
     bool bossArrived = false;
-
     QTime timer;
-    timer.start();
 
-//    flow = PreFight;
-//    bind(false);
+    timer.start();
 
     if (!initDungeonSettings(DUNGEON))
         return;
+
+//    flow = PreFight;
+//    bind(false);
     
     while (true) {
         try {
@@ -284,6 +284,8 @@ void GrandiRaider::run()
                 return;
             } else if (e == DFRESTART) {
                 qDebug()<<"Error[Restart]:"<<"Role index is"<<m_lastRoleIndex;
+                m_dm.CapturePng(CLIENT_RECT, tr("F%1_T%2.png").arg(flow)
+                                .arg(QDateTime::currentDateTime().toString("MM_dd__HH_mm_ss")));
                 flow = StartClient;
                 continue;
             }
