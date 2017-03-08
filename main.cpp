@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
     // Arguments
     QStringList args = QApplication::arguments();
-    if (args.count() > 2) {
+    if (args.count() > 1) {
         if (args.at(1) == "-a") {
             startUp = true;
         }
@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 
     // Start with windows
     if (startUp) {
+        w.setWindowTitle("Z");
         QTimer::singleShot(10000, &w, SLOT(on_btnStart_clicked()));
     }
 

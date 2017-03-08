@@ -58,21 +58,31 @@ bool DF::startTGP()
    return QProcess::startDetached("\"" + path + "\"");
 }
 
+HWND DF::getTGPWindow()
+{
+    HWND hTGPWnd;
+
+    QString res = m_dm.EnumWindow(0, "Chrome Legacy Window", "Chrome_RenderWidgetHostHWND", 1+2+16);
+    QStringList winList = res.split(",", QString::SkipEmptyParts);
+    if (winList.isEmpty())
+        hTGPWnd = (HWND)0;
+    else
+        hTGPWnd = GetAncestor((HWND)winList.first().toInt(), GA_ROOTOWNER);
+
+    return hTGPWnd;
+}
+
 bool DF::startClient()
 {
     bool ok = false;
-    int hTGPWnd;
 
-    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+    HWND hTGPWnd = getTGPWindow();
     if (hTGPWnd == 0) {
-        if (!startTGP()) {
-            qDebug()<<"Start Client: Can't start TGP";
-            return false;
-        }
+        startTGP();
 
         ok = false;
         for (int i = 0; i < 90; ++i) {
-            hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+            hTGPWnd = getTGPWindow();
             if (hTGPWnd != 0) {
                 ok = true;
                 break;
@@ -80,36 +90,21 @@ bool DF::startClient()
             approxSleep(1000);
         }
         if (!ok) {
-            qDebug()<<"Start Client: Can't wait for TGP";
+            qDebug()<<"Start Client: Can't start TGP";
             return false;
         }
-
-        approxSleep(10000);
     }
 
     // Activate tgp
-    if (m_dm.GetForegroundWindow() != hTGPWnd) {
-        activateWindow((HWND)hTGPWnd);
-        msleep(1000);
-    }
-
-    // wait for tgp activated
-    ok = false;
-    for (int i = 0; i < 10; ++i) {
-        if (m_dm.GetForegroundWindow() == hTGPWnd) {
-            ok = true;
-            break;
-        }
-        msleep(1000);
-    }
-    if (!ok) {
+    if (!activateWindow(hTGPWnd)) {
         qDebug()<<"Start Client: Can't activate tgp window";
         return false;
     }
+    msleep(1000);
 
     // Bind tgp
-    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
-    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
+    m_dm.SetWindowSize((int)hTGPWnd, 1020, 720);
+    m_dm.BindWindow((int)hTGPWnd, "normal", "normal", "normal", 0);
 
     // Start client
     sendMouse(Left, 50, 300, 3000);

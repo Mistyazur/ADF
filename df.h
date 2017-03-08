@@ -28,6 +28,7 @@ protected:
 
     // Client functions
     bool startTGP();
+    HWND getTGPWindow();
     bool startClient();
     bool closeClient();
     int window();
