@@ -103,25 +103,33 @@ void DmPrivate::setResourcePath(const QString &path)
     m_dm.SetPath(qApp->applicationDirPath()+"/"+path);
 }
 
-void DmPrivate::activateWindow(HWND hWnd)
+bool DmPrivate::activateWindow(HWND hWnd)
 {
-    // Open iconic window
-    if (IsIconic(hWnd))
-        OpenIcon(hWnd);
+    bool succeed = false;
 
-    typedef void (WINAPI *PROCSWITCHTOTHISWINDOW)(HWND, BOOL);
+    HWND hRootWnd = GetAncestor(hWnd, GA_ROOTOWNER);
 
-    // Get proc address
-    static PROCSWITCHTOTHISWINDOW SwitchToThisWindow = nullptr;
-    if (SwitchToThisWindow == nullptr) {
-        HMODULE hUser32 = GetModuleHandle(L"User32");
-        SwitchToThisWindow = ( PROCSWITCHTOTHISWINDOW)GetProcAddress(hUser32, "SwitchToThisWindow");
+    WINDOWPLACEMENT winPlacement = {0};
+    winPlacement.length = sizeof(WINDOWPLACEMENT);
+    if (!GetWindowPlacement(hRootWnd, &winPlacement))
+        return false;
+
+    switch (winPlacement.showCmd)
+    {
+    case SW_SHOWMAXIMIZED:
+        succeed = ShowWindow(hRootWnd, SW_SHOWMAXIMIZED);
+        break;
+    case SW_SHOWMINIMIZED:
+        succeed = ShowWindow(hRootWnd, SW_RESTORE);
+        break;
+    default:
+        succeed = ShowWindow(hRootWnd, SW_NORMAL);
+        break;
     }
 
-    // Call proc
-    if (SwitchToThisWindow != nullptr) {
-        SwitchToThisWindow(hWnd, TRUE);
-    }
+    succeed = SetForegroundWindow(hRootWnd);
+
+    return succeed;
 }
 
 void DmPrivate::approxSleep(int msec, double delta)
