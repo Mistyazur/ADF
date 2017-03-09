@@ -18,11 +18,11 @@ GrandiRaider::~GrandiRaider()
 
 void GrandiRaider::run()
 {
-    Flow preFlow = (Flow)-1;
+    Flow preFlow = Unknown;
     Flow flow = StartClient;
     int sectionIndex = 0;
     bool ok = false;
-    bool bossArrived = false;
+    bool cross;
     QTime timer;
 
     timer.start();
@@ -76,7 +76,6 @@ void GrandiRaider::run()
             case MoveToDungeon:
                 navigateOnMap(644, 280, 15000);
                 if (enterDungeon(4, 2, false)) {
-                    sectionIndex = 0;
                     flow = PreFight;
                 } else {
                     qDebug()<<"Enter dungeon: failed";
@@ -86,8 +85,13 @@ void GrandiRaider::run()
             case PreFight:
                 summonSupporter();
 
+                sectionIndex = getSectionIndex();
+
+                if (sectionIndex == -1)
+                    break;
+
                 if (sectionIndex == 0) {
-                    // Window maybe pop up when first summon
+                    // Window maybe pop up when first summonx
                     sendKey(Down, 32, 200);
                     sendKey(Up, 32, 100);
 
@@ -97,10 +101,10 @@ void GrandiRaider::run()
                 } else if (sectionIndex == 2) {
                     // Awaken monsters
                     navigate(600, -1);
-                } else if (sectionIndex == 4) {
+                } else if (sectionIndex == 6) {
                     // Get close to generator
                     navigate(350, 390);
-                } else if (sectionIndex == 5) {
+                } else if (sectionIndex == 7) {
                     // Avoid damage
                     navigate(0, -1);
                 }
@@ -108,22 +112,29 @@ void GrandiRaider::run()
                 flow = Fight;
                 break;
             case Fight:
+                // Check section state
+                if (isSectionClear("59a2a3-101010|1f5877-101010", 100)) {
+                    if (timer.elapsed() < 3000) {
+                        // Already cleared
+                        flow = Navigate;
+                    } else {
+                        flow = PickTrophies;
+                    }
+
+                    useOwnSkill();
+                    summonSupporter();
+                    break;
+                }
+
                 if (timer.elapsed() > 40000) {
                     // Tempester may be disappeared
                     useOwnSkill();
                     summonSupporter();
                     approxSleep(200);
-                } else if (timer.elapsed() > 2000) {
-                    // Check section state
-                    if (isSectionClear("59a2a3-101010|1f5877-101010", 110)) {
-                        useOwnSkill();
-                        summonSupporter();
-                        flow = PickTrophies;
-                        break;
-                    }
                 }
 
-                if (sectionIndex == 4) {
+                sectionIndex = getSectionIndex();
+                if (sectionIndex == 6) {
                     // Destory generator
                     sendKey(Down, m_arrowL, 100);
                     sendKey(Up, m_arrowL);
@@ -132,8 +143,11 @@ void GrandiRaider::run()
                 } else {
                     // Pick trophies
                     if (isTrophyExisting()) {
-                        approxSleep(200);
-                        pickTrophies(ok);
+                        pickTrophies(cross);
+                        if (cross) {
+                            flow = PreFight;
+                            break;
+                        }
                     } else {
                         // Normal attack
                         for (int i=0; i<5; ++i)
@@ -142,32 +156,32 @@ void GrandiRaider::run()
                 }
                 break;
             case PickTrophies:
-                pickTrophies(ok);
-                if (ok) {
-                    flow = Navigate;
+                if (pickTrophies(cross)) {
+                    if (cross)
+                        flow = PreFight;
+                    else
+                        flow = Navigate;
                 }
                 break;
             case Navigate:
-                rectifySectionIndex(sectionIndex);
+                sectionIndex = getSectionIndex();
 
                 ok = false;
                 for (int i=0; i<2; ++i) {
-                    if (navigateSection(sectionIndex, bossArrived)) {
+                    if (navigateSection(sectionIndex)) {
                         ok = true;
                         break;
                     }
                 }
-                if (ok) {
-                    ++sectionIndex;
-                    if (bossArrived) {
-                        flow = PreBossFight;
-                    } else {
-                        flow = PreFight;
-                    }
-                } else {
+                if (!ok) {
                     qDebug()<<"NavigateSection failed: Section index is"<<sectionIndex;
                     throw DFRESTART;
                 }
+
+                if ((sectionIndex) == 7 && (getSectionIndex() == -1))
+                    flow = PreBossFight;
+                else
+                    flow = PreFight;
                 break;
             case PreBossFight:
                 summonSupporter();
@@ -218,7 +232,6 @@ void GrandiRaider::run()
                     // Reenter dungeon
                     if (reenterDungeon()) {
                         flow = PreFight;
-                        sectionIndex = 0;
                         continue;
                     } else {
                         qDebug()<<"reenterDungeon failed";

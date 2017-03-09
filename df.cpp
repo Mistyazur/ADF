@@ -122,7 +122,7 @@ bool DF::startClient()
     m_dm.UnBindWindow();
 
     // Wait for client
-    for (int i = 0; i < 240; ++i) {
+    for (int i = 0; i < 180; ++i) {
         if (window() != 0) {
             activateWindow((HWND)window());
             return true;
@@ -130,7 +130,7 @@ bool DF::startClient()
         msleep(1000);
     }
 
-    qDebug()<<"Start Client: failed";
+    qDebug()<<"Start Client: Failed waiting for client";
 
     return false;
 }
@@ -303,7 +303,7 @@ void DF::pickRole(int index)
     }
 
     // Reset scroll bar
-    for (int i = 0; i < 50; ++i)
+    for (int i = 0; i < 40; ++i)
         sendMouse(Left, 580, 90);
 
     int oldMouseDuration = setMouseDuration(200);
@@ -825,25 +825,28 @@ void DF::buff()
     sendKey(Up, 32);
 }
 
-void DF::rectifySectionIndex(int &sectionIndex)
+int DF::getSectionIndex()
 {
+    QVariant vx, vy;
     int x, y;
 
     bool ok = false;
-    for (int i = 0; i < 10; ++i) {
-        if (getRoleCoordsInMap(x, y)) {
+    for (int i = 0; i < 50; ++i) {
+        if (m_dm.FindPic(750, 0, 800, 50, "dungeon_in.bmp", "101010", 1.0, 0, vx, vy) != -1) {
             ok = true;
             break;
         }
-        approxSleep(500);
+        approxSleep(100);
     }
-    if (!ok)
-        return;
+    if (!ok) {
+        qDebug()<<"Can't get section index";
+        throw DFRESTART;
+    }
 
-    QVariantList node = QVariantList({x , y});
-    int rectifiedSectionIndex = m_nodeList.indexOf(node);
-    if (rectifiedSectionIndex != -1)
-        sectionIndex = rectifiedSectionIndex;
+    if (!getRoleCoordsInMap(x, y))
+        return -1;
+
+    return m_nodeList.indexOf(QVariantList({x , y}));
 }
 
 bool DF::isSectionClear(const QString &brightColor, const int threshold)
@@ -877,7 +880,7 @@ bool DF::isPickable()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "202020", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -887,7 +890,7 @@ bool DF::isTrophyExisting()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "202020", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -899,7 +902,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 
     pickable = false;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "3F3F3F", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "202020", 1.0, 1);
     if (res.isEmpty())
         return false;
 
@@ -1103,9 +1106,10 @@ void DF::moveRole(int hDir, int vDir, int speed)
     }
 }
 
-void DF::pickTrophies(bool &done)
+bool DF::pickTrophies(bool &cross)
 {
     static int counter = 0;
+    bool finished = false;
     bool hArrived = false;
     bool vArrived = false;
     int preRoleX = -1;
@@ -1116,214 +1120,190 @@ void DF::pickTrophies(bool &done)
     int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
+    int x;
+    int y;
+    bool pickable;
     QTime timer;
     QTime stuckTimer;
     static const uint blockSize = 6400;
     static const uint blockCount = 5;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
-    int x, y;
-    int sectionIndex;
-    bool bossArrived;
-    bool pickable;
 
     timer.start();
+    cross = false;
 
     // Avoid insisting picking a unpickable item
-    if (counter++ > 5) {
-        done = true;
-        counter = 0;
-        return;
-    }
-
-    while (true) {
-        // Timeout
-        if (timer.elapsed() > 20000) {
-            done = true;
-            break;
-        }
-
-        // Check if reached next section
-        if (isBlackScreen(0, 0, 50, 50)) {
-            // Stop
-            moveRole(1, 1);
-            hPreDir = vPreDir = 0;
-
-            // Wait until not black screen
-            for (int i=0; i<200; ++i) {
-                msleep(50);
-                if (!isBlackScreen(0, 0, 50, 50)) {
-                    break;
-                }
-            }
-
-            // Get back to last section
-            msleep(500);
-            rectifySectionIndex(sectionIndex);
-            if (navigateSection(sectionIndex, bossArrived)) {
-                done = true;
+    if (counter++ > 10) {
+        finished = true;
+    } else {
+        while (true) {
+            // Timeout
+            if (timer.elapsed() > 20000) {
+                finished = true;
                 break;
-            } else {
-                qDebug()<<"Pick trophies: navigateSection failed";
-                throw DFRESTART;
-            }
-        }
-
-        // Get position of role
-        if (!getRoleCoords(roleX, roleY)) {
-            if ((hPreDir == 0) && (vPreDir == 0)) {
-                moveRole(0, -1, 2);
-                approxSleep(500);
-                moveRole(0, 1);
             }
 
-            msleep(10);
-            continue;
-        }
+            // Check if reached next section
+            if (isBlackScreen(0, 0, 50, 50)) {
+                cross = true;
+                finished = true;
+                break;
+            }
 
-        // Get postion of trophy
-        if (!getNearestTrophyCoords(roleX, roleY, x, y, pickable)) {
-            done = true;
-            break;
-        }
-
-        // Already stand on trophy
-        if (pickable) {
-            moveRole(1, 1);
-            approxSleep(100);
-            sendKey(Stroke, "x", 100);
-            done = false;
-            break;
-        }
-
-        // Arrived but nothing is pickable
-        if (hArrived && vArrived) {
-            moveRole(1, 1);
-            approxSleep(50);
-            done = false;
-            break;
-        }
-
-        if (((hPreDir != 0) || (vPreDir != 0))  // Moving
-            && ((roleX == preRoleX) && (roleY == preRoleY))) {
-            // Situations against definition of stuck
-            if (((hPreDir > 0) && (roleX > x)) ||
-                ((hPreDir < 0) && (roleX < x)) ||
-                ((vPreDir > 0) && (roleY > y)) ||
-                ((vPreDir < 0) && (roleY < y))) {
-                preRoleX = -1;
-                preRoleY = -1;
+            // Get position of role
+            if (!getRoleCoords(roleX, roleY)) {
+                if ((hPreDir == 0) && (vPreDir == 0)) {
+                    moveRole(0, -1, 2);
+                    approxSleep(500);
+                    moveRole(0, 1);
+                }
+                msleep(10);
                 continue;
             }
 
-            if (stuckTimer.isNull()) {
-                // Get client color blocks
-                for (int i=0; i<blockCount; ++i) {
-                    uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
-                    memcpy(preClientBlocks[i], data, blockSize);
+            // Get postion of trophy
+            if (!getNearestTrophyCoords(roleX, roleY, x, y, pickable)) {
+                finished = true;
+                break;
+            }
+
+            // Already stand on trophy
+            if (pickable) {
+                moveRole(1, 1);
+                approxSleep(100);
+                sendKey(Stroke, "x", 100);
+                finished = false;
+                break;
+            }
+
+            // Arrived but nothing is pickable
+            if (hArrived && vArrived) {
+                finished = false;
+                break;
+            }
+
+            if (((hPreDir != 0) || (vPreDir != 0))  // Moving
+                    && ((roleX == preRoleX) && (roleY == preRoleY))) {
+                // Situations against definition of stuck
+                if (((hPreDir > 0) && (roleX > x)) ||
+                        ((hPreDir < 0) && (roleX < x)) ||
+                        ((vPreDir > 0) && (roleY > y)) ||
+                        ((vPreDir < 0) && (roleY < y))) {
+                    preRoleX = -1;
+                    preRoleY = -1;
+                    continue;
                 }
 
-                // Start timer
-                stuckTimer.start();
-            } else {
-                // Trigger checking every 50 msecs
-                if (stuckTimer.elapsed() > 50) {
+                if (stuckTimer.isNull()) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
                         uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
-                        memcpy(clientBlocks[i], data, blockSize);
+                        memcpy(preClientBlocks[i], data, blockSize);
                     }
 
-                    // Check if role is stucked
-                    bool stucked = false;
-                    for (int i=0; i<blockCount; ++i) {
-                        if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
-                            stucked = true;
+                    // Start timer
+                    stuckTimer.start();
+                } else {
+                    // Trigger checking every 50 msecs
+                    if (stuckTimer.elapsed() > 50) {
+                        // Get client color blocks
+                        for (int i=0; i<blockCount; ++i) {
+                            uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                            memcpy(clientBlocks[i], data, blockSize);
+                        }
+
+                        // Check if role is stucked
+                        bool stucked = false;
+                        for (int i=0; i<blockCount; ++i) {
+                            if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
+                                stucked = true;
+                                break;
+                            }
+                        }
+                        if (stucked) {
+                            //                        qDebug()<<"PickTrophies: Stuck";
+                            finished = true;
                             break;
                         }
-                    }
-                    if (stucked) {
-//                        qDebug()<<"PickTrophies: Stuck";
-                        done = true;
-                        break;
-                    }
 
-                    // Save client blocks for checking next time
-                    memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
+                        // Save client blocks for checking next time
+                        memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
 
-                    // Restart timer
-                    stuckTimer.restart();
+                        // Restart timer
+                        stuckTimer.restart();
+                    }
                 }
-            }
-        } else {
-            // Horizontal moving
-            if (!hArrived) {
-                hDir = x-roleX;
-                if (abs(hDir) < 10) {
-                    moveRole(1, 0);
-                    hPreDir = 0;
-                    hArrived = true;
-                } else if (abs(hDir) < 20) {
-                    if (hPreDir == 0) {
-                        moveRole(hDir, 0, 2);
-                    } else {
+            } else {
+                // Horizontal moving
+                if (!hArrived) {
+                    hDir = x-roleX;
+                    if (abs(hDir) < 10) {
                         moveRole(1, 0);
                         hPreDir = 0;
-                    }
-                } else {
-                    if (hPreDir == 0) {
-                        moveRole(hDir, 0, 3);
-                        hPreDir = hDir;
-                    } else {
-                        if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
+                        hArrived = true;
+                    } else if (abs(hDir) < 20) {
+                        if (hPreDir == 0) {
+                            moveRole(hDir, 0, 2);
+                        } else {
                             moveRole(1, 0);
                             hPreDir = 0;
                         }
-                    }
-                }
-            }
-
-            // Vertical moving
-            if (!vArrived) {
-                vDir = y-roleY;
-                if (abs(vDir) < 10) {
-                    moveRole(0, 1);
-                    vPreDir = 0;
-                    vArrived = true;
-                } else if (abs(vDir) < 20) {
-                    if (vPreDir == 0) {
-                        moveRole(0, vDir, 2);
                     } else {
-                        moveRole(0, 1);
-                        vPreDir = 0;
-                    }
-                } else {
-                    if (vPreDir == 0) {
-                        moveRole(0, vDir, 3);
-                        vPreDir = vDir;
-                    } else {
-                        if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
-                            moveRole(0, 1);
-                            vPreDir = 0;
+                        if (hPreDir == 0) {
+                            moveRole(hDir, 0, 3);
+                            hPreDir = hDir;
+                        } else {
+                            if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
+                                moveRole(1, 0);
+                                hPreDir = 0;
+                            }
                         }
                     }
                 }
+
+                // Vertical moving
+                if (!vArrived) {
+                    vDir = y-roleY;
+                    if (abs(vDir) < 10) {
+                        moveRole(0, 1);
+                        vPreDir = 0;
+                        vArrived = true;
+                    } else if (abs(vDir) < 20) {
+                        if (vPreDir == 0) {
+                            moveRole(0, vDir, 2);
+                        } else {
+                            moveRole(0, 1);
+                            vPreDir = 0;
+                        }
+                    } else {
+                        if (vPreDir == 0) {
+                            moveRole(0, vDir, 3);
+                            vPreDir = vDir;
+                        } else {
+                            if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
+                                moveRole(0, 1);
+                                vPreDir = 0;
+                            }
+                        }
+                    }
+                }
+
+                // Save position as previous
+                preRoleX = roleX;
+                preRoleY = roleY;
             }
 
-            // Save position as previous
-            preRoleX = roleX;
-            preRoleY = roleY;
+            msleep(1);
         }
-
-        msleep(1);
     }
 
-    // Must have a delay, can't be optimized
     moveRole(1, 1);
-    approxSleep(50);
 
-    if (done)
+    if (finished)
         counter = 0;
+
+    return finished;
 }
 
 bool DF::navigate(int x, int y, bool end)
@@ -1523,24 +1503,16 @@ bool DF::navigate(int x, int y, bool end)
         msleep(1);
     }
 
-    // Must have a delay, can't be optimized
     moveRole(1, 1);
-    approxSleep(50);
 
     return false;
 }
 
-bool DF::navigateSection(int sectionIndex, bool &boss)
+bool DF::navigateSection(int sectionIndex)
 {
     bool end = false;
 
     if (sectionIndex < m_pathList.count()) {
-        if (sectionIndex == m_pathList.count()-1) {
-            boss = true;
-        } else {
-            boss = false;
-        }
-
         const QVariantList &sectionPathList = m_pathList.at(sectionIndex).toList();
         for (int i = 0; i < sectionPathList.count(); ++i) {
             QVariantList &position = sectionPathList.at(i).toList();

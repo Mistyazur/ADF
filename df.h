@@ -69,7 +69,7 @@ protected:
     void summonSupporter();
     void useOwnSkill();
     void buff();
-    void rectifySectionIndex(int &sectionIndex);
+    int  getSectionIndex();
     bool isSectionClear(const QString &brightColor, const int threshold);
     bool isPickable();
     bool isTrophyExisting();
@@ -77,9 +77,9 @@ protected:
     bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int vDir, int speed=0);
-    void pickTrophies(bool &done);
+    bool pickTrophies(bool &cross);
     bool navigate(int x, int y, bool end=false);
-    bool navigateSection(int sectionIndex, bool &boss);
+    bool navigateSection(int sectionIndex);
     bool fightBoss();
 private:
     int m_hBindWnd;
