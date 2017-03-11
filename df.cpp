@@ -464,10 +464,24 @@ void DF::sellEquipment()
                 sendMouse(Left, x, y, 50);
         }
     }
+}
 
-    // Close packet
-    openSystemMenu();
-    closeSystemMenu();
+void DF::buyMaterials()
+{
+    QVariant vx, vy;
+
+    for (int i = 0; i < 4; ++i) {
+        if (m_dm.FindPic(10, 410, 300, 500, "crystal.bmp|abyss_ticket.bmp", "101010", 1.0, 1, vx, vy) != -1) {
+            // Buy all
+            sendKey(Down, 16, 500);
+            sendMouse(Left, vx, vy, 500);
+            sendKey(Up, 16, 500);
+
+            // Confirm
+            sendKey(Stroke, 13, 200);
+            sendKey(Stroke, 13, 200);
+        }
+    }
 }
 
 void DF::checkMail()
@@ -498,11 +512,11 @@ void DF::updateShareStorage()
     sendMouse(Left, 470, 360, 1000);  // Confirm
     sendMouse(Left, 300, 128, 1000);  // Switch to share storage
 
-    // Save money
-    if (m_dm.FindPic(CLIENT_RECT, "save_gold.bmp", "000000", 1.0, 0, vx, vy) != -1) {
-        sendMouse(Left, vx, vy, 1000);
-        sendMouse(Left, vx, vy, 1000);
-    }
+//    // Save money
+//    if (m_dm.FindPic(CLIENT_RECT, "save_gold.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+//        sendMouse(Left, vx, vy, 1000);
+//        sendMouse(Left, vx, vy, 1000);
+//    }
 
     // Save items
     sendKey(Stroke, "A", 100);
@@ -880,7 +894,7 @@ bool DF::isPickable()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "202020", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "303030", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -890,7 +904,7 @@ bool DF::isTrophyExisting()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "202020", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "303030", 1.0, 1, vx, vy) != -1)
         return true;
 
     return false;
@@ -902,7 +916,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 
     pickable = false;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "202020", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "303030", 1.0, 1);
     if (res.isEmpty())
         return false;
 

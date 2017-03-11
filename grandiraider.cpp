@@ -87,8 +87,10 @@ void GrandiRaider::run()
 
                 sectionIndex = getSectionIndex();
 
-                if (sectionIndex == -1)
+                if (sectionIndex == -1) {
+                    flow = PreBossFight;
                     break;
+                }
 
                 if (sectionIndex == 0) {
                     // Window maybe pop up when first summonx
@@ -215,6 +217,14 @@ void GrandiRaider::run()
 
                     // Sell trophies
                     sellEquipment();
+
+                    // Buy something from store
+                    buyMaterials();
+
+                    // Close packet
+                    openSystemMenu();
+                    closeSystemMenu();
+
                     approxSleep(100);
 
                     // Get exp capsule

@@ -48,6 +48,7 @@ protected:
     void teleport(const QString &destination);
     void navigateOnMap(int x, int y, int time);
     void sellEquipment();
+    void buyMaterials();
     void checkMail();
     void updateShareStorage();
     void cancelCrystalContract();
