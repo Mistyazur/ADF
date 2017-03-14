@@ -111,6 +111,7 @@ void GrandiRaider::run()
                     navigate(0, -1);
                 }
 
+                sectionIndex = getSectionIndex();
                 flow = Fight;
                 break;
             case Fight:
@@ -135,7 +136,6 @@ void GrandiRaider::run()
                     approxSleep(200);
                 }
 
-                sectionIndex = getSectionIndex();
                 if (sectionIndex == 6) {
                     // Destory generator
                     sendKey(Down, m_arrowL, 100);
@@ -144,16 +144,18 @@ void GrandiRaider::run()
                         sendKey(Stroke, "x");
                 } else {
                     // Pick trophies
-                    if (isTrophyExisting()) {
-                        pickTrophies(cross);
-                        if (cross) {
-                            flow = PreFight;
-                            break;
+                    if (pickTrophies(cross)) {
+                        if (!cross) {
+                            // Normal attack
+                            for (int i=0; i<5; ++i)
+                                sendKey(Stroke, "x");
                         }
-                    } else {
-                        // Normal attack
-                        for (int i=0; i<5; ++i)
-                            sendKey(Stroke, "x");
+                    }
+
+                    // Cross map
+                    if (cross) {
+                        flow = PreFight;
+                        break;
                     }
                 }
                 break;

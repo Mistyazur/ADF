@@ -903,16 +903,6 @@ bool DF::isPickable()
     return false;
 }
 
-bool DF::isTrophyExisting()
-{
-    QVariant vx, vy;
-
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "303030", 1.0, 1, vx, vy) != -1)
-        return true;
-
-    return false;
-}
-
 bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 {
     QString res;
@@ -1188,7 +1178,6 @@ bool DF::pickTrophies(bool &cross)
             // Already stand on trophy
             if (pickable) {
                 moveRole(1, 1);
-                approxSleep(100);
                 sendKey(Stroke, "x", 100);
                 finished = false;
                 break;
