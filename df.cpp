@@ -472,10 +472,13 @@ void DF::buyMaterials()
 
     for (int i = 0; i < 4; ++i) {
         if (m_dm.FindPic(10, 410, 300, 500, "crystal.bmp|abyss_ticket.bmp", "101010", 1.0, 1, vx, vy) != -1) {
+            // Cancel sell mode
+            sendMouse(Right, -1, -1, 300);
+
             // Buy all
-            sendKey(Down, 16, 500);
-            sendMouse(Left, vx, vy, 500);
-            sendKey(Up, 16, 500);
+            sendKey(Down, 16, 300);
+            sendMouse(Left, vx, vy, 100);
+            sendKey(Up, 16, 300);
 
             // Confirm
             sendKey(Stroke, 13, 200);
