@@ -909,7 +909,7 @@ bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 
     pickable = false;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "303030", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "404040", 1.0, 1);
     if (res.isEmpty())
         return false;
 
