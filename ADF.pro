@@ -28,7 +28,11 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
+LIBS += -lDbgHelp
+
 RC_FILE = icon.rc
+
+QMAKE_LFLAGS_RELEASE = /INCREMENTAL:NO /DEBUG
 
 win32 {
 CONFIG += embed_manifest_exe

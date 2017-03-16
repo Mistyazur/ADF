@@ -39,3 +39,4 @@ Makefile*
 CMakeLists.txt.user
 
 *.log
+*.pdb
