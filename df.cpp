@@ -460,7 +460,7 @@ void DF::sellEquipment()
             sendMouse(Left, sellX, sellY, 50);
 
             // Select and confirm
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 3; ++i)
                 sendMouse(Left, x, y, 50);
         }
     }
@@ -496,7 +496,7 @@ void DF::checkMail()
             break;
 
         sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 500);  // Open mail box
-        sendMouse(Left, 300, 465, 3000);  // Receive all mails
+        sendMouse(Left, 300, 465, 2000);  // Receive all mails
         openSystemMenu();
         closeSystemMenu();
     }
@@ -511,7 +511,7 @@ void DF::updateShareStorage()
     int oldMouseDuration = setMouseDuration(200);
     int oldKeyDuration = setKeyDuration(200);
 
-    sendMouse(Left, 270, 370, 5000);  // Click storage
+    sendMouse(Left, 270, 370, 3000);  // Click storage
     sendMouse(Left, 470, 360, 1000);  // Confirm
     sendMouse(Left, 300, 128, 1000);  // Switch to share storage
 
@@ -897,34 +897,34 @@ bool DF::isPickable()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(0, 0, 800, 500, "trophy_pickable.bmp", "303030", 1.0, 1, vx, vy) != -1)
+    if (m_dm.FindPic(0, 0, 800, 500, "drop_activated_left.bmp|drop_activated_right.bmp", "000000", 1.0, 0, vx, vy) != -1)
         return true;
 
     return false;
 }
 
-bool DF::getNearestTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
+bool DF::getTrophyCoords(int x, int y, int &nx, int &ny)
 {
     QString res;
+    QVariant vx, vy;
 
-    pickable = false;
-
-    res = m_dm.FindPicEx(0, 0, 800, 500, "trophy_pickable.bmp|trophy.bmp|trophy_event.bmp", "404040", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "drop_normal_left.bmp", "000000", 1.0, 1);
     if (res.isEmpty())
         return false;
-
-    if (res.startsWith("0")) {
-        pickable = true;
-        return true;
-    }
 
     res = m_dm.FindNearestPos(res, 0, x, y);
     QStringList resList = res.split(",", QString::SkipEmptyParts);
     if (resList.size() != 3)
         return false;
 
-    nx = resList.at(1).toInt() + 45;
-    ny = resList.at(2).toInt() + 35;
+    if (m_dm.FindPic(resList.at(1).toInt(), resList.at(2).toInt(), resList.at(1).toInt() + 200, resList.at(2).toInt() + 6,
+                     "drop_normal_right.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+        nx = resList.at(1).toInt() + (vx.toInt() + 10 - resList.at(1).toInt()) / 2;
+        ny = resList.at(2).toInt() + 30;
+    } else {
+        nx = resList.at(1).toInt() + 50;
+        ny = resList.at(2).toInt() + 30;
+    }
 
     return true;
 }
@@ -1129,7 +1129,6 @@ bool DF::pickTrophies(bool &cross)
     int vDir = 0;
     int x;
     int y;
-    bool pickable;
     QTime timer;
     QTime stuckTimer;
     static const uint blockSize = 6400;
@@ -1158,6 +1157,20 @@ bool DF::pickTrophies(bool &cross)
                 break;
             }
 
+            // Already stand on trophy
+            if (isPickable()) {
+                moveRole(1, 1);
+                sendKey(Stroke, "x", 100);
+                finished = false;
+                break;
+            }
+
+            // Arrived but nothing is pickable
+            if (hArrived && vArrived) {
+                finished = false;
+                break;
+            }
+
             // Get position of role
             if (!getRoleCoords(roleX, roleY)) {
                 if ((hPreDir == 0) && (vPreDir == 0)) {
@@ -1170,22 +1183,8 @@ bool DF::pickTrophies(bool &cross)
             }
 
             // Get postion of trophy
-            if (!getNearestTrophyCoords(roleX, roleY, x, y, pickable)) {
+            if (!getTrophyCoords(roleX, roleY, x, y)) {
                 finished = true;
-                break;
-            }
-
-            // Already stand on trophy
-            if (pickable) {
-                moveRole(1, 1);
-                sendKey(Stroke, "x", 100);
-                finished = false;
-                break;
-            }
-
-            // Arrived but nothing is pickable
-            if (hArrived && vArrived) {
-                finished = false;
                 break;
             }
 
@@ -1250,7 +1249,7 @@ bool DF::pickTrophies(bool &cross)
                         hArrived = true;
                     } else if (abs(hDir) < 20) {
                         if (hPreDir == 0) {
-                            moveRole(hDir, 0, 2);
+                            moveRole(hDir, 0, 1);
                         } else {
                             moveRole(1, 0);
                             hPreDir = 0;
@@ -1277,7 +1276,7 @@ bool DF::pickTrophies(bool &cross)
                         vArrived = true;
                     } else if (abs(vDir) < 20) {
                         if (vPreDir == 0) {
-                            moveRole(0, vDir, 2);
+                            moveRole(0, vDir, 1);
                         } else {
                             moveRole(0, 1);
                             vPreDir = 0;
