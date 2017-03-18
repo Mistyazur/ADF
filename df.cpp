@@ -574,10 +574,10 @@ void DF::playMercenary()
 
             // Pick map
             sendMouse(Left, vx.toInt() + 180, vy.toInt(), 100);
-            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 55, 100);
+            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 55, 500);
 
             // Confirm
-            sendMouse(Left, vx.toInt() + 220, vy.toInt(), 1000);
+            sendMouse(Left, vx.toInt() + 220, vy.toInt(), 500);
         }
         approxSleep(100);
     }
