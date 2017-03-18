@@ -255,6 +255,7 @@ void GrandiRaider::run()
                 break;
             case RoleSummary:
                 checkMail();
+                playMercenary();
                 repickCurrentRole();
                 updateShareStorage();
                 flow = UpdateRoleIndex;

@@ -495,8 +495,8 @@ void DF::checkMail()
         if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) == -1)
             break;
 
-        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 500);  // Open mail box
-        sendMouse(Left, 300, 465, 2000);  // Receive all mails
+        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
+        sendMouse(Left, 300, 465, 3000);  // Receive all mails
         openSystemMenu();
         closeSystemMenu();
     }
@@ -546,6 +546,40 @@ void DF::cancelCrystalContract()
 
     // Close packet
     sendKey(Stroke, "i", 500);
+}
+
+void DF::playMercenary()
+{
+    if (!openSystemMenu())
+        return;
+        
+    // Click adventure party button
+    sendMouse(Left, 490, 180, 200);
+    
+    // Click mercenary button
+    sendMouse(Left, 375, 135, 100);
+    sendMouse(Left, 375, 135, 200);
+    
+    // Play
+    QVariant vx, vy;
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindPic(200, 100, 400, 500, "combo_box_button.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+            // Pick time
+            sendMouse(Left, vx.toInt(), vy.toInt(), 100);
+            sendMouse(Left, vx.toInt() - 30, vy.toInt() + 55, 100);
+
+            // Pick map
+            sendMouse(Left, vx.toInt() + 180, vy.toInt(), 100);
+            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 55, 100);
+
+            // Confirm
+            sendMouse(Left, vx.toInt() + 220, vy.toInt(), 1000);
+        }
+        approxSleep(100);
+    }
+
+    openSystemMenu();
+    closeSystemMenu();
 }
 
 bool DF::initDungeonSettings(const QString &dungeon)
@@ -695,9 +729,10 @@ bool DF::initRoleOffset()
 bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 {
     int blackCount = m_dm.GetColorNum(x1, y1, x2, y2, "000000-202020", 1.0);
-    int totalCount = (x2-x1)*(y2-y1);
-    if (blackCount < totalCount*0.8)
+    int totalCount = (x2 - x1) * ( y2 - y1);
+    if (blackCount < totalCount * 0.8)
         return false;
+
     return true;
 }
 
@@ -709,6 +744,21 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 
     sendKey(Down, directionKey, 3000);
     sendKey(Up, directionKey, 100);
+
+    // Cancel mercenary
+    if (m_dm.FindPic(CLIENT_RECT, "announcement.bmp", "000000", 1.0, 0, x, y) != -1) {
+        sendMouse(Left, x.toInt() - 20, y.toInt() + 100, 100);
+        sendMouse(Left, x.toInt() - 20, y.toInt() + 100, 100);
+        openSystemMenu();
+        closeSystemMenu();
+
+        sendKey(Down, leftEntrance ? m_arrowR : m_arrowL, 500);
+        sendKey(Up, leftEntrance ? m_arrowR : m_arrowL, 100);
+        sendKey(Down, directionKey, 1000);
+        sendKey(Up, directionKey, 100);
+    }
+
+    // Wait for dungeon picking UI
     for (int i=0; i<10; ++i) {
         if (m_dm.FindPic(CLIENT_RECT, "options_back_to_town.bmp", "000000", 1.0, 0, x, y) != -1) {
             goto EnterDungeon;

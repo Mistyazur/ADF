@@ -52,6 +52,7 @@ protected:
     void checkMail();
     void updateShareStorage();
     void cancelCrystalContract();
+    void playMercenary();
 
     // Dungeon functions
     bool initDungeonSettings(const QString &dungeon);
