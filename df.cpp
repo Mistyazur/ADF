@@ -491,15 +491,19 @@ void DF::checkMail()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 5; ++i) {
-        if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) == -1)
-            break;
+    int oldMouseDuration = setMouseDuration(200);
 
-        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
-        sendMouse(Left, 300, 465, 3000);  // Receive all mails
-        openSystemMenu();
-        closeSystemMenu();
+    for (int i = 0; i < 10; ++i) {
+        if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) != -1) {
+            sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
+            sendMouse(Left, 300, 465, 4000);  // Receive all mails
+            openSystemMenu();
+            closeSystemMenu();
+        }
+        msleep(100);
     }
+
+    setMouseDuration(oldMouseDuration);
 
     approxSleep(1000);
 }
@@ -1155,8 +1159,10 @@ void DF::moveRole(int hDir, int vDir, int speed)
                 sendKey(Stroke, m_arrowR);
                 sendKey(Down, m_arrowR);
             }
+
             sendKey(Down, vKey);
             vHeldKey = vKey;
+
             if (!hKey && !hHeldKey)
                 sendKey(Up, m_arrowR);
         }
@@ -1165,10 +1171,10 @@ void DF::moveRole(int hDir, int vDir, int speed)
 
 bool DF::pickTrophies(bool &cross)
 {
-    static int counter = 0;
     bool finished = false;
     bool hArrived = false;
     bool vArrived = false;
+    bool stucked = false;
     int preRoleX = -1;
     int preRoleY = -1;
     int roleX = -1;
@@ -1181,10 +1187,12 @@ bool DF::pickTrophies(bool &cross)
     int y;
     QTime timer;
     QTime stuckTimer;
-    static const uint blockSize = 6400;
+    static const uint blockLength = 20;
+    static const uint blockSize = blockLength * blockLength * 4;
     static const uint blockCount = 5;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
+    static int counter = 0;
 
     timer.start();
     cross = false;
@@ -1210,27 +1218,22 @@ bool DF::pickTrophies(bool &cross)
             // Already stand on trophy
             if (isPickable()) {
                 moveRole(1, 1);
-                sendKey(Stroke, "x", 100);
+                sendKey(Stroke, "x", 50);
                 finished = false;
                 break;
             }
 
             // Arrived but nothing is pickable
             if (hArrived && vArrived) {
+                moveRole(1, 1);
+                sendKey(Stroke, "x", 50);
                 finished = false;
                 break;
             }
 
             // Get position of role
-            if (!getRoleCoords(roleX, roleY)) {
-                if ((hPreDir == 0) && (vPreDir == 0)) {
-                    moveRole(0, -1, 2);
-                    approxSleep(500);
-                    moveRole(0, 1);
-                }
-                msleep(10);
+            if (!getRoleCoords(roleX, roleY))
                 continue;
-            }
 
             // Get postion of trophy
             if (!getTrophyCoords(roleX, roleY, x, y)) {
@@ -1238,8 +1241,13 @@ bool DF::pickTrophies(bool &cross)
                 break;
             }
 
-            if (((hPreDir != 0) || (vPreDir != 0))  // Moving
-                    && ((roleX == preRoleX) && (roleY == preRoleY))) {
+            stucked = ((hPreDir != 0) || (vPreDir != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
+
+            // Save position as previous
+            preRoleX = roleX;
+            preRoleY = roleY;
+
+            if (stucked) {
                 // Situations against definition of stuck
                 if (((hPreDir > 0) && (roleX > x)) ||
                         ((hPreDir < 0) && (roleX < x)) ||
@@ -1253,7 +1261,7 @@ bool DF::pickTrophies(bool &cross)
                 if (stuckTimer.isNull()) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
-                        uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
                         memcpy(preClientBlocks[i], data, blockSize);
                     }
 
@@ -1264,12 +1272,12 @@ bool DF::pickTrophies(bool &cross)
                     if (stuckTimer.elapsed() > 50) {
                         // Get client color blocks
                         for (int i=0; i<blockCount; ++i) {
-                            uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                            uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
                             memcpy(clientBlocks[i], data, blockSize);
                         }
 
                         // Check if role is stucked
-                        bool stucked = false;
+                        stucked = false;
                         for (int i=0; i<blockCount; ++i) {
                             if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
                                 stucked = true;
@@ -1277,7 +1285,6 @@ bool DF::pickTrophies(bool &cross)
                             }
                         }
                         if (stucked) {
-                            //                        qDebug()<<"PickTrophies: Stuck";
                             finished = true;
                             break;
                         }
@@ -1343,10 +1350,6 @@ bool DF::pickTrophies(bool &cross)
                         }
                     }
                 }
-
-                // Save position as previous
-                preRoleX = roleX;
-                preRoleY = roleY;
             }
 
             msleep(1);
@@ -1377,7 +1380,8 @@ bool DF::navigate(int x, int y, bool end)
     int vDir = 0;
     QTime timer;
     QTime stuckTimer;
-    static const uint blockSize = 6400;
+    static const uint blockLength = 20;
+    static const uint blockSize = blockLength * blockLength * 4;
     static const uint blockCount = 5;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
@@ -1426,24 +1430,16 @@ bool DF::navigate(int x, int y, bool end)
         }
 
         // Get position
-        if (!getRoleCoords(roleX, roleY)) {
-            if ((hPreDir == 0) && (vPreDir == 0)) {
-                if (qrand() % 2 == 0) {
-                    moveRole(1, 0, 2);
-                    approxSleep(200);
-                    moveRole(1, 0);
-                } else {
-                    moveRole(-1, 0, 2);
-                    approxSleep(200);
-                    moveRole(-1, 0);
-                }
-            }
-            msleep(10);
+        if (!getRoleCoords(roleX, roleY))
             continue;
-        }
 
-        if (((hPreDir != 0) || (vPreDir != 0))  // Moving
-            && ((roleX == preRoleX) && (roleY == preRoleY))) {
+        stucked = ((hPreDir != 0) || (vPreDir != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
+
+        // Save position as previous
+        preRoleX = roleX;
+        preRoleY = roleY;
+
+        if (stucked) {
             // Situations against definition of stuck
             if (((hPreDir > 0) && (roleX > x)) ||
                 ((hPreDir < 0) && (roleX < x)) ||
@@ -1457,7 +1453,7 @@ bool DF::navigate(int x, int y, bool end)
             if (stuckTimer.isNull()) {
                 // Get client color blocks
                 for (int i=0; i<blockCount; ++i) {
-                    uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                    uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
                     memcpy(preClientBlocks[i], data, blockSize);
                 }
 
@@ -1468,7 +1464,7 @@ bool DF::navigate(int x, int y, bool end)
                 if (stuckTimer.elapsed() > 50) {
                     // Get client color blocks
                     for (int i=0; i<blockCount; ++i) {
-                        uchar *data = (uchar *)m_dm.GetScreenData(i*40, 0, i*40+40, 40);
+                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
                         memcpy(clientBlocks[i], data, blockSize);
                     }
 
@@ -1549,13 +1545,7 @@ bool DF::navigate(int x, int y, bool end)
                     }
                 }
             }
-
-            // Save position as previous
-            preRoleX = roleX;
-            preRoleY = roleY;
         }
-
-        msleep(1);
     }
 
     moveRole(1, 1);
