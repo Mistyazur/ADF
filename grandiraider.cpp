@@ -19,28 +19,33 @@ GrandiRaider::~GrandiRaider()
 void GrandiRaider::run()
 {
     Flow preFlow = Unknown;
-    Flow flow = StartClient;
+    Flow flow = ResetRoleCount;
     int sectionIndex = 0;
+    bool waitForDpReset = false;
     bool ok = false;
-    bool cross;
+    bool cross = false;
     QTime timer;
 
     timer.start();
 
     if (!initDungeonSettings(DUNGEON))
         return;
-
-//    flow = PreFight;
-//    bind(false);
     
     while (true) {
         try {
             switch (flow) {
-            case WaitForReset:
-                if (resetRoleIndex(DUNGEON)) {
+            case ResetRoleCount:
+                if (waitForDpReset) {
+                    if (resetRoleCount(DUNGEON)) {
+                        waitForDpReset = false;
+                        flow = StartClient;
+                    }
+                    approxSleep(120000, 0.3);
+                } else {
+                    resetRoleCount(DUNGEON);
                     flow = StartClient;
+                    qDebug()<<"tag2";
                 }
-                approxSleep(300000, 0.3);
                 break;
             case StartClient:
                 closeClient();
@@ -263,20 +268,25 @@ void GrandiRaider::run()
                 updateShareStorage();
                 flow = UpdateRoleIndex;
             case UpdateRoleIndex:
-                if (!resetRoleIndex(DUNGEON)) {
-                    if (!updateRoleIndex(DUNGEON)) {
+                if (resetRoleCount(DUNGEON)) {
+                    backToRoleList();
+                    flow = PickRole;
+                } else {
+                    if (updateRoleCount(DUNGEON)) {
+                        backToRoleList();
+                        flow = PickRole;
+                    } else {
                         // Job finished
                         qDebug()<<"GRANDI: COMPLETED";
 
-                        // Close client and wait for game reset
+                        // Close client
                         closeClient();
-                        flow = WaitForReset;
-                        break;
+
+                        // Wait for dungeon point reset
+                        flow = ResetRoleCount;
+                        waitForDpReset = true;
                     }
                 }
-
-                backToRoleList();
-                flow = PickRole;
                 break;
             default:
                 break;
@@ -312,7 +322,7 @@ void GrandiRaider::run()
                 qDebug()<<"Error[Settings]";
                 return;
             } else if (e == DFRESTART) {
-                qDebug()<<"Error[Restart]:"<<"Role index is"<<m_lastRoleIndex;
+                qDebug()<<"Error[Restart]:"<<"Role index is"<<(m_firstRoleIndex + m_roleCount);
                 m_dm.CapturePng(CLIENT_RECT, tr("F%1_T%2.png").arg(flow)
                                 .arg(QDateTime::currentDateTime().toString("MM_dd__HH_mm_ss")));
                 flow = StartClient;

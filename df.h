@@ -22,6 +22,7 @@ protected:
     int m_dungeonMapX2;
     int m_dungeonMapY2;
     int m_roleCount;
+    int m_firstRoleIndex;
     int m_lastRoleIndex;
     QVariantList m_pathList;
     QVariantList m_nodeList;
@@ -56,8 +57,8 @@ protected:
 
     // Dungeon functions
     bool initDungeonSettings(const QString &dungeon);
-    bool resetRoleIndex(const QString &dungeon);
-    bool updateRoleIndex(const QString &dungeon);
+    bool resetRoleCount(const QString &dungeon);
+    bool updateRoleCount(const QString &dungeon);
     void pickRole();
     bool initRoleOffset();
     bool enterDungeon(int index, int difficulty, bool leftEntrance=true);

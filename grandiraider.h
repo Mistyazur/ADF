@@ -5,7 +5,7 @@
 
 class GrandiRaider : public DF
 {
-    enum Flow{Unknown, WaitForReset, StartClient, BindClient, PickRole, Init,
+    enum Flow{Unknown, ResetRoleCount, StartClient, BindClient, PickRole, Init,
               MoveToDungeon, PreFight, Fight, PickTrophies,
               Navigate, PreBossFight, BossFight, RoleSummary,
               UpdateRoleIndex};

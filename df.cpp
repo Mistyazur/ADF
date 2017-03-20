@@ -303,7 +303,7 @@ void DF::pickRole(int index)
     }
 
     // Reset scroll bar
-    for (int i = 0; i < 40; ++i)
+    for (int i = 0; i < 30; ++i)
         sendMouse(Left, 580, 90);
 
     int oldMouseDuration = setMouseDuration(200);
@@ -592,14 +592,16 @@ bool DF::initDungeonSettings(const QString &dungeon)
 
     settings.beginGroup(dungeon);
 
-    // Reset last role index
-    if (!resetRoleIndex(dungeon)) {
-        // Get last role index that was automating
-        m_lastRoleIndex = settings.value("role_index", 0).toInt();
-    }
+    // Get role index
+    QString index = settings.value("role_index", "").toString();
+    QStringList indexList = index.split("-", QString::SkipEmptyParts);
+    if (indexList.count() != 2)
+        return false;
 
-    // Get count of role that'll be automated
-    m_roleCount = settings.value("role_count", 0).toInt();
+    m_firstRoleIndex = indexList.first().toInt() - 1;
+    m_lastRoleIndex = indexList.last().toInt() - 1;
+    if ((m_firstRoleIndex < 0) || (m_lastRoleIndex < 0) || (m_firstRoleIndex > m_lastRoleIndex))
+        return false;
 
     // Get dungeon settings
     QString jsonFile = settings.value("json", "").toString();
@@ -634,7 +636,7 @@ bool DF::initDungeonSettings(const QString &dungeon)
     return true;
 }
 
-bool DF::resetRoleIndex(const QString &dungeon)
+bool DF::resetRoleCount(const QString &dungeon)
 {
     bool reseted = false;
 
@@ -653,29 +655,35 @@ bool DF::resetRoleIndex(const QString &dungeon)
     }
 
     if (currentDateTime >= thresholdDateTime) {
-        settings.setValue("role_index", 0);
-        m_lastRoleIndex = 0;
+        settings.setValue("role_count", 0);
+        m_roleCount = 0;
         reseted = true;
+    } else {
+        // Get count of role that'll be automated
+        m_roleCount = settings.value("role_count", 0).toInt();
     }
+
     settings.setValue("last_time", currentDateTime);
-    settings.sync();
 
     settings.endGroup();
+    settings.sync();
 
+    qDebug()<<"updateRoleCount"<<reseted;
     return reseted;
 }
 
-bool DF::updateRoleIndex(const QString &dungeon)
+bool DF::updateRoleCount(const QString &dungeon)
 {
     QSettings settings(QApplication::applicationDirPath() + "/Dungeon.ini", QSettings::IniFormat);
 
-    m_lastRoleIndex += 1;
-    if (m_lastRoleIndex >= m_roleCount) {
+    ++m_roleCount;
+
+    if (m_firstRoleIndex + m_roleCount > m_lastRoleIndex) {
         return false;
     }
 
     settings.beginGroup(dungeon);
-    settings.setValue("role_index", m_lastRoleIndex);
+    settings.setValue("role_count", m_roleCount);
     settings.endGroup();
 
     return true;
@@ -683,27 +691,8 @@ bool DF::updateRoleIndex(const QString &dungeon)
 
 void DF::pickRole()
 {
-    pickRole(m_lastRoleIndex);
+    pickRole(m_firstRoleIndex + m_roleCount);
 }
-
-//bool DF::initDungeonSettings(const QString &file)
-//{
-//    JSettings js(QApplication::applicationDirPath() + "/" + file);
-//    m_pathList = js.value("Path").toList();
-//    m_nodeList = js.value("Nodes").toList();
-//    if (m_pathList.isEmpty() || m_nodeList.isEmpty())
-//        return false;
-
-//    QVariantList mapRect = js.value("MapRect").toList();
-//    if (mapRect.count() < 4)
-//        return false;
-//    m_dungeonMapX1 = mapRect.at(0).toInt();
-//    m_dungeonMapY1 = mapRect.at(1).toInt();
-//    m_dungeonMapX2 = mapRect.at(2).toInt();
-//    m_dungeonMapY2 = mapRect.at(3).toInt();
-
-//    return true;
-//}
 
 bool DF::initRoleOffset()
 {
