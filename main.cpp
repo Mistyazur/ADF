@@ -5,6 +5,7 @@
 #include <QTextCodec>
 #include <QTextStream>
 #include <QMessageBox>
+#include <QProcess>
 #include <QMutex>
 #include <QTimer>
 #include <QFile>
@@ -71,11 +72,14 @@ LONG ApplicationCrashHandler(EXCEPTION_POINTERS *pException)
         MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDumpFile, MiniDumpNormal, &dumpInfo, NULL, NULL);
     }
 
-    // Dump message
-    EXCEPTION_RECORD* record = pException->ExceptionRecord;
-    QString errCode(QString::number(record->ExceptionCode, 16));
-    QString errAdr(QString::number((uint)record->ExceptionAddress, 16));
-    QMessageBox::critical(NULL, "Crash", QString("Code:%1. Addr:%2.").arg(errCode).arg(errAdr), QMessageBox::Ok);
+//    // Dump message
+//    EXCEPTION_RECORD* record = pException->ExceptionRecord;
+//    QString errCode(QString::number(record->ExceptionCode, 16));
+//    QString errAdr(QString::number((uint)record->ExceptionAddress, 16));
+//    QMessageBox::critical(NULL, "Crash", QString("Code:%1. Addr:%2.").arg(errCode).arg(errAdr), QMessageBox::Ok);
+
+    // Restart app
+    QProcess::startDetached(QApplication::applicationDirPath() + "/restart.bat");
 
     // Quit app
     return EXCEPTION_EXECUTE_HANDLER;
