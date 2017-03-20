@@ -34,8 +34,8 @@ DF::DF()
     setKeyDurationDelta(0.2);
 
     // Set mouse and key delay
-    setMouseDelay(20);
-    setKeyDelay(20);
+    setMouseDelay(30);
+    setKeyDelay(30);
     setMouseDelayDelta(0.2);
     setKeyDelayDelta(0.2);
 }
@@ -781,7 +781,7 @@ EnterDungeon:
         sendKey(Stroke, m_arrowU, 100);
 
     // Pick difficulty
-    for (int i=0; i<6; ++i)
+    for (int i=0; i<4; ++i)
         sendKey(Stroke, m_arrowL);
     for (int i=0; i<difficulty; ++i)
         sendKey(Stroke, m_arrowR, 100);
@@ -869,7 +869,7 @@ void DF::pickFreeGoldenCard()
             break;
         }
 
-        approxSleep(1000);
+        approxSleep(500);
     }
 }
 
@@ -957,14 +957,21 @@ bool DF::isPickable()
     return false;
 }
 
-bool DF::getTrophyCoords(int x, int y, int &nx, int &ny)
+bool DF::getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 {
     QString res;
     QVariant vx, vy;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "drop_normal_left.bmp", "000000", 1.0, 1);
+    pickable = false;
+
+    res = m_dm.FindPicEx(0, 0, 800, 500, "drop_activated_left.bmp|drop_normal_left.bmp", "000000", 1.0, 1);
     if (res.isEmpty())
         return false;
+
+    if (res.startsWith("0")) {
+        pickable = true;
+        return true;
+    }
 
     res = m_dm.FindNearestPos(res, 0, x, y);
     QStringList resList = res.split(",", QString::SkipEmptyParts);
@@ -1101,11 +1108,7 @@ void DF::moveRole(int hDir, int vDir, int speed)
 }
 */
 
-void DF::moveRole(int hDir, int vDir, int speed)
-// speed :  0 - relese direction key if direction is zero
-//			1 - click direction key
-//          2 - hold direction key
-//          3 - double click then hold direction key
+void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
 {
     static int hHeldKey = 0;
     static int vHeldKey = 0;
@@ -1115,56 +1118,73 @@ void DF::moveRole(int hDir, int vDir, int speed)
     hKey = 0;
     vKey = 0;
 
-    //  Get direction key
     if (hDir)
         hKey = (hDir > 0) ? m_arrowR : m_arrowL;
     if (vDir)
         vKey = (vDir > 0) ? m_arrowD : m_arrowU;
 
-    // Stop
-    if (hDir && hHeldKey) {
-        sendKey(Up, hHeldKey, 30);
-        hHeldKey = 0;
-    }
-    if (vDir && vHeldKey) {
-        sendKey(Up, vHeldKey, 30);
-        vHeldKey = 0;
-    }
-
-    // Move
-    if (speed == 1) {
-        if (hKey)
-            sendKey(Stroke, hKey);
-        if (vKey)
-            sendKey(Stroke, vKey);
-    } else if (speed == 2) {
-        if (hKey) {
-            sendKey(Down, hKey);
-            hHeldKey = hKey;
+    if (hSpeed == 0) {
+        if (hHeldKey) {
+            sendKey(Up, hHeldKey);
+            hHeldKey = 0;
         }
-        if (vKey) {
-            sendKey(Down, vKey);
-            vHeldKey = vKey;
-        }
-    } else if (speed == 3) {
-        if (hKey) {
-            sendKey(Stroke, hKey);
-            sendKey(Down, hKey);
-            hHeldKey = hKey;
-        }
-        if (vKey) {
-            if (!hKey && !hHeldKey) {
-                sendKey(Stroke, m_arrowL);
-                sendKey(Stroke, m_arrowL);
-                sendKey(Stroke, m_arrowR);
-                sendKey(Down, m_arrowR);
+    } else {
+        if (hKey && hHeldKey) {
+            if (hKey == hHeldKey) {
+                hKey = 0;
+            } else {
+                sendKey(Up, hHeldKey);
+                hHeldKey = 0;
             }
+        }
 
-            sendKey(Down, vKey);
-            vHeldKey = vKey;
+        if (hSpeed == 1) {
+            if (hKey) {
+                sendKey(Down, hKey);
+                hHeldKey = hKey;
+            }
+        } else if (hSpeed ==2) {
+            if (hKey) {
+                sendKey(Stroke, hKey);
+                sendKey(Down, hKey);
+                hHeldKey = hKey;
+            }
+        }
+    }
 
-            if (!hKey && !hHeldKey)
-                sendKey(Up, m_arrowR);
+    if (vSpeed == 0) {
+        if (vHeldKey) {
+            sendKey(Up, vHeldKey);
+            vHeldKey = 0;
+        }
+    } else {
+        if (vKey && vHeldKey) {
+            if (vKey == vHeldKey) {
+                vKey = 0;
+            } else {
+                sendKey(Up, vHeldKey);
+                vHeldKey = 0;
+            }
+        }
+
+        if (vSpeed == 1) {
+            if (vKey) {
+                sendKey(Down, vKey);
+                vHeldKey = vKey;
+            }
+        } else if (vSpeed ==2) {
+            if (vKey) {
+                if (!hHeldKey) {
+                    sendKey(Stroke, m_arrowL);
+                    sendKey(Stroke, m_arrowL);
+                    sendKey(Stroke, m_arrowR);
+                    sendKey(Down, m_arrowR);
+                }
+                sendKey(Down, vKey);
+                vHeldKey = vKey;
+                if (!hHeldKey)
+                    sendKey(Up, m_arrowR);
+            }
         }
     }
 }
@@ -1175,6 +1195,7 @@ bool DF::pickTrophies(bool &cross)
     bool hArrived = false;
     bool vArrived = false;
     bool stucked = false;
+    bool pickable = false;
     int preRoleX = -1;
     int preRoleY = -1;
     int roleX = -1;
@@ -1183,6 +1204,8 @@ bool DF::pickTrophies(bool &cross)
     int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
+    int hSpeed = 0;
+    int vSpeed = 0;
     int x;
     int y;
     QTime timer;
@@ -1215,9 +1238,19 @@ bool DF::pickTrophies(bool &cross)
                 break;
             }
 
+            // Get position of role
+            if (!getRoleCoords(roleX, roleY))
+                continue;
+
+            // Get postion of trophy
+            if (!getTrophyCoords(roleX, roleY, x, y, pickable)) {
+                finished = true;
+                break;
+            }
+
             // Already stand on trophy
-            if (isPickable()) {
-                moveRole(1, 1);
+            if (pickable) {
+                moveRole(1, 0, 1, 0);
                 sendKey(Stroke, "x", 50);
                 finished = false;
                 break;
@@ -1225,19 +1258,7 @@ bool DF::pickTrophies(bool &cross)
 
             // Arrived but nothing is pickable
             if (hArrived && vArrived) {
-                moveRole(1, 1);
-                sendKey(Stroke, "x", 50);
                 finished = false;
-                break;
-            }
-
-            // Get position of role
-            if (!getRoleCoords(roleX, roleY))
-                continue;
-
-            // Get postion of trophy
-            if (!getTrophyCoords(roleX, roleY, x, y)) {
-                finished = true;
                 break;
             }
 
@@ -1298,65 +1319,72 @@ bool DF::pickTrophies(bool &cross)
                 }
             } else {
                 // Horizontal moving
-                if (!hArrived) {
-                    hDir = x-roleX;
-                    if (abs(hDir) < 10) {
-                        moveRole(1, 0);
-                        hPreDir = 0;
-                        hArrived = true;
-                    } else if (abs(hDir) < 20) {
-                        if (hPreDir == 0) {
-                            moveRole(hDir, 0, 1);
-                        } else {
-                            moveRole(1, 0);
-                            hPreDir = 0;
-                        }
+                if (hArrived) {
+                    hDir = 0;
+                } else {
+                    hDir = x - roleX;
+                    if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
+                        // Move over
+                        hSpeed = 0;
                     } else {
-                        if (hPreDir == 0) {
-                            moveRole(hDir, 0, 3);
-                            hPreDir = hDir;
+                        if (abs(hDir) < 10) {
+                            hArrived = true;
+                            hSpeed = 0;
+                        } else if (abs(hDir) < 30) {
+                            if (hPreDir == 0) {
+                                hSpeed = 1;
+                            }
                         } else {
-                            if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
-                                moveRole(1, 0);
-                                hPreDir = 0;
+                            if (hPreDir == 0) {
+                                hSpeed = 2;
                             }
                         }
                     }
                 }
 
                 // Vertical moving
-                if (!vArrived) {
-                    vDir = y-roleY;
-                    if (abs(vDir) < 10) {
-                        moveRole(0, 1);
-                        vPreDir = 0;
-                        vArrived = true;
-                    } else if (abs(vDir) < 20) {
-                        if (vPreDir == 0) {
-                            moveRole(0, vDir, 1);
-                        } else {
-                            moveRole(0, 1);
-                            vPreDir = 0;
-                        }
+                if (vArrived) {
+                    vDir = 0;
+                } else {
+                    vDir = y - roleY;
+                    if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
+                        // Move over
+                        vSpeed = 0;
                     } else {
-                        if (vPreDir == 0) {
-                            moveRole(0, vDir, 3);
-                            vPreDir = vDir;
+                        if (abs(vDir) < 10) {
+                            vArrived = true;
+                            vSpeed = 0;
+                        } else if (abs(vDir) < 30){
+                            if (vPreDir == 0) {
+                                vSpeed = 1;
+                            }
                         } else {
-                            if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
-                                moveRole(0, 1);
-                                vPreDir = 0;
+                            if (vPreDir == 0) {
+                                vSpeed = 2;
                             }
                         }
                     }
                 }
-            }
 
-            msleep(1);
+                if (hSpeed == 0) {
+                    hDir = 1;
+                    hPreDir = 0;
+                } else {
+                    hPreDir = hDir;
+                }
+                if (vSpeed == 0) {
+                    vDir = 1;
+                    vPreDir = 0;
+                } else {
+                    vPreDir = vDir;
+                }
+
+                moveRole(hDir, hSpeed, vDir, vSpeed);
+            }
         }
     }
 
-    moveRole(1, 1);
+    moveRole(1, 0, 1, 0);
 
     if (finished)
         counter = 0;
@@ -1378,6 +1406,8 @@ bool DF::navigate(int x, int y, bool end)
     int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
+    int hSpeed = 0;
+    int vSpeed = 0;
     QTime timer;
     QTime stuckTimer;
     static const uint blockLength = 20;
@@ -1403,7 +1433,7 @@ bool DF::navigate(int x, int y, bool end)
         // Check if reached next section
         if (isBlackScreen(0, 0, 50, 50)) {
             // Stop
-            moveRole(1, 1);
+            moveRole(1, 0, 1, 0);
             hPreDir = vPreDir = 0;
 
             // Wait until not black screen
@@ -1478,7 +1508,7 @@ bool DF::navigate(int x, int y, bool end)
                     }
                     if (stucked) {
                         // Stucked, but also need to check blackscreen
-                        moveRole(1, 1);
+                        moveRole(1, 0, 1, 0);
                         hPreDir = vPreDir = 0;
                         hArrived = vArrived = true;
                         continue;
@@ -1493,62 +1523,71 @@ bool DF::navigate(int x, int y, bool end)
             }
         } else {
             // Horizontal moving
-            if (!hArrived) {
-                hDir = x-roleX;
-                if (abs(hDir) < 10) {
-                    moveRole(1, 0);
-                    hPreDir = 0;
-                    hArrived = true;
-                } else if (abs(hDir) < 20) {
-                    if (hPreDir == 0) {
-                        moveRole(hDir, 0, 1);
-                    } else {
-                        moveRole(1, 0);
-                        hPreDir = 0;
-                    }
+            if (hArrived) {
+                hDir = 0;
+            } else {
+                hDir = x - roleX;
+                if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
+                    // Move over
+                    hSpeed = 0;
                 } else {
-                    if (hPreDir == 0) {
-                        moveRole(hDir, 0, 3);
-                        hPreDir = hDir;
+                    if (abs(hDir) < 10) {
+                        hArrived = true;
+                        hSpeed = 0;
+                    } else if (abs(hDir) < 30) {
+                        if (hPreDir == 0) {
+                            hSpeed = 1;
+                        }
                     } else {
-                        if (abs(hDir+hPreDir) != abs(hDir)+abs(hPreDir)) {
-                            moveRole(1, 0);
-                            hPreDir = 0;
+                        if (hPreDir == 0) {
+                            hSpeed = 2;
                         }
                     }
                 }
             }
 
             // Vertical moving
-            if (!vArrived) {
-                vDir = y-roleY;
-                if (abs(vDir) < 10) {
-                    moveRole(0, 1);
-                    vPreDir = 0;
-                    vArrived = true;
-                } else if (abs(vDir) < 20) {
-                    if (vPreDir == 0) {
-                        moveRole(0, vDir, 1);
-                    } else {
-                        moveRole(0, 1);
-                        vPreDir = 0;
-                    }
+            if (vArrived) {
+                vDir = 0;
+            } else {
+                vDir = y - roleY;
+                if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
+                    // Move over
+                    vSpeed = 0;
                 } else {
-                    if (vPreDir == 0) {
-                        moveRole(0, vDir, 3);
-                        vPreDir = vDir;
+                    if (abs(vDir) < 10) {
+                        vArrived = true;
+                        vSpeed = 0;
+                    } else if (abs(vDir) < 30){
+                        if (vPreDir == 0) {
+                            vSpeed = 1;
+                        }
                     } else {
-                        if (abs(vDir+vPreDir) != abs(vDir)+abs(vPreDir)) {
-                            moveRole(0, 1);
-                            vPreDir = 0;
+                        if (vPreDir == 0) {
+                            vSpeed = 2;
                         }
                     }
                 }
             }
+
+            if (hSpeed == 0) {
+                hDir = 1;
+                hPreDir = 0;
+            } else {
+                hPreDir = hDir;
+            }
+            if (vSpeed == 0) {
+                vDir = 1;
+                vPreDir = 0;
+            } else {
+                vPreDir = vDir;
+            }
+
+            moveRole(hDir, hSpeed, vDir, vSpeed);
         }
     }
 
-    moveRole(1, 1);
+    moveRole(1, 0, 1, 0);
 
     return false;
 }
@@ -1598,7 +1637,7 @@ bool DF::fightBoss()
     by = vy.toInt() + 150;
 
     if (abs(rx- bx) < 250) {
-        moveRole((bx < 400) ? 1 : -1, 0, 3);
+        moveRole((bx < 400) ? 1 : -1, 2, 0, 0);
         approxSleep(100);
     } else {
         useOwnSkill();

@@ -73,10 +73,10 @@ protected:
     int  getSectionIndex();
     bool isSectionClear(const QString &brightColor, const int threshold);
     bool isPickable();
-    bool getTrophyCoords(int x, int y, int &nx, int &ny);
+    bool getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable);
     bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
-    void moveRole(int hDir, int vDir, int speed=0);
+    void moveRole(int hDir, int hSpeed, int vDir, int vSpeed);
     bool pickTrophies(bool &cross);
     bool navigate(int x, int y, bool end=false);
     bool navigateSection(int sectionIndex);

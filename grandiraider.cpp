@@ -86,11 +86,8 @@ void GrandiRaider::run()
                 summonSupporter();
 
                 sectionIndex = getSectionIndex();
-
-                if (sectionIndex == -1) {
-                    flow = PreBossFight;
-                    break;
-                }
+                if (sectionIndex == -1)
+                    continue;
 
                 if (sectionIndex == 0) {
                     // Window maybe pop up when first summonx
@@ -136,7 +133,10 @@ void GrandiRaider::run()
                     approxSleep(200);
                 }
 
-                if (sectionIndex == 6) {
+                if (sectionIndex == 1) {
+                    for (int i=0; i<10; ++i)
+                        sendKey(Stroke, "x");
+                } else if (sectionIndex == 6) {
                     // Destory generator
                     sendKey(Down, m_arrowL, 100);
                     sendKey(Up, m_arrowL);
@@ -147,8 +147,9 @@ void GrandiRaider::run()
                     if (pickTrophies(cross)) {
                         if (!cross) {
                             // Normal attack
-                            for (int i=0; i<5; ++i)
+                            for (int i=0; i<3; ++i)
                                 sendKey(Stroke, "x");
+                            approxSleep(50);
                         }
                     }
 
@@ -190,20 +191,17 @@ void GrandiRaider::run()
             case PreBossFight:
                 summonSupporter();
 
-                // Move a litte to make boss not able to teleport
-                navigate(350, 400);
-                approxSleep(1000);
+                // Get to stones
+                navigate(450, 0);
+                navigate(600, 0);
 
                 flow = BossFight;
                 break;
             case BossFight:
                 // Check dungeon status
                 if (isDungeonEnded()) {
-                    moveRole(1, 1);
-
-                    // Wait for thophies fall on ground
-                    // 3000 is minimum
-                    approxSleep(3000);
+                    // Get free card
+                    pickFreeGoldenCard();
 
                     // Move trophies (-)
                     sendKey(Down, 189, 200);
@@ -213,9 +211,6 @@ void GrandiRaider::run()
                     for (int i = 0; i < 80; ++i) {
                         sendKey(Stroke, "x");
                     }
-
-                    // Get free card
-                    pickFreeGoldenCard();
 
                     // Sell trophies
                     sellEquipment();
@@ -251,7 +246,15 @@ void GrandiRaider::run()
                     }
                 }
 
-                fightBoss();
+                // Summon
+                summonSupporter();
+
+                // Destory stones
+                sendKey(Down, 39, 100);
+                sendKey(Up, 39);
+                for (int i = 0; i < 30; ++i)
+                    sendKey(Stroke, "x");
+
                 break;
             case RoleSummary:
                 checkMail();
