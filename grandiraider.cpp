@@ -152,9 +152,8 @@ void GrandiRaider::run()
                     if (pickTrophies(cross)) {
                         if (!cross) {
                             // Normal attack
-                            for (int i=0; i<3; ++i)
+                            for (int i=0; i<5; ++i)
                                 sendKey(Stroke, "x");
-                            approxSleep(50);
                         }
                     }
 
@@ -213,7 +212,7 @@ void GrandiRaider::run()
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 80; ++i) {
+                    for (int i = 0; i < 70; ++i) {
                         sendKey(Stroke, "x");
                     }
 

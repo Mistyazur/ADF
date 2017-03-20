@@ -318,11 +318,13 @@ void DF::pickRole(int index)
     // Pick role
     int roleX = originalX+offsetX*row;
     int roleY = originalY+offsetY*column;
-    sendMouse(Left, roleX, roleY, 1000);
+    for (int i = 0; i < 3; ++i) {
+        sendMouse(Left, roleX, roleY, 100);
+        sendMouse(Left, roleX, roleY, 500);
+    }
 
     // Game start
-    sendKey(Stroke, 32, 100);
-    sendKey(Stroke, 32, 5000);
+    sendKey(Stroke, 32, 3000);
 
     setMouseDuration(oldMouseDuration);
 
@@ -912,24 +914,33 @@ int DF::getSectionIndex()
 bool DF::isSectionClear(const QString &brightColor, const int threshold)
 {
     int x, y;
+
     if (!getRoleCoordsInMap(x, y))
         return false;
 
-//    qDebug()<<x<<y;
-
-//    qDebug()<<"L"<<m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0);
     if (m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0) > threshold)
         return true;
 
-//    qDebug()<<"R"<<m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0);
     if (m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0) > threshold)
         return true;
 
-//    qDebug()<<"D"<<m_dm.GetColorNum(x-6, y-22, x+10, y-6, brightColor, 1.0);
     if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > threshold)
         return true;
 
-//    qDebug()<<"U"<<m_dm.GetColorNum(x-6, y+14, x+10, y+30, brightColor, 1.0);
+    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > threshold)
+        return true;
+
+    approxSleep(100);
+
+    if (m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0) > threshold)
+        return true;
+
+    if (m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0) > threshold)
+        return true;
+
+    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > threshold)
+        return true;
+
     if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > threshold)
         return true;
 
