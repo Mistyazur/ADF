@@ -244,7 +244,7 @@ bool DF::openSystemMenu()
 
     for (int i = 0; i < 50; ++i) {
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            sendKey(Stroke, 27, 200);
+            sendKey(Sk, 27, 200);
         } else {
             return true;
         }
@@ -261,7 +261,7 @@ bool DF::closeSystemMenu()
         if (m_dm.FindPic(520, 120, 580, 140, "system_menu.bmp", "000000", 1.0, 0, vx, vy) == -1) {
             return true;
         } else {
-            sendKey(Stroke, 27, 200);
+            sendKey(Sk, 27, 200);
         }
     }
 
@@ -318,13 +318,13 @@ void DF::pickRole(int index)
     // Pick role
     int roleX = originalX+offsetX*row;
     int roleY = originalY+offsetY*column;
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 2; ++i) {
         sendMouse(Left, roleX, roleY, 100);
         sendMouse(Left, roleX, roleY, 500);
     }
 
     // Game start
-    sendKey(Stroke, 32, 3000);
+    sendKey(Sk, 32, 3000);
 
     setMouseDuration(oldMouseDuration);
 
@@ -346,8 +346,8 @@ void DF::repickCurrentRole()
 {
     backToRoleList();
     approxSleep(1000);
-    sendKey(Stroke, 32, 1000);
-    sendKey(Stroke, 32, 1000);
+    sendKey(Sk, 32, 1000);
+    sendKey(Sk, 32, 1000);
 
     // Use system menu to make sure role is switched successfully
     // It'll also close ohter unknown window
@@ -393,10 +393,10 @@ void DF::teleport(const QString &destination)
 
 void DF::navigateOnMap(int x, int y, int time)
 {
-    sendKey(Stroke, "N", 1000);
+    sendKey(Sk, "N", 1000);
     sendMouse(Right, x, y, 200);
     sendMouse(Right, x, y, 200);
-    sendKey(Stroke, "N", time);
+    sendKey(Sk, "N", time);
 }
 
 void DF::sellEquipment()
@@ -462,7 +462,7 @@ void DF::sellEquipment()
             sendMouse(Left, sellX, sellY, 50);
 
             // Select and confirm
-            for (int i = 0; i < 3; ++i)
+            for (int i = 0; i < 4; ++i)
                 sendMouse(Left, x, y, 50);
         }
     }
@@ -478,13 +478,13 @@ void DF::buyMaterials()
             sendMouse(Right, -1, -1, 300);
 
             // Buy all
-            sendKey(Down, 16, 300);
+            sendKey(Dn, 16, 300);
             sendMouse(Left, vx, vy, 100);
             sendKey(Up, 16, 300);
 
             // Confirm
-            sendKey(Stroke, 13, 200);
-            sendKey(Stroke, 13, 200);
+            sendKey(Sk, 13, 200);
+            sendKey(Sk, 13, 200);
         }
     }
 }
@@ -528,8 +528,8 @@ void DF::updateShareStorage()
 //    }
 
     // Save items
-    sendKey(Stroke, "A", 100);
-    sendKey(Stroke, 13, 1000);
+    sendKey(Sk, "A", 100);
+    sendKey(Sk, 13, 1000);
 
     setMouseDuration(oldMouseDuration);
     setKeyDuration(oldKeyDuration);
@@ -541,7 +541,7 @@ void DF::updateShareStorage()
 void DF::cancelCrystalContract()
 {
     // Open packet
-    sendKey(Stroke, "i", 500);
+    sendKey(Sk, "i", 500);
 
     // Switch to material
     sendMouse(Left, 590, 250, 200);
@@ -551,7 +551,7 @@ void DF::cancelCrystalContract()
     sendMouse(Left, 745, 470, 100);
 
     // Close packet
-    sendKey(Stroke, "i", 500);
+    sendKey(Sk, "i", 500);
 }
 
 void DF::playMercenary()
@@ -670,7 +670,6 @@ bool DF::resetRoleCount(const QString &dungeon)
     settings.endGroup();
     settings.sync();
 
-    qDebug()<<"updateRoleCount"<<reseted;
     return reseted;
 }
 
@@ -703,7 +702,7 @@ bool DF::initRoleOffset()
     bool ok = false;
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindMultiColor(0, 100, 800, 400,
-                                 "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
+                                 "FF00FF-001000", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-001000",
                                  1.0, 0,
                                  vx, vy)) {
             ok = true;
@@ -737,7 +736,7 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 
     int directionKey = leftEntrance ? m_arrowL : m_arrowR;
 
-    sendKey(Down, directionKey, 3000);
+    sendKey(Dn, directionKey, 3000);
     sendKey(Up, directionKey, 100);
 
     // Cancel mercenary
@@ -747,9 +746,9 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
         openSystemMenu();
         closeSystemMenu();
 
-        sendKey(Down, leftEntrance ? m_arrowR : m_arrowL, 500);
+        sendKey(Dn, leftEntrance ? m_arrowR : m_arrowL, 500);
         sendKey(Up, leftEntrance ? m_arrowR : m_arrowL, 100);
-        sendKey(Down, directionKey, 1000);
+        sendKey(Dn, directionKey, 1000);
         sendKey(Up, directionKey, 100);
     }
 
@@ -769,16 +768,16 @@ EnterDungeon:
 
     // Pick dungeon
     for (int i=0; i<index; ++i)
-        sendKey(Stroke, m_arrowU, 100);
+        sendKey(Sk, m_arrowU, 100);
 
     // Pick difficulty
     for (int i=0; i<4; ++i)
-        sendKey(Stroke, m_arrowL);
+        sendKey(Sk, m_arrowL);
     for (int i=0; i<difficulty; ++i)
-        sendKey(Stroke, m_arrowR, 100);
+        sendKey(Sk, m_arrowR, 100);
 
     // Commit
-    sendKey(Stroke, 32, 500);
+    sendKey(Sk, 32, 500);
 
     setKeyDuration(oldKeyDuration);
 
@@ -789,8 +788,8 @@ EnterDungeon:
 bool DF::reenterDungeon()
 {
     // Reenter
-    sendKey(Stroke, 121, 500);
-    sendKey(Stroke, 121, 500);
+    sendKey(Sk, 121, 500);
+    sendKey(Sk, 121, 500);
 
     // Wait
     return waitForDungeonBeign();
@@ -856,7 +855,7 @@ void DF::pickFreeGoldenCard()
             return;
 
         if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1) {
-            sendKey(Stroke, 53, 100);
+            sendKey(Sk, 53, 100);
             break;
         }
 
@@ -867,23 +866,23 @@ void DF::pickFreeGoldenCard()
 void DF::summonSupporter()
 {
     // Tab to summon
-    sendKey(Stroke, 9, 100);
+    sendKey(Sk, 9, 100);
 }
 
 void DF::useOwnSkill()
 {
-    sendKey(Stroke, "z", 200);
+    sendKey(Sk, "z", 100);
 }
 
 void DF::buff()
 {
-    sendKey(Stroke, m_arrowU);
-    sendKey(Stroke, m_arrowD);
-    sendKey(Stroke, 32, 2000);
+    sendKey(Sk, m_arrowU);
+    sendKey(Sk, m_arrowD);
+    sendKey(Sk, 32, 2000);
 
-    sendKey(Stroke, m_arrowD);
-    sendKey(Stroke, m_arrowU);
-    sendKey(Down, 32, 2000);
+    sendKey(Sk, m_arrowD);
+    sendKey(Sk, m_arrowU);
+    sendKey(Dn, 32, 2000);
     sendKey(Up, 32);
 }
 
@@ -1010,7 +1009,7 @@ bool DF::getRoleCoords(int &x, int &y)
     QVariant vx, vy;
 
     if (m_dm.FindMultiColor(0, 100, 800, 500,
-                        "FF00FF-000F00", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-000F00",
+                        "FF00FF-001000", "0|1|FFFFFF, 0|2|FFFFFF, 0|3|FF00FF-001000",
                         1.0, 0,
                         vx, vy)) {
         x = vx.toInt();
@@ -1020,7 +1019,7 @@ bool DF::getRoleCoords(int &x, int &y)
     }
 
     if (m_dm.FindMultiColor(0, 100, 800, 500,
-                        "FF00FF-000F00", "0|1|FFFFFF, 0|2|FF00FF-000F00, 0|3|FFFFFF",
+                        "FF00FF-001000", "0|1|FFFFFF, 0|2|FF00FF-001000, 0|3|FFFFFF",
                         1.0, 0,
                         vx, vy)) {
         x = vx.toInt() + 45;
@@ -1030,7 +1029,7 @@ bool DF::getRoleCoords(int &x, int &y)
     }
 
     if (m_dm.FindMultiColor(0, 100, 800, 500,
-                        "FFFFFF", "0|1|FF00FF-000F00, 0|2|FFFFFF, 0|3|FF00FF-000F00",
+                        "FFFFFF", "0|1|FF00FF-001000, 0|2|FFFFFF, 0|3|FF00FF-001000",
                         1.0, 0,
                         vx, vy)) {
         x = vx.toInt() - 44;
@@ -1114,74 +1113,88 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
     static int vHeldKey = 0;
     static int hKey = 0;
     static int vKey = 0;
+    static int hPreSpeed = 0;
+    static int vPreSpeed = 0;
 
-    hKey = 0;
-    vKey = 0;
+    // Horizontal
 
-    if (hDir)
+    if (hDir) {
         hKey = (hDir > 0) ? m_arrowR : m_arrowL;
-    if (vDir)
-        vKey = (vDir > 0) ? m_arrowD : m_arrowU;
+    } else {
+        hKey = 0;
+    }
 
     if (hSpeed == 0) {
-        if (hHeldKey) {
+        if (hKey && hHeldKey) {
             sendKey(Up, hHeldKey);
             hHeldKey = 0;
+            hPreSpeed = hSpeed;
         }
     } else {
         if (hKey && hHeldKey) {
-            if (hKey == hHeldKey) {
+            if ((hKey == hHeldKey) && (hSpeed == hPreSpeed)) {
                 hKey = 0;
             } else {
                 sendKey(Up, hHeldKey);
                 hHeldKey = 0;
             }
         }
-
         if (hSpeed == 1) {
             if (hKey) {
-                sendKey(Down, hKey);
+                sendKey(Dn, hKey);
                 hHeldKey = hKey;
+                hPreSpeed = hSpeed;
             }
         } else if (hSpeed ==2) {
             if (hKey) {
-                sendKey(Stroke, hKey);
-                sendKey(Down, hKey);
+                sendKey(Sk, hKey);
+                sendKey(Dn, hKey);
                 hHeldKey = hKey;
+                hPreSpeed = hSpeed;
             }
         }
     }
 
+    // Vertical
+
+    if (vDir) {
+        vKey = (vDir > 0) ? m_arrowD : m_arrowU;
+    } else {
+        vKey = 0;
+    }
+
     if (vSpeed == 0) {
-        if (vHeldKey) {
+        if (vKey && vHeldKey) {
             sendKey(Up, vHeldKey);
             vHeldKey = 0;
+            vPreSpeed = vSpeed;
         }
     } else {
         if (vKey && vHeldKey) {
-            if (vKey == vHeldKey) {
+            if ((vKey == vHeldKey) && (vSpeed == vPreSpeed)) {
                 vKey = 0;
             } else {
                 sendKey(Up, vHeldKey);
                 vHeldKey = 0;
             }
         }
-
         if (vSpeed == 1) {
             if (vKey) {
-                sendKey(Down, vKey);
+                sendKey(Dn, vKey);
                 vHeldKey = vKey;
+                vPreSpeed = vSpeed;
             }
         } else if (vSpeed ==2) {
             if (vKey) {
                 if (!hHeldKey) {
-                    sendKey(Stroke, m_arrowL);
-                    sendKey(Stroke, m_arrowL);
-                    sendKey(Stroke, m_arrowR);
-                    sendKey(Down, m_arrowR);
+                    sendKey(Sk, m_arrowL);
+                    sendKey(Sk, m_arrowL);
+                    sendKey(Sk, m_arrowR);
+                    sendKey(Dn, m_arrowR);
                 }
-                sendKey(Down, vKey);
+                sendKey(Dn, vKey);
                 vHeldKey = vKey;
+                vPreSpeed = vSpeed;
                 if (!hHeldKey)
                     sendKey(Up, m_arrowR);
             }
@@ -1209,10 +1222,10 @@ bool DF::pickTrophies(bool &cross)
     int x;
     int y;
     QTime timer;
-    QTime stuckTimer;
+//    QTime stuckTimer;
     static const uint blockLength = 20;
     static const uint blockSize = blockLength * blockLength * 4;
-    static const uint blockCount = 5;
+    static const uint blockCount = 10;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
     static int counter = 0;
@@ -1221,12 +1234,12 @@ bool DF::pickTrophies(bool &cross)
     cross = false;
 
     // Avoid insisting picking a unpickable item
-    if (counter++ > 10) {
+    if (counter++ > 8) {
         finished = true;
     } else {
         while (true) {
             // Timeout
-            if (timer.elapsed() > 20000) {
+            if (timer.elapsed() > 5000) {
                 finished = true;
                 break;
             }
@@ -1250,8 +1263,6 @@ bool DF::pickTrophies(bool &cross)
 
             // Already stand on trophy
             if (pickable) {
-                moveRole(1, 0, 1, 0);
-                sendKey(Stroke, "x", 50);
                 finished = false;
                 break;
             }
@@ -1279,67 +1290,95 @@ bool DF::pickTrophies(bool &cross)
                     continue;
                 }
 
-                if (stuckTimer.isNull()) {
-                    // Get client color blocks
-                    for (int i=0; i<blockCount; ++i) {
-                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-                        memcpy(preClientBlocks[i], data, blockSize);
-                    }
+                // Get client color blocks
+                for (int i=0; i<blockCount; ++i) {
+                    uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+                    memcpy(clientBlocks[i], data, blockSize);
+                }
 
-                    // Start timer
-                    stuckTimer.start();
-                } else {
-                    // Trigger checking every 50 msecs
-                    if (stuckTimer.elapsed() > 50) {
-                        // Get client color blocks
-                        for (int i=0; i<blockCount; ++i) {
-                            uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-                            memcpy(clientBlocks[i], data, blockSize);
-                        }
-
-                        // Check if role is stucked
-                        stucked = false;
-                        for (int i=0; i<blockCount; ++i) {
-                            if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
-                                stucked = true;
-                                break;
-                            }
-                        }
-                        if (stucked) {
-                            finished = true;
-                            break;
-                        }
-
-                        // Save client blocks for checking next time
-                        memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-                        // Restart timer
-                        stuckTimer.restart();
+                // Check if role is stucked
+                stucked = false;
+                for (int i=0; i<blockCount; ++i) {
+                    if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
+                        stucked = true;
+                        break;
                     }
                 }
+                if (stucked) {
+                    finished = true;
+                    break;
+                }
+
+                // Save client blocks for checking next time
+                memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
+
+//                if (stuckTimer.isNull()) {
+//                    // Get client color blocks
+//                    for (int i=0; i<blockCount; ++i) {
+//                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+//                        memcpy(preClientBlocks[i], data, blockSize);
+//                    }
+
+//                    // Start timer
+//                    stuckTimer.start();
+//                } else {
+//                    // Trigger checking every 50 msecs
+//                    if (stuckTimer.elapsed() > 50) {
+//                        // Get client color blocks
+//                        for (int i=0; i<blockCount; ++i) {
+//                            uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+//                            memcpy(clientBlocks[i], data, blockSize);
+//                        }
+
+//                        // Check if role is stucked
+//                        stucked = false;
+//                        for (int i=0; i<blockCount; ++i) {
+//                            if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
+//                                stucked = true;
+//                                break;
+//                            }
+//                        }
+//                        if (stucked) {
+//                            finished = true;
+//                            break;
+//                        }
+
+//                        // Save client blocks for checking next time
+//                        memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
+
+//                        // Restart timer
+//                        stuckTimer.restart();
+//                    }
+//                }
             } else {
                 // Horizontal moving
                 if (hArrived) {
                     hDir = 0;
                 } else {
                     hDir = x - roleX;
-                    if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
-                        // Move over
+                    if (abs(hDir) < 10) {
+                        hArrived = true;
                         hSpeed = 0;
+                    } else if (abs(hDir) < 30) {
+                        if (hPreDir == 0) {
+                            hSpeed = 1;
+                        }
                     } else {
-                        if (abs(hDir) < 10) {
-                            hArrived = true;
-                            hSpeed = 0;
-                        } else if (abs(hDir) < 30) {
-                            if (hPreDir == 0) {
-                                hSpeed = 1;
-                            }
+                        if (hPreDir == 0) {
+                            hSpeed = 2;
                         } else {
-                            if (hPreDir == 0) {
-                                hSpeed = 2;
+                            // Move over
+                            if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
+                                hSpeed = 0;
                             }
                         }
                     }
+                }
+                if (hSpeed == 0) {
+                    hDir = 1;
+                    hPreDir = 0;
+                } else {
+                    hPreDir = hDir;
                 }
 
                 // Vertical moving
@@ -1347,30 +1386,23 @@ bool DF::pickTrophies(bool &cross)
                     vDir = 0;
                 } else {
                     vDir = y - roleY;
-                    if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
-                        // Move over
+                    if (abs(vDir) < 10) {
+                        vArrived = true;
                         vSpeed = 0;
+                    } else if (abs(vDir) < 30) {
+                        if (vPreDir == 0) {
+                            vSpeed = 1;
+                        }
                     } else {
-                        if (abs(vDir) < 10) {
-                            vArrived = true;
-                            vSpeed = 0;
-                        } else if (abs(vDir) < 30){
-                            if (vPreDir == 0) {
-                                vSpeed = 1;
-                            }
+                        if (vPreDir == 0) {
+                            vSpeed = 2;
                         } else {
-                            if (vPreDir == 0) {
-                                vSpeed = 2;
+                            // Move over
+                            if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
+                                vSpeed = 0;
                             }
                         }
                     }
-                }
-
-                if (hSpeed == 0) {
-                    hDir = 1;
-                    hPreDir = 0;
-                } else {
-                    hPreDir = hDir;
                 }
                 if (vSpeed == 0) {
                     vDir = 1;
@@ -1381,10 +1413,16 @@ bool DF::pickTrophies(bool &cross)
 
                 moveRole(hDir, hSpeed, vDir, vSpeed);
             }
+
+            msleep(1);
         }
     }
 
     moveRole(1, 0, 1, 0);
+    approxSleep(50);
+
+    if (pickable)
+        sendKey(Sk, "x", 50);
 
     if (finished)
         counter = 0;
@@ -1409,10 +1447,10 @@ bool DF::navigate(int x, int y, bool end)
     int hSpeed = 0;
     int vSpeed = 0;
     QTime timer;
-    QTime stuckTimer;
+//    QTime stuckTimer;
     static const uint blockLength = 20;
     static const uint blockSize = blockLength * blockLength * 4;
-    static const uint blockCount = 5;
+    static const uint blockCount = 10;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
     QVariant vx, vy;
@@ -1426,7 +1464,7 @@ bool DF::navigate(int x, int y, bool end)
 
     while (true) {
         // Timeout
-        if (timer.elapsed() > 20000) {
+        if (timer.elapsed() > 5000) {
             return false;
         }
 
@@ -1480,70 +1518,101 @@ bool DF::navigate(int x, int y, bool end)
                 continue;
             }
 
-            if (stuckTimer.isNull()) {
-                // Get client color blocks
-                for (int i=0; i<blockCount; ++i) {
-                    uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-                    memcpy(preClientBlocks[i], data, blockSize);
-                }
+            // Get client color blocks
+            for (int i=0; i<blockCount; ++i) {
+                uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+                memcpy(clientBlocks[i], data, blockSize);
+            }
 
-                // Start timer
-                stuckTimer.start();
-            } else {
-                // Trigger checking every 50 msecs
-                if (stuckTimer.elapsed() > 50) {
-                    // Get client color blocks
-                    for (int i=0; i<blockCount; ++i) {
-                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-                        memcpy(clientBlocks[i], data, blockSize);
-                    }
-
-                    // Check if role is stucked
-                    stucked = false;
-                    for (int i=0; i<blockCount; ++i) {
-                        if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
-                            stucked = true;
-                            break;
-                        }
-                    }
-                    if (stucked) {
-                        // Stucked, but also need to check blackscreen
-                        moveRole(1, 0, 1, 0);
-                        hPreDir = vPreDir = 0;
-                        hArrived = vArrived = true;
-                        continue;
-                    }
-
-                    // Save client blocks for checking next time
-                    memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-                    // Restart timer
-                    stuckTimer.restart();
+            // Check if role is stucked
+            stucked = false;
+            for (int i=0; i<blockCount; ++i) {
+                if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
+                    stucked = true;
+                    break;
                 }
             }
+            if (stucked) {
+                // Stucked, but also need to check blackscreen
+                moveRole(1, 0, 1, 0);
+                hPreDir = vPreDir = 0;
+                hArrived = vArrived = true;
+                continue;
+            }
+
+            // Save client blocks for checking next time
+            memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
+
+//            if (stuckTimer.isNull()) {
+//                // Get client color blocks
+//                for (int i=0; i<blockCount; ++i) {
+//                    uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+//                    memcpy(preClientBlocks[i], data, blockSize);
+//                }
+
+//                // Start timer
+//                stuckTimer.start();
+//            } else {
+//                // Trigger checking every 50 msecs
+//                if (stuckTimer.elapsed() > 50) {
+//                    // Get client color blocks
+//                    for (int i=0; i<blockCount; ++i) {
+//                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
+//                        memcpy(clientBlocks[i], data, blockSize);
+//                    }
+
+//                    // Check if role is stucked
+//                    stucked = false;
+//                    for (int i=0; i<blockCount; ++i) {
+//                        if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
+//                            stucked = true;
+//                            break;
+//                        }
+//                    }
+//                    if (stucked) {
+//                        // Stucked, but also need to check blackscreen
+//                        moveRole(1, 0, 1, 0);
+//                        hPreDir = vPreDir = 0;
+//                        hArrived = vArrived = true;
+//                        continue;
+//                    }
+
+//                    // Save client blocks for checking next time
+//                    memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
+
+//                    // Restart timer
+//                    stuckTimer.restart();
+//                }
+//            }
         } else {
             // Horizontal moving
             if (hArrived) {
                 hDir = 0;
             } else {
                 hDir = x - roleX;
-                if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
-                    // Move over
+                if (abs(hDir) < 10) {
+                    hArrived = true;
                     hSpeed = 0;
+                } else if (abs(hDir) < 30) {
+                    if (hPreDir == 0) {
+                        hSpeed = 1;
+                    }
                 } else {
-                    if (abs(hDir) < 10) {
-                        hArrived = true;
-                        hSpeed = 0;
-                    } else if (abs(hDir) < 30) {
-                        if (hPreDir == 0) {
-                            hSpeed = 1;
-                        }
+                    if (hPreDir == 0) {
+                        hSpeed = 2;
                     } else {
-                        if (hPreDir == 0) {
-                            hSpeed = 2;
+                        // Move over
+                        if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
+                            hSpeed = 0;
                         }
                     }
                 }
+            }
+            if (hSpeed == 0) {
+                hDir = 1;
+                hPreDir = 0;
+            } else {
+                hPreDir = hDir;
             }
 
             // Vertical moving
@@ -1551,30 +1620,23 @@ bool DF::navigate(int x, int y, bool end)
                 vDir = 0;
             } else {
                 vDir = y - roleY;
-                if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
-                    // Move over
+                if (abs(vDir) < 10) {
+                    vArrived = true;
                     vSpeed = 0;
+                } else if (abs(vDir) < 30) {
+                    if (vPreDir == 0) {
+                        vSpeed = 1;
+                    }
                 } else {
-                    if (abs(vDir) < 10) {
-                        vArrived = true;
-                        vSpeed = 0;
-                    } else if (abs(vDir) < 30){
-                        if (vPreDir == 0) {
-                            vSpeed = 1;
-                        }
+                    if (vPreDir == 0) {
+                        vSpeed = 2;
                     } else {
-                        if (vPreDir == 0) {
-                            vSpeed = 2;
+                        // Move over
+                        if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
+                            vSpeed = 0;
                         }
                     }
                 }
-            }
-
-            if (hSpeed == 0) {
-                hDir = 1;
-                hPreDir = 0;
-            } else {
-                hPreDir = hDir;
             }
             if (vSpeed == 0) {
                 vDir = 1;
@@ -1585,9 +1647,12 @@ bool DF::navigate(int x, int y, bool end)
 
             moveRole(hDir, hSpeed, vDir, vSpeed);
         }
+
+        msleep(1);
     }
 
     moveRole(1, 0, 1, 0);
+    approxSleep(50);
 
     return false;
 }

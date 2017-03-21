@@ -44,7 +44,6 @@ void GrandiRaider::run()
                 } else {
                     resetRoleCount(DUNGEON);
                     flow = StartClient;
-                    qDebug()<<"tag2";
                 }
                 break;
             case StartClient:
@@ -96,8 +95,7 @@ void GrandiRaider::run()
 
                 if (sectionIndex == 0) {
                     // Window maybe pop up when first summonx
-                    sendKey(Down, 32, 200);
-                    sendKey(Up, 32, 100);
+                    sendKey(Sk, 32, 100);
 
                     summonSupporter();
                     buff();
@@ -138,22 +136,19 @@ void GrandiRaider::run()
                     approxSleep(200);
                 }
 
-                if (sectionIndex == 1) {
-                    for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x");
-                } else if (sectionIndex == 6) {
+                if (sectionIndex == 6) {
                     // Destory generator
-                    sendKey(Down, m_arrowL, 100);
-                    sendKey(Up, m_arrowL);
+                    sendKey(Dn, m_arrowL);
                     for (int i=0; i<10; ++i)
-                        sendKey(Stroke, "x");
+                        sendKey(Sk, "x");
+                    sendKey(Up, m_arrowL);
                 } else {
                     // Pick trophies
                     if (pickTrophies(cross)) {
                         if (!cross) {
                             // Normal attack
                             for (int i=0; i<5; ++i)
-                                sendKey(Stroke, "x");
+                                sendKey(Sk, "x");
                         }
                     }
 
@@ -208,12 +203,12 @@ void GrandiRaider::run()
                     pickFreeGoldenCard();
 
                     // Move trophies (-)
-                    sendKey(Down, 189, 200);
+                    sendKey(Dn, 189, 100);
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 70; ++i) {
-                        sendKey(Stroke, "x");
+                    for (int i = 0; i < 80; ++i) {
+                        sendKey(Sk, "x");
                     }
 
                     // Sell trophies
@@ -234,8 +229,8 @@ void GrandiRaider::run()
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {
                         // F12
-                        sendKey(Down, 123, 200);
-                        sendKey(Up, 123, 5000);
+                        sendKey(Dn, 123, 200);
+                        sendKey(Up, 123, 4000);
                         flow = RoleSummary;
                         break;
                     }
@@ -254,10 +249,10 @@ void GrandiRaider::run()
                 summonSupporter();
 
                 // Destory stones
-                sendKey(Down, 39, 100);
-                sendKey(Up, 39);
+                sendKey(Dn, m_arrowR);
                 for (int i = 0; i < 30; ++i)
-                    sendKey(Stroke, "x");
+                    sendKey(Sk, "x");
+                sendKey(Up, m_arrowR);
 
                 break;
             case RoleSummary:

@@ -16,7 +16,7 @@ using namespace dm;
 #define MEDIAN_RANDOM(min, max) min+qrand()%(max-min+1)
 
 enum MouseOper {Move, Left, LeftDown, LeftUp, Right, RightDown, RightUp};
-enum KeyOper {Stroke, Down, Up};
+enum KeyOper {Sk, Dn, Up};
 
 class DmPrivate : public QThread
 {

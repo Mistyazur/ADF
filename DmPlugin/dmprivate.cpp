@@ -248,12 +248,12 @@ void DmPrivate::sendKey(const KeyOper &oper,
                     int extraDelay)
 {
     switch (oper) {
-    case Stroke:
+    case Sk:
         m_dm.KeyDown(vk);
         approxSleep(m_keyDuration, m_keyDurationDelta);
         m_dm.KeyUp(vk);
         break;
-    case Down:
+    case Dn:
         m_dm.KeyDown(vk);
         break;
     case Up:
@@ -272,12 +272,12 @@ void DmPrivate::sendKey(const KeyOper &oper,
                     int extraDelay)
 {
     switch (oper) {
-    case Stroke:
+    case Sk:
         m_dm.KeyDownChar(vk);
         approxSleep(m_keyDuration, m_keyDurationDelta);
         m_dm.KeyUpChar(vk);
         break;
-    case Down:
+    case Dn:
         m_dm.KeyDownChar(vk);
         break;
     case Up:

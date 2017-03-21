@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     // Start with windows
     if (startUp) {
         w.setWindowTitle("Z");
-        QTimer::singleShot(120*1000, &w, SLOT(on_btnStart_clicked()));
+        QTimer::singleShot(60*1000, &w, SLOT(on_btnStart_clicked()));
     }
 
     return a.exec();
