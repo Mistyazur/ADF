@@ -521,11 +521,11 @@ void DF::updateShareStorage()
     sendMouse(Left, 470, 360, 1000);  // Confirm
     sendMouse(Left, 300, 128, 1000);  // Switch to share storage
 
-//    // Save money
-//    if (m_dm.FindPic(CLIENT_RECT, "save_gold.bmp", "000000", 1.0, 0, vx, vy) != -1) {
-//        sendMouse(Left, vx, vy, 1000);
-//        sendMouse(Left, vx, vy, 1000);
-//    }
+    // Save money
+    if (m_dm.FindPic(CLIENT_RECT, "save_gold.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+        sendMouse(Left, vx, vy, 500);
+        sendMouse(Left, vx, vy, 500);
+    }
 
     // Save items
     sendKey(Sk, "A", 100);
@@ -572,7 +572,7 @@ void DF::playMercenary()
         if (m_dm.FindPic(200, 100, 400, 500, "combo_box_button.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             // Pick time
             sendMouse(Left, vx.toInt(), vy.toInt(), 100);
-            sendMouse(Left, vx.toInt() - 30, vy.toInt() + 55, 100);
+            sendMouse(Left, vx.toInt() - 30, vy.toInt() + 70, 100);
 
             // Pick map
             sendMouse(Left, vx.toInt() + 180, vy.toInt(), 100);

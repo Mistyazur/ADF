@@ -98,8 +98,9 @@ void GrandiRaider::run()
                     sendKey(Sk, 32, 100);
 
                     summonSupporter();
-                    buff();
                     useOwnSkill();
+                    approxSleep(1000);
+                    buff();
                 } else if (sectionIndex == 2) {
                     // Awaken monsters
                     navigate(600, -1);
@@ -262,6 +263,7 @@ void GrandiRaider::run()
                 updateShareStorage();
                 flow = UpdateRoleIndex;
             case UpdateRoleIndex:
+                qDebug()<<"Role index"<<(m_firstRoleIndex + m_roleCount);
                 if (resetRoleCount(DUNGEON)) {
                     backToRoleList();
                     flow = PickRole;
