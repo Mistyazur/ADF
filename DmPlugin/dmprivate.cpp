@@ -33,6 +33,8 @@ DmPrivate::DmPrivate(QObject *parent) :
 
     m_dm.SetMouseDelay("normal", 0);
     m_dm.SetKeypadDelay("normal", 0);
+    m_dm.SetMouseDelay("dx", 0);
+    m_dm.SetKeypadDelay("dx", 0);
 }
 
 DmPrivate::~DmPrivate()

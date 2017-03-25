@@ -207,10 +207,15 @@ bool DF::bind(bool underground)
         return ret;
 
     if (underground)
-        ret = m_dm.BindWindow(m_hBindWnd, "dx2", "dx", "dx", 101);
+        ret = m_dm.BindWindowEx(m_hBindWnd,
+                              "dx2",
+                              "dx.mouse.position.lock.api|dx.mouse.position.lock.message|dx.mouse.clip.lock.api|dx.mouse.input.lock.api|dx.mouse.state.api|dx.mouse.api|dx.mouse.cursor",
+                              "dx.keypad.input.lock.api|dx.keypad.state.api|dx.keypad.api",
+                              "dx.public.graphic.protect|dx.public.km.protect",
+                              103);
     else {
 //        SetWindowPos((HWND)m_hBindWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
-        ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 101);
+        ret = m_dm.BindWindow(m_hBindWnd, "normal", "normal", "normal", 0);
     }
 
     approxSleep(2000);
