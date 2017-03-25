@@ -1222,10 +1222,9 @@ bool DF::pickTrophies(bool &cross)
     int x;
     int y;
     QTime timer;
-//    QTime stuckTimer;
     static const uint blockLength = 20;
     static const uint blockSize = blockLength * blockLength * 4;
-    static const uint blockCount = 10;
+    static const uint blockCount = 5;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
     static int counter = 0;
@@ -1311,45 +1310,6 @@ bool DF::pickTrophies(bool &cross)
 
                 // Save client blocks for checking next time
                 memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-//                if (stuckTimer.isNull()) {
-//                    // Get client color blocks
-//                    for (int i=0; i<blockCount; ++i) {
-//                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-//                        memcpy(preClientBlocks[i], data, blockSize);
-//                    }
-
-//                    // Start timer
-//                    stuckTimer.start();
-//                } else {
-//                    // Trigger checking every 50 msecs
-//                    if (stuckTimer.elapsed() > 50) {
-//                        // Get client color blocks
-//                        for (int i=0; i<blockCount; ++i) {
-//                            uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-//                            memcpy(clientBlocks[i], data, blockSize);
-//                        }
-
-//                        // Check if role is stucked
-//                        stucked = false;
-//                        for (int i=0; i<blockCount; ++i) {
-//                            if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
-//                                stucked = true;
-//                                break;
-//                            }
-//                        }
-//                        if (stucked) {
-//                            finished = true;
-//                            break;
-//                        }
-
-//                        // Save client blocks for checking next time
-//                        memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-//                        // Restart timer
-//                        stuckTimer.restart();
-//                    }
-//                }
             } else {
                 // Horizontal moving
                 if (hArrived) {
@@ -1413,8 +1373,6 @@ bool DF::pickTrophies(bool &cross)
 
                 moveRole(hDir, hSpeed, vDir, vSpeed);
             }
-
-            msleep(1);
         }
     }
 
@@ -1447,10 +1405,9 @@ bool DF::navigate(int x, int y, bool end)
     int hSpeed = 0;
     int vSpeed = 0;
     QTime timer;
-//    QTime stuckTimer;
     static const uint blockLength = 20;
     static const uint blockSize = blockLength * blockLength * 4;
-    static const uint blockCount = 10;
+    static const uint blockCount = 5;
     static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
     QVariant vx, vy;
@@ -1542,48 +1499,6 @@ bool DF::navigate(int x, int y, bool end)
 
             // Save client blocks for checking next time
             memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-//            if (stuckTimer.isNull()) {
-//                // Get client color blocks
-//                for (int i=0; i<blockCount; ++i) {
-//                    uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-//                    memcpy(preClientBlocks[i], data, blockSize);
-//                }
-
-//                // Start timer
-//                stuckTimer.start();
-//            } else {
-//                // Trigger checking every 50 msecs
-//                if (stuckTimer.elapsed() > 50) {
-//                    // Get client color blocks
-//                    for (int i=0; i<blockCount; ++i) {
-//                        uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
-//                        memcpy(clientBlocks[i], data, blockSize);
-//                    }
-
-//                    // Check if role is stucked
-//                    stucked = false;
-//                    for (int i=0; i<blockCount; ++i) {
-//                        if (memcmp(clientBlocks[i], preClientBlocks[i], blockSize) == 0) {
-//                            stucked = true;
-//                            break;
-//                        }
-//                    }
-//                    if (stucked) {
-//                        // Stucked, but also need to check blackscreen
-//                        moveRole(1, 0, 1, 0);
-//                        hPreDir = vPreDir = 0;
-//                        hArrived = vArrived = true;
-//                        continue;
-//                    }
-
-//                    // Save client blocks for checking next time
-//                    memcpy(preClientBlocks, clientBlocks, blockCount*blockSize);
-
-//                    // Restart timer
-//                    stuckTimer.restart();
-//                }
-//            }
         } else {
             // Horizontal moving
             if (hArrived) {
@@ -1647,8 +1562,6 @@ bool DF::navigate(int x, int y, bool end)
 
             moveRole(hDir, hSpeed, vDir, vSpeed);
         }
-
-        msleep(1);
     }
 
     moveRole(1, 0, 1, 0);

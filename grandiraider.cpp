@@ -106,16 +106,17 @@ void GrandiRaider::run()
                     navigate(600, -1);
                 } else if (sectionIndex == 6) {
                     // Get close to generator
-                    navigate(350, 390);
+                    navigate(350, 380);
                 } else if (sectionIndex == 7) {
                     // Avoid damage
                     navigate(0, -1);
                 }
 
-                sectionIndex = getSectionIndex();
                 flow = Fight;
                 break;
             case Fight:
+                sectionIndex = getSectionIndex();
+
                 // Check section state
                 if (isSectionClear("59a2a3-101010|1f5877-101010", 100)) {
                     if (timer.elapsed() < 3000) {
@@ -155,17 +156,14 @@ void GrandiRaider::run()
 
                     // Cross map
                     if (cross) {
-                        flow = PreFight;
+                        flow = Navigate;
                         break;
                     }
                 }
                 break;
             case PickTrophies:
                 if (pickTrophies(cross)) {
-                    if (cross)
-                        flow = PreFight;
-                    else
-                        flow = Navigate;
+                    flow = Navigate;
                 }
                 break;
             case Navigate:
@@ -244,16 +242,16 @@ void GrandiRaider::run()
                         qDebug()<<"reenterDungeon failed";
                         throw DFRESTART;
                     }
+                } else {
+                    // Summon
+                    summonSupporter();
+
+                    // Destory stones
+                    sendKey(Dn, m_arrowR);
+                    for (int i = 0; i < 5; ++i)
+                        sendKey(Sk, "x");
+                    sendKey(Up, m_arrowR);
                 }
-
-                // Summon
-                summonSupporter();
-
-                // Destory stones
-                sendKey(Dn, m_arrowR);
-                for (int i = 0; i < 30; ++i)
-                    sendKey(Sk, "x");
-                sendKey(Up, m_arrowR);
 
                 break;
             case RoleSummary:
