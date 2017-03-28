@@ -934,7 +934,7 @@ bool DF::getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
 
     pickable = false;
 
-    res = m_dm.FindPicEx(0, 0, 800, 500, "drop_activated_left.bmp|drop_normal_left.bmp", "000000", 1.0, 1);
+    res = m_dm.FindPicEx(0, 0, 800, 500, "drop_activated_left.bmp|drop_normal_left.bmp|drop_event_left.bmp", "000000", 1.0, 1);
     if (res.isEmpty())
         return false;
 
@@ -949,7 +949,8 @@ bool DF::getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
         return false;
 
     if (m_dm.FindPic(resList.at(1).toInt(), resList.at(2).toInt(), resList.at(1).toInt() + 200, resList.at(2).toInt() + 6,
-                     "drop_normal_right.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+                     ((resList.at(0).toInt() == 1) ? "drop_normal_right.bmp" : "drop_event_left.bmp"),
+                     "000000", 1.0, 0, vx, vy) != -1) {
         nx = resList.at(1).toInt() + (vx.toInt() + 10 - resList.at(1).toInt()) / 2;
         ny = resList.at(2).toInt() + 30;
     } else {
