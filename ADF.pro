@@ -10,7 +10,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ADF
 TEMPLATE = app
-DESTDIR = ../ADF/Bin
+Debug:DESTDIR = ../ADF/bin-debug
+Release:DESTDIR = ../ADF/bin-release
 
 include(JSettings/JSettings.pri)
 include(Hotkey/Hotkey.pri)
@@ -31,8 +32,6 @@ FORMS    += mainwindow.ui
 LIBS += -lDbgHelp
 
 RC_FILE = icon.rc
-
-QMAKE_LFLAGS_RELEASE = /INCREMENTAL:NO /DEBUG
 
 win32 {
 CONFIG += embed_manifest_exe
