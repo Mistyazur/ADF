@@ -198,24 +198,38 @@ void GrandiRaider::run()
             case PreBossFight:
                 summonSupporter();
 
-                // Get to stones
-                navigate(450, 0);
-                navigate(600, 0);
+                // Move a litte to make boss not able to teleport
+                navigate(350, 400);
+                approxSleep(2000);
 
                 flow = BossFight;
                 break;
             case BossFight:
                 // Check dungeon status
                 if (isDungeonEnded()) {
+
+                    // Move to stones
+                    moveRole(1, 2, -1, 2);
+
                     // Get free card
                     pickFreeGoldenCard();
+
+                    // Stop moving
+                    moveRole(1, 0, 1, 0);
+
+                    // Destory stones
+                    sendKey(Dn, m_arrowR);
+                    for (int i = 0; i < 50; ++i)
+                        sendKey(Sk, "x");
+                    sendKey(Up, m_arrowR);
+                    approxSleep(500);
 
                     // Move trophies (-)
                     sendKey(Dn, 189, 100);
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 80; ++i) {
+                    for (int i = 0; i < 60; ++i) {
                         sendKey(Sk, "x");
                     }
 
@@ -252,14 +266,7 @@ void GrandiRaider::run()
                         throw DFRESTART;
                     }
                 } else {
-                    // Summon
-                    summonSupporter();
-
-                    // Destory stones
-                    sendKey(Dn, m_arrowR);
-                    for (int i = 0; i < 5; ++i)
-                        sendKey(Sk, "x");
-                    sendKey(Up, m_arrowR);
+                    killBoss();
                 }
 
                 break;

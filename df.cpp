@@ -64,7 +64,7 @@ HWND DF::getTGPWindow()
 
     QString res = m_dm.EnumWindow(0, "Chrome Legacy Window", "Chrome_RenderWidgetHostHWND", 1+2+16);
     QStringList winList = res.split(",", QString::SkipEmptyParts);
-    if (winList.isEmpty())
+    if (winList.size() < 1)
         hTGPWnd = (HWND)0;
     else
         hTGPWnd = GetAncestor((HWND)winList.first().toInt(), GA_ROOTOWNER);
@@ -602,7 +602,7 @@ bool DF::initDungeonSettings(const QString &dungeon)
     // Get role index
     QString index = settings.value("role_index", "").toString();
     QStringList indexList = index.split("-", QString::SkipEmptyParts);
-    if (indexList.count() != 2)
+    if (indexList.size() != 2)
         return false;
 
     m_firstRoleIndex = indexList.first().toInt() - 1;
@@ -829,7 +829,8 @@ bool DF::isDungeonEnded()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(CLIENT_RECT, "dungeon_end.bmp", "202020", 1.0, 2, vx, vy) == -1)
+    if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
+                     "minimap_boss.bmp", "000020", 1.0, 0, vx, vy) != -1)
         return false;
 
     return true;
@@ -948,14 +949,18 @@ bool DF::getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable)
     if (resList.size() != 3)
         return false;
 
-    if (m_dm.FindPic(resList.at(1).toInt(), resList.at(2).toInt(), resList.at(1).toInt() + 200, resList.at(2).toInt() + 6,
-                     ((resList.at(0).toInt() == 1) ? "drop_normal_right.bmp" : "drop_event_left.bmp"),
+    int index = resList.at(0).toInt();
+    int tx = resList.at(1).toInt();
+    int ty = resList.at(2).toInt();
+
+    if (m_dm.FindPic(tx, ty, tx + 200, ty + 6,
+                     (index == 1) ? "drop_normal_right.bmp" : "drop_event_left.bmp",
                      "000000", 1.0, 0, vx, vy) != -1) {
-        nx = resList.at(1).toInt() + (vx.toInt() + 10 - resList.at(1).toInt()) / 2;
-        ny = resList.at(2).toInt() + 30;
+        nx = tx + (vx.toInt() + 10 - tx) / 2;
+        ny = ty + 30;
     } else {
-        nx = resList.at(1).toInt() + 50;
-        ny = resList.at(2).toInt() + 30;
+        nx = tx + 50;
+        ny = ty + 30;
     }
 
     return true;
@@ -1550,7 +1555,7 @@ bool DF::navigateSection(int sectionIndex)
                 throw DFSettingError;
             }
 
-            end = (i == (sectionPathList.count()-1)) ? true : false;
+            end = (i == (sectionPathList.count() - 1)) ? true : false;
             if (navigate(position.first().toInt(), position.last().toInt(), end)) {
                 return true;
             }
@@ -1560,16 +1565,18 @@ bool DF::navigateSection(int sectionIndex)
     return false;
 }
 
-bool DF::fightBoss()
+bool DF::killBoss()
 {
     QVariant vx, vy;
     int rx, ry;
     int bx, by;
 
+    // Get role position
     if (!getRoleCoords(rx, ry)) {
         return true;
     }
 
+    // Get boss position
     if (!m_dm.FindMultiColor(0, 100, 800, 450,
                         "FF00FF", "1|0|FF00FF, 2|0|FF00FF, 3|0|FF00FF",
                         1.0, 0,
@@ -1578,10 +1585,10 @@ bool DF::fightBoss()
         summonSupporter();
         return true;
     }
-
     bx = vx.toInt() + 50;
     by = vy.toInt() + 150;
 
+    // Get away from boss
     if (abs(rx- bx) < 250) {
         moveRole((bx < 400) ? 1 : -1, 2, 0, 0);
         approxSleep(100);

@@ -81,7 +81,7 @@ protected:
     bool pickTrophies(bool &cross);
     bool navigate(int x, int y, bool end=false);
     bool navigateSection(int sectionIndex);
-    bool fightBoss();
+    bool killBoss();
 private:
     int m_hBindWnd;
     int m_roleOffsetY;
