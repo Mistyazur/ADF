@@ -42,7 +42,7 @@ protected:
     bool closeSystemMenu();
     bool isDisconnected();
     void setArrowKey(int left, int up, int right, int down);
-    bool isBlackScreen(int x1, int y1, int x2, int y2);
+    bool isBlackScreen();
     void pickRole(int index);
     void repickCurrentRole();
     void backToRoleList();
@@ -72,7 +72,7 @@ protected:
     void useOwnSkill();
     void buff();
     int  getSectionIndex();
-    bool isSectionClear(const QString &brightColor, const int threshold);
+    bool isSectionClear();
     bool isPickable();
     bool getTrophyCoords(int x, int y, int &nx, int &ny, bool &pickable);
     bool getRoleCoordsInMap(int &x, int &y);

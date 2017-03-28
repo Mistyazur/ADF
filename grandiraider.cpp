@@ -64,9 +64,9 @@ void GrandiRaider::run()
                 break;
             case PickRole:
                 pickRole();
-                flow = Init;
+                flow = InitRole;
                 break;
-            case Init:
+            case InitRole:
                 if (initRoleOffset()) {
                     // Check dungeon point
                     if (isNoDungeonPoint())
@@ -87,11 +87,21 @@ void GrandiRaider::run()
                 }
                 break;
             case PreFight:
-                summonSupporter();
-
                 sectionIndex = getSectionIndex();
-                if (sectionIndex == -1)
+
+                if (sectionIndex == -1) {
                     continue;
+                } else if (sectionIndex == -2) {
+                    flow = PreBossFight;
+                    break;
+                }
+
+                if (isSectionClear()) {
+                    flow = Navigate;
+                    break;
+                }
+
+                summonSupporter();
 
                 if (sectionIndex == 0) {
                     // Window maybe pop up when first summonx
@@ -117,8 +127,7 @@ void GrandiRaider::run()
             case Fight:
                 sectionIndex = getSectionIndex();
 
-                // Check section state
-                if (isSectionClear("59a2a3-101010|1f5877-101010", 100)) {
+                if (isSectionClear()) {
                     if (timer.elapsed() < 3000) {
                         // Already cleared
                         flow = Navigate;
@@ -156,14 +165,17 @@ void GrandiRaider::run()
 
                     // Cross map
                     if (cross) {
-                        flow = Navigate;
+                        flow = PreFight;
                         break;
                     }
                 }
                 break;
             case PickTrophies:
                 if (pickTrophies(cross)) {
-                    flow = Navigate;
+                    if (cross)
+                        flow = PreFight;
+                    else
+                        flow = Navigate;
                 }
                 break;
             case Navigate:
@@ -181,10 +193,7 @@ void GrandiRaider::run()
                     throw DFRESTART;
                 }
 
-                if ((sectionIndex) == 7 && (getSectionIndex() == -1))
-                    flow = PreBossFight;
-                else
-                    flow = PreFight;
+                flow = PreFight;
                 break;
             case PreBossFight:
                 summonSupporter();

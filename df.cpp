@@ -725,11 +725,11 @@ bool DF::initRoleOffset()
     return true;
 }
 
-bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
+bool DF::isBlackScreen()
 {
-    int blackCount = m_dm.GetColorNum(x1, y1, x2, y2, "000000-202020", 1.0);
-    int totalCount = (x2 - x1) * ( y2 - y1);
-    if (blackCount < totalCount * 0.8)
+    QVariant vx, vy;
+
+    if (m_dm.FindPic(350, 250, 450, 350, "black_screen.bmp", "202020", 1.0, 0, vx, vy) == -1)
         return false;
 
     return true;
@@ -737,7 +737,7 @@ bool DF::isBlackScreen(int x1, int y1, int x2, int y2)
 
 bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 {
-    QVariant x, y;
+    QVariant vx, vy;
 
     int directionKey = leftEntrance ? m_arrowL : m_arrowR;
 
@@ -745,9 +745,9 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
     sendKey(Up, directionKey, 100);
 
     // Cancel mercenary
-    if (m_dm.FindPic(CLIENT_RECT, "announcement.bmp", "000000", 1.0, 0, x, y) != -1) {
-        sendMouse(Left, x.toInt() - 20, y.toInt() + 100, 100);
-        sendMouse(Left, x.toInt() - 20, y.toInt() + 100, 100);
+    if (m_dm.FindPic(CLIENT_RECT, "announcement.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+        sendMouse(Left, vx.toInt() - 20, vy.toInt() + 100, 100);
+        sendMouse(Left, vx.toInt() - 20, vy.toInt() + 100, 100);
         openSystemMenu();
         closeSystemMenu();
 
@@ -759,7 +759,7 @@ bool DF::enterDungeon(int index, int difficulty, bool leftEntrance)
 
     // Wait for dungeon picking UI
     for (int i=0; i<10; ++i) {
-        if (m_dm.FindPic(CLIENT_RECT, "options_back_to_town.bmp", "000000", 1.0, 0, x, y) != -1) {
+        if (m_dm.FindPic(CLIENT_RECT, "options_back_to_town.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             goto EnterDungeon;
         }
         msleep(1000);
@@ -802,19 +802,14 @@ bool DF::reenterDungeon()
 
 bool DF::waitForDungeonBeign()
 {
-    QVariant x, y;
+    QVariant vx, vy;
 
-    for (int i = 0; i < 10; ++i) {
-        if (m_dm.GetColorNum(300, 575, 500, 595, "FFFF00", 1.0) > 100) {
-            for (int j = 0; j < 10; ++j) {
-                if (m_dm.GetColorNum(300, 575, 500, 595, "FFFF00", 1.0) == 0) {
-                    msleep(1000);
-                    return true;
-                }
-                msleep(1000);
-            }
+    for (int i = 0; i < 50; ++i) {
+        if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
+                         "minimap_role.bmp", "000020", 1.0, 0, vx, vy) != -1) {
+            return true;
         }
-        msleep(1000);
+        msleep(200);
     }
 
     return false;
@@ -893,60 +888,31 @@ void DF::buff()
 
 int DF::getSectionIndex()
 {
-    QVariant vx, vy;
     int x, y;
+    QVariant vx, vy;
 
-    bool ok = false;
-    for (int i = 0; i < 50; ++i) {
-        if (m_dm.FindPic(750, 0, 800, 50, "dungeon_in.bmp", "101010", 1.0, 0, vx, vy) != -1) {
-            ok = true;
-            break;
-        }
-        approxSleep(100);
-    }
-    if (!ok) {
-        qDebug()<<"Can't get section index";
-        throw DFRESTART;
-    }
-
-    if (!getRoleCoordsInMap(x, y))
+    if (!getRoleCoordsInMap(x, y)) {
         return -1;
+    }
+
+    if ((x == -1) && (y == -1)) {
+        // Boss room
+        return -2;
+    }
 
     return m_nodeList.indexOf(QVariantList({x , y}));
 }
 
-bool DF::isSectionClear(const QString &brightColor, const int threshold)
+bool DF::isSectionClear()
 {
-    int x, y;
+    QVariant vx, vy;
 
-    if (!getRoleCoordsInMap(x, y))
-        return false;
-
-    if (m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > threshold)
-        return true;
-
-    approxSleep(100);
-
-    if (m_dm.GetColorNum(x-25, y-4, x-9, y+12, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x+11, y-4, x+27, y+12, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x-6, y-22, x+8, y-8, brightColor, 1.0) > threshold)
-        return true;
-
-    if (m_dm.GetColorNum(x-6, y+14, x+8, y+28, brightColor, 1.0) > threshold)
-        return true;
+    for (int i = 0; i < 4; ++i) {
+        if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
+                         "section_clear.bmp", "000000", 1.0, 0, vx, vy) != -1)
+            return true;
+        msleep(50);
+    }
 
     return false;
 }
@@ -998,13 +964,17 @@ bool DF::getRoleCoordsInMap(int &x, int &y)
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
-                     "dungeon_map_role.bmp", "101010", 1.0, 0, vx, vy) == -1) {
+    int index = m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
+                            "minimap_role.bmp|minimap_boss.bmp", "000000", 1.0, 0, vx, vy);
+    if (index == -1) {
         return false;
+    } else if (index == 0) {
+        x = vx.toInt();
+        y = vy.toInt();
+    } else if (index == 1) {
+        x = -1;
+        y = -1;
     }
-
-    x = vx.toInt();
-    y = vy.toInt();
 
     return true;
 }
@@ -1249,10 +1219,9 @@ bool DF::pickTrophies(bool &cross)
             }
 
             // Check if reached next section
-            if (isBlackScreen(0, 0, 50, 50)) {
+            if (isBlackScreen()) {
                 cross = true;
                 finished = true;
-                break;
             }
 
             // Get position of role
@@ -1431,18 +1400,11 @@ bool DF::navigate(int x, int y, bool end)
         }
 
         // Check if reached next section
-        if (isBlackScreen(0, 0, 50, 50)) {
+        if (isBlackScreen()) {
             // Stop
             moveRole(1, 0, 1, 0);
-            hPreDir = vPreDir = 0;
 
-            // Wait until not black screen
-            for (int i=0; i<100; ++i) {
-                msleep(100);
-                if (!isBlackScreen(0, 0, 50, 50)) {
-                    return true;
-                }
-            }
+            return true;
         }
 
         // Check arrival
