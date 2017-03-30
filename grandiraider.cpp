@@ -89,11 +89,12 @@ void GrandiRaider::run()
             case PreFight:
                 sectionIndex = getSectionIndex();
 
-                if (sectionIndex == -1) {
+                if (sectionIndex < 0) {
+                    if (sectionIndex == -2) {
+                        flow = PreBossFight;
+                        break;
+                    }
                     continue;
-                } else if (sectionIndex == -2) {
-                    flow = PreBossFight;
-                    break;
                 }
 
                 if (isSectionClear()) {
@@ -126,6 +127,8 @@ void GrandiRaider::run()
                 break;
             case Fight:
                 sectionIndex = getSectionIndex();
+                if (sectionIndex < 0)
+                    continue;
 
                 if (isSectionClear()) {
                     if (timer.elapsed() < 3000) {
@@ -180,6 +183,8 @@ void GrandiRaider::run()
                 break;
             case Navigate:
                 sectionIndex = getSectionIndex();
+                if (sectionIndex < 0)
+                    continue;
 
                 ok = false;
                 for (int i=0; i<2; ++i) {
@@ -229,7 +234,7 @@ void GrandiRaider::run()
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 60; ++i) {
+                    for (int i = 0; i < 50; ++i) {
                         sendKey(Sk, "x");
                     }
 

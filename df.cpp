@@ -1206,12 +1206,13 @@ bool DF::pickTrophies(bool &cross)
     static const uint blockLength = 20;
     static const uint blockSize = blockLength * blockLength * 4;
     static const uint blockCount = 5;
-    static uchar preClientBlocks[blockCount][blockSize] = {0};
     static uchar clientBlocks[blockCount][blockSize] = {0};
+    static uchar preClientBlocks[blockCount][blockSize] = {0};
     static int counter = 0;
 
-    timer.start();
     cross = false;
+
+    timer.start();
 
     // Avoid insisting picking a unpickable item
     if (counter++ > 8) {
@@ -1357,7 +1358,6 @@ bool DF::pickTrophies(bool &cross)
     }
 
     moveRole(1, 0, 1, 0);
-    approxSleep(50);
 
     if (pickable)
         sendKey(Sk, "x", 50);
@@ -1538,7 +1538,6 @@ bool DF::navigate(int x, int y, bool end)
     }
 
     moveRole(1, 0, 1, 0);
-    approxSleep(50);
 
     return false;
 }
@@ -1547,7 +1546,7 @@ bool DF::navigateSection(int sectionIndex)
 {
     bool end = false;
 
-    if (sectionIndex < m_pathList.count()) {
+    if ((0 <= sectionIndex) && (sectionIndex < m_pathList.count())) {
         const QVariantList &sectionPathList = m_pathList.at(sectionIndex).toList();
         for (int i = 0; i < sectionPathList.count(); ++i) {
             QVariantList &position = sectionPathList.at(i).toList();
