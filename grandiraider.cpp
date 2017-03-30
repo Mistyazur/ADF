@@ -21,8 +21,8 @@ void GrandiRaider::run()
     Flow preFlow = Unknown;
     Flow flow = ResetRoleCount;
     int sectionIndex = 0;
-    bool waitForDpReset = false;
     bool ok = false;
+    bool waitForDpReset = false;
     bool cross = false;
     QTime timer;
 
@@ -307,12 +307,6 @@ void GrandiRaider::run()
                 break;
             }
 
-            // Check disconnected
-            if (isDisconnected()) {
-                qDebug()<<"Disconnected";
-                throw DFRESTART;
-            }
-
             // Check timeout
             if (flow != preFlow) {
                 timer.restart();
@@ -326,12 +320,17 @@ void GrandiRaider::run()
                 }
             }
 
+            // Check disconnected
+            if (isDisconnected()) {
+                qDebug()<<"Disconnected";
+                throw DFRESTART;
+            }
+
             // Check death
             if (isRoleDead()) {
                 qDebug()<<"Role is dead";
                 throw DFRESTART;
             }
-
         } catch(DFError e) {
             if (e == DFSettingError) {
                 qDebug()<<"Error[Settings]";
