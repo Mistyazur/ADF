@@ -1097,37 +1097,42 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
     static int hPreSpeed = 0;
     static int vPreSpeed = 0;
 
-    // Horizontal
-
     if (hDir) {
         hKey = (hDir > 0) ? m_arrowR : m_arrowL;
     } else {
         hKey = 0;
     }
 
+    if (vDir) {
+        vKey = (vDir > 0) ? m_arrowD : m_arrowU;
+    } else {
+        vKey = 0;
+    }
+
+    // Horizontal
     if (hSpeed == 0) {
         if (hKey && hHeldKey) {
-            sendKey(Up, hHeldKey);
+            sendKey(Up, hHeldKey, 30);
             hHeldKey = 0;
             hPreSpeed = hSpeed;
         }
     } else {
-        if (hKey && hHeldKey) {
-            if ((hKey == hHeldKey) && (hSpeed == hPreSpeed)) {
-                hKey = 0;
-            } else {
-                sendKey(Up, hHeldKey);
-                hHeldKey = 0;
+        if (hKey) {
+            if (hHeldKey) {
+                if ((hKey == hHeldKey) && (hSpeed == hPreSpeed)) {
+                    hSpeed = 0;
+                } else {
+                    sendKey(Up, hHeldKey, 30);
+                    hHeldKey = 0;
+                    hPreSpeed = 0;
+                }
             }
-        }
-        if (hSpeed == 1) {
-            if (hKey) {
+
+            if (hSpeed == 1) {
                 sendKey(Dn, hKey);
                 hHeldKey = hKey;
                 hPreSpeed = hSpeed;
-            }
-        } else if (hSpeed ==2) {
-            if (hKey) {
+            } else if (hSpeed ==2) {
                 sendKey(Sk, hKey);
                 sendKey(Dn, hKey);
                 hHeldKey = hKey;
@@ -1137,36 +1142,29 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
     }
 
     // Vertical
-
-    if (vDir) {
-        vKey = (vDir > 0) ? m_arrowD : m_arrowU;
-    } else {
-        vKey = 0;
-    }
-
     if (vSpeed == 0) {
         if (vKey && vHeldKey) {
-            sendKey(Up, vHeldKey);
+            sendKey(Up, vHeldKey, 30);
             vHeldKey = 0;
             vPreSpeed = vSpeed;
         }
     } else {
-        if (vKey && vHeldKey) {
-            if ((vKey == vHeldKey) && (vSpeed == vPreSpeed)) {
-                vKey = 0;
-            } else {
-                sendKey(Up, vHeldKey);
-                vHeldKey = 0;
+        if (vKey) {
+            if (vHeldKey) {
+                if ((vKey == vHeldKey) && (vSpeed == vPreSpeed)) {
+                    vSpeed = 0;
+                } else {
+                    sendKey(Up, vHeldKey, 30);
+                    vHeldKey = 0;
+                    vPreSpeed = 0;
+                }
             }
-        }
-        if (vSpeed == 1) {
-            if (vKey) {
+
+            if (vSpeed == 1) {
                 sendKey(Dn, vKey);
                 vHeldKey = vKey;
                 vPreSpeed = vSpeed;
-            }
-        } else if (vSpeed ==2) {
-            if (vKey) {
+            } else if (vSpeed ==2) {
                 if (!hHeldKey) {
                     sendKey(Sk, m_arrowL);
                     sendKey(Sk, m_arrowL);
@@ -1194,8 +1192,6 @@ bool DF::pickTrophies(bool &cross)
     int preRoleY = -1;
     int roleX = -1;
     int roleY = -1;
-    int hPreDir = 0;
-    int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
     int hSpeed = 0;
@@ -1215,7 +1211,7 @@ bool DF::pickTrophies(bool &cross)
     timer.start();
 
     // Avoid insisting picking a unpickable item
-    if (counter++ > 8) {
+    if (counter++ > 10) {
         finished = true;
     } else {
         while (true) {
@@ -1253,7 +1249,7 @@ bool DF::pickTrophies(bool &cross)
                 break;
             }
 
-            stucked = ((hPreDir != 0) || (vPreDir != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
+            stucked = ((hSpeed != 0) || (vSpeed != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
 
             // Save position as previous
             preRoleX = roleX;
@@ -1261,16 +1257,6 @@ bool DF::pickTrophies(bool &cross)
 
             // Check if role is stucked
             if (stucked) {
-                // Situations against definition of stuck
-                if (((hPreDir > 0) && (roleX > x)) ||
-                        ((hPreDir < 0) && (roleX < x)) ||
-                        ((vPreDir > 0) && (roleY > y)) ||
-                        ((vPreDir < 0) && (roleY < y))) {
-                    preRoleX = -1;
-                    preRoleY = -1;
-                    continue;
-                }
-
                 // Get client color blocks
                 for (int i=0; i<blockCount; ++i) {
                     uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
@@ -1302,25 +1288,13 @@ bool DF::pickTrophies(bool &cross)
                     hArrived = true;
                     hSpeed = 0;
                 } else if (abs(hDir) < 30) {
-                    if (hPreDir == 0) {
-                        hSpeed = 1;
-                    }
+                    hSpeed = 1;
                 } else {
-                    if (hPreDir == 0) {
-                        hSpeed = 2;
-                    } else {
-                        // Move over
-                        if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
-                            hSpeed = 0;
-                        }
-                    }
+                    hSpeed = 2;
                 }
             }
             if (hSpeed == 0) {
                 hDir = 1;
-                hPreDir = 0;
-            } else {
-                hPreDir = hDir;
             }
 
             // Vertical moving
@@ -1332,25 +1306,13 @@ bool DF::pickTrophies(bool &cross)
                     vArrived = true;
                     vSpeed = 0;
                 } else if (abs(vDir) < 30) {
-                    if (vPreDir == 0) {
-                        vSpeed = 1;
-                    }
+                    vSpeed = 1;
                 } else {
-                    if (vPreDir == 0) {
-                        vSpeed = 2;
-                    } else {
-                        // Move over
-                        if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
-                            vSpeed = 0;
-                        }
-                    }
+                    vSpeed = 2;
                 }
             }
             if (vSpeed == 0) {
                 vDir = 1;
-                vPreDir = 0;
-            } else {
-                vPreDir = vDir;
             }
 
             // Move
@@ -1379,8 +1341,6 @@ bool DF::navigate(int x, int y, bool end)
     int preRoleY = -1;
     int roleX = -1;
     int roleY = -1;
-    int hPreDir = 0;
-    int vPreDir = 0;
     int hDir = 0;
     int vDir = 0;
     int hSpeed = 0;
@@ -1432,7 +1392,7 @@ bool DF::navigate(int x, int y, bool end)
         if (!getRoleCoords(roleX, roleY))
             continue;
 
-        stucked = ((hPreDir != 0) || (vPreDir != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
+        stucked = ((hSpeed != 0) || (vSpeed != 0)) && ((roleX == preRoleX) && (roleY == preRoleY));
 
         // Save position as previous
         preRoleX = roleX;
@@ -1440,16 +1400,6 @@ bool DF::navigate(int x, int y, bool end)
 
         // Check if role is stucked
         if (stucked) {
-            // Situations against definition of stuck
-            if (((hPreDir > 0) && (roleX > x)) ||
-                ((hPreDir < 0) && (roleX < x)) ||
-                ((vPreDir > 0) && (roleY > y)) ||
-                ((vPreDir < 0) && (roleY < y))) {
-                preRoleX = -1;
-                preRoleY = -1;
-                continue;
-            }
-
             // Get client color blocks
             for (int i=0; i<blockCount; ++i) {
                 uchar *data = (uchar *)m_dm.GetScreenData(i * blockLength, 0, i * blockLength + blockLength, blockLength);
@@ -1466,7 +1416,6 @@ bool DF::navigate(int x, int y, bool end)
             if (stucked) {
                 // Stucked, but also need to check blackscreen
                 moveRole(1, 0, 1, 0);
-                hPreDir = vPreDir = 0;
                 hArrived = vArrived = true;
                 continue;
             }
@@ -1484,25 +1433,13 @@ bool DF::navigate(int x, int y, bool end)
                 hArrived = true;
                 hSpeed = 0;
             } else if (abs(hDir) < 30) {
-                if (hPreDir == 0) {
-                    hSpeed = 1;
-                }
+                hSpeed = 1;
             } else {
-                if (hPreDir == 0) {
-                    hSpeed = 2;
-                } else {
-                    // Move over
-                    if (abs(hDir + hPreDir) != abs(hDir) + abs(hPreDir)) {
-                        hSpeed = 0;
-                    }
-                }
+                hSpeed = 2;
             }
         }
         if (hSpeed == 0) {
             hDir = 1;
-            hPreDir = 0;
-        } else {
-            hPreDir = hDir;
         }
 
         // Vertical moving
@@ -1514,25 +1451,13 @@ bool DF::navigate(int x, int y, bool end)
                 vArrived = true;
                 vSpeed = 0;
             } else if (abs(vDir) < 30) {
-                if (vPreDir == 0) {
-                    vSpeed = 1;
-                }
+                vSpeed = 1;
             } else {
-                if (vPreDir == 0) {
-                    vSpeed = 2;
-                } else {
-                    // Move over
-                    if (abs(vDir + vPreDir) != abs(vDir) + abs(vPreDir)) {
-                        vSpeed = 0;
-                    }
-                }
+                vSpeed = 2;
             }
         }
         if (vSpeed == 0) {
             vDir = 1;
-            vPreDir = 0;
-        } else {
-            vPreDir = vDir;
         }
 
         // Move
