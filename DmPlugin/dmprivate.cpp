@@ -211,7 +211,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
         approxSleep(m_mouseDuration, m_mouseDurationDelta);
         m_dm.LeftUp();
         break;
-    case LeftDown:
+    case LeftDn:
         m_dm.LeftDown();
         break;
     case LeftUp:
@@ -222,7 +222,7 @@ void DmPrivate::sendMouse(const MouseOper &oper,
         approxSleep(m_mouseDuration, m_keyDurationDelta);
         m_dm.RightUp();
         break;
-    case RightDown:
+    case RightDn:
         m_dm.RightDown();
         break;
     case RightUp:
