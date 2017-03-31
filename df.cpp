@@ -376,7 +376,8 @@ void DF::backToRoleList()
     }
 
     approxSleep(1000);
-    sendMouse(Left, PICK_ROLE_POS, 1000);
+    sendMouse(LeftDown, PICK_ROLE_POS, 200);
+    sendMouse(LeftUp, PICK_ROLE_POS, 1000);
 
     // Wait for role list
     if (!waitForRoleList()) {
