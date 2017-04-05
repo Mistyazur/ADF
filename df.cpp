@@ -323,7 +323,7 @@ void DF::pickRole(int index)
     // Pick role
     int roleX = originalX+offsetX*row;
     int roleY = originalY+offsetY*column;
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 3; ++i) {
         sendMouse(Left, roleX, roleY, 100);
         sendMouse(Left, roleX, roleY, 500);
     }
@@ -399,10 +399,15 @@ void DF::teleport(const QString &destination)
 
 void DF::navigateOnMap(int x, int y, int time)
 {
-    sendKey(Sk, "N", 1000);
-    sendMouse(Right, x, y, 200);
-    sendMouse(Right, x, y, 200);
-    sendKey(Sk, "N", time);
+    int old = setMouseDuration(200);
+
+    sendMouse(Left, 780, 20, 1000);
+    sendMouse(Right, x, y, time);
+
+    setMouseDuration(old);
+
+    openSystemMenu();
+    closeSystemMenu();
 }
 
 void DF::sellEquipment()
@@ -805,7 +810,7 @@ bool DF::waitForDungeonBeign()
 {
     QVariant vx, vy;
 
-    for (int i = 0; i < 50; ++i) {
+    for (int i = 0; i < 100; ++i) {
         if (m_dm.FindPic(m_dungeonMapX1, m_dungeonMapY1, m_dungeonMapX2, m_dungeonMapY2,
                          "minimap_role.bmp", "000020", 1.0, 0, vx, vy) != -1) {
             return true;
@@ -1113,7 +1118,7 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
     // Horizontal
     if (hSpeed == 0) {
         if (hKey && hHeldKey) {
-            sendKey(Up, hHeldKey, 30);
+            sendKey(Up, hHeldKey);
             hHeldKey = 0;
             hPreSpeed = hSpeed;
         }
@@ -1123,7 +1128,7 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
                 if ((hKey == hHeldKey) && (hSpeed == hPreSpeed)) {
                     hSpeed = 0;
                 } else {
-                    sendKey(Up, hHeldKey, 30);
+                    sendKey(Up, hHeldKey);
                     hHeldKey = 0;
                     hPreSpeed = 0;
                 }
@@ -1142,10 +1147,14 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
         }
     }
 
+    // Optimize
+    if ((hSpeed > 0) && (vSpeed > 0))
+        approxSleep(30);
+
     // Vertical
     if (vSpeed == 0) {
         if (vKey && vHeldKey) {
-            sendKey(Up, vHeldKey, 30);
+            sendKey(Up, vHeldKey);
             vHeldKey = 0;
             vPreSpeed = vSpeed;
         }
@@ -1155,7 +1164,7 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
                 if ((vKey == vHeldKey) && (vSpeed == vPreSpeed)) {
                     vSpeed = 0;
                 } else {
-                    sendKey(Up, vHeldKey, 30);
+                    sendKey(Up, vHeldKey);
                     vHeldKey = 0;
                     vPreSpeed = 0;
                 }

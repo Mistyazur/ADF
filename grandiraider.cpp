@@ -224,17 +224,17 @@ void GrandiRaider::run()
 
                     // Destory stones
                     sendKey(Dn, m_arrowR);
-                    for (int i = 0; i < 50; ++i)
+                    for (int i = 0; i < 40; ++i)
                         sendKey(Sk, "x");
                     sendKey(Up, m_arrowR);
-                    approxSleep(500);
+                    approxSleep(200);
 
                     // Move trophies (-)
                     sendKey(Dn, 189, 100);
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 50; ++i) {
+                    for (int i = 0; i < 40; ++i) {
                         sendKey(Sk, "x");
                     }
 
@@ -337,8 +337,9 @@ void GrandiRaider::run()
                 return;
             } else if (e == DFRESTART) {
                 qDebug()<<"Error[Restart]:"<<"Role index is"<<(m_firstRoleIndex + m_roleCount);
-                m_dm.CapturePng(CLIENT_RECT, tr("F%1_T%2.png").arg(flow)
-                                .arg(QDateTime::currentDateTime().toString("MM_dd__HH_mm_ss")));
+                m_dm.CapturePng(CLIENT_RECT, tr("%1_%2.png")
+                                .arg(QDateTime::currentDateTime().toString("MMdd_HHmmss"))
+                                .arg(flow));
                 flow = StartClient;
                 continue;
             }
