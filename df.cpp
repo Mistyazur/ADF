@@ -1233,8 +1233,16 @@ bool DF::pickTrophies(bool &cross)
 
             // Check if reached next section
             if (isBlackScreen()) {
+                // Wait
+                for (int i = 0; i < 10; ++i) {
+                    if (!isBlackScreen())
+                        break;
+                    approxSleep(300);
+                }
+
                 cross = true;
                 finished = true;
+                break;
             }
 
             // Get position of role
@@ -1380,6 +1388,13 @@ bool DF::navigate(int x, int y, bool end)
         if (isBlackScreen()) {
             // Stop
             moveRole(1, 0, 1, 0);
+
+            // Wait
+            for (int i = 0; i < 10; ++i) {
+                if (!isBlackScreen())
+                    break;
+                approxSleep(300);
+            }
 
             return true;
         }

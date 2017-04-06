@@ -131,15 +131,9 @@ void GrandiRaider::run()
                     continue;
 
                 if (isSectionClear()) {
-                    if (timer.elapsed() < 3000) {
-                        // Already cleared
-                        flow = Navigate;
-                    } else {
-                        flow = PickTrophies;
-                    }
-
                     useOwnSkill();
                     summonSupporter();
+                    flow = PickTrophies;
                     break;
                 }
 
@@ -234,9 +228,11 @@ void GrandiRaider::run()
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    for (int i = 0; i < 40; ++i) {
+                    int oldKeyDelay = setKeyDelay(10);
+                    for (int i = 0; i < 80; ++i) {
                         sendKey(Sk, "x");
                     }
+                    setKeyDelay(oldKeyDelay);
 
                     // Sell trophies
                     sellEquipment();
