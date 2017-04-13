@@ -74,6 +74,7 @@ HWND DF::getTGPWindow()
 
 bool DF::startClient()
 {
+    QVariant vx, vy;
     bool ok = false;
 
     HWND hTGPWnd = getTGPWindow();
@@ -106,12 +107,15 @@ bool DF::startClient()
     m_dm.SetWindowSize((int)hTGPWnd, 1020, 720);
     m_dm.BindWindow((int)hTGPWnd, "normal", "normal", "normal", 0);
 
+    // Check popup window
+    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_popup_close.bmp", "000000", 1.0, 0, vx, vy) != -1)
+        sendMouse(Left, vx, vy, 1000);
+
     // Start client
     sendMouse(Left, 50, 300, 3000);
     sendMouse(Left, 900, 680, 1000);
 
     // Skip checking window
-    QVariant vx, vy;
     for (int i = 0; i < 5; ++i) {
         if (m_dm.FindPic(0, 0, 1020, 720, "tgp_dnf_skip_check.bmp", "101010", 1.0, 0, vx, vy) != -1)
             sendMouse(Left, vx.toInt() + 25, vy.toInt() + 6, 1000);
