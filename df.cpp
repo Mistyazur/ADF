@@ -77,39 +77,28 @@ bool DF::startClient()
     QVariant vx, vy;
     bool ok = false;
 
-    HWND hTGPWnd = getTGPWindow();
+    int hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
         startTGP();
+        approxSleep(60000);
 
-        ok = false;
-        for (int i = 0; i < 90; ++i) {
-            hTGPWnd = getTGPWindow();
-            if (hTGPWnd != 0) {
-                ok = true;
-                break;
-            }
-            approxSleep(1000);
-        }
-        if (!ok) {
+        hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+        if (hTGPWnd == 0) {
             qDebug()<<"Start Client: Can't start TGP";
             return false;
         }
     }
 
     // Activate tgp
-    if (!activateWindow(hTGPWnd)) {
+    if (!activateWindow((HWND)hTGPWnd)) {
         qDebug()<<"Start Client: Can't activate tgp window";
         return false;
     }
     msleep(1000);
 
     // Bind tgp
-    m_dm.SetWindowSize((int)hTGPWnd, 1020, 720);
-    m_dm.BindWindow((int)hTGPWnd, "normal", "normal", "normal", 0);
-
-    // Check popup window
-    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_popup_close.bmp", "000000", 1.0, 0, vx, vy) != -1)
-        sendMouse(Left, vx, vy, 1000);
+    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
+    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
 
     // Start client
     sendMouse(Left, 50, 300, 3000);
@@ -510,14 +499,11 @@ void DF::checkMail()
 
     int oldMouseDuration = setMouseDuration(200);
 
-    for (int i = 0; i < 10; ++i) {
-        if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) != -1) {
-            sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
-            sendMouse(Left, 300, 465, 4000);  // Receive all mails
-            openSystemMenu();
-            closeSystemMenu();
-        }
-        msleep(100);
+    if (m_dm.FindPic(260, 480, 500, 560, "mail.bmp", "101010", 1.0, 1, vx, vy) != -1) {
+        sendMouse(Left, vx.toInt() + 9, vy.toInt() + 5, 1000);  // Open mail box
+        sendMouse(Left, 300, 465, 4000);  // Receive all mails
+        openSystemMenu();
+        closeSystemMenu();
     }
 
     setMouseDuration(oldMouseDuration);
@@ -589,9 +575,13 @@ void DF::playMercenary()
             sendMouse(Left, vx.toInt(), vy.toInt(), 100);
             sendMouse(Left, vx.toInt() - 30, vy.toInt() + 70, 100);
 
-            // Pick map
+//            // Pick dimension map
+//            sendMouse(Left, vx.toInt() + 180, vy.toInt(), 100);
+//            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 55, 500);
+
+            // Pick track center
             sendMouse(Left, vx.toInt() + 180, vy.toInt(), 100);
-            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 55, 500);
+            sendMouse(Left, vx.toInt() + 180 - 30, vy.toInt() + 135, 500);
 
             // Confirm
             sendMouse(Left, vx.toInt() + 220, vy.toInt(), 500);

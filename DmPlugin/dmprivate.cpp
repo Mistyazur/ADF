@@ -109,6 +109,9 @@ bool DmPrivate::activateWindow(HWND hWnd)
 {
     bool succeed = false;
 
+    if (hWnd <= 0)
+        return false;
+
     HWND hRootWnd = GetAncestor(hWnd, GA_ROOTOWNER);
 
     WINDOWPLACEMENT winPlacement = {0};

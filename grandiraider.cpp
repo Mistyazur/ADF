@@ -319,6 +319,9 @@ void GrandiRaider::run()
             // Check disconnected
             if (isDisconnected()) {
                 qDebug()<<"Disconnected";
+
+                // Wait for 3 minutes to avoid errors
+                approxSleep(180000);
                 throw DFRESTART;
             }
 
@@ -333,9 +336,9 @@ void GrandiRaider::run()
                 return;
             } else if (e == DFRESTART) {
                 qDebug()<<"Error[Restart]:"<<"Role index is"<<(m_firstRoleIndex + m_roleCount);
-                m_dm.CapturePng(CLIENT_RECT, tr("%1_%2.png")
-                                .arg(QDateTime::currentDateTime().toString("MMdd_HHmmss"))
-                                .arg(flow));
+//                m_dm.CapturePng(CLIENT_RECT, tr("%1_%2.png")
+//                                .arg(QDateTime::currentDateTime().toString("MMdd_HHmmss"))
+//                                .arg(flow));
                 flow = StartClient;
                 continue;
             }
