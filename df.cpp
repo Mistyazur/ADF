@@ -27,6 +27,9 @@ DF::DF()
     m_arrowR = 39;
     m_arrowD = 40;
 
+    // Set simulate mode
+    m_dm.SetSimMode(1);
+
     // Set mouse and key duration
     setMouseDuration(30);
     setKeyDuration(30);
@@ -74,8 +77,8 @@ HWND DF::getTGPWindow()
 
 bool DF::startClient()
 {
+    static int errorCount = 0;
     QVariant vx, vy;
-    bool ok = false;
 
     int hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
@@ -85,14 +88,14 @@ bool DF::startClient()
         hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
         if (hTGPWnd == 0) {
             qDebug()<<"Start Client: Can't start TGP";
-            return false;
+            goto Failed;
         }
     }
 
     // Activate tgp
     if (!activateWindow((HWND)hTGPWnd)) {
         qDebug()<<"Start Client: Can't activate tgp window";
-        return false;
+        goto Failed;
     }
     msleep(1000);
 
@@ -118,6 +121,8 @@ bool DF::startClient()
     for (int i = 0; i < 180; ++i) {
         if (window() != 0) {
             activateWindow((HWND)window());
+
+            errorCount = 0;
             return true;
         }
         msleep(1000);
@@ -125,59 +130,19 @@ bool DF::startClient()
 
     qDebug()<<"Start Client: Failed waiting for client";
 
+Failed:
+//    if (++errorCount > 5) {
+//        // Restart TGP
+//        QProcess::startDetached("TASKKILL /IM tgp_daemon.exe /F /T");
+//        msleep(5000);
+//        startTGP();
+//    }
+
     return false;
 }
 
 bool DF::closeClient()
 {
-//    int hTGPWnd;
-
-//    qDebug()<<"Close client";
-
-//    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
-//    if (hTGPWnd == 0) {
-//        qDebug()<<"Start Client: Can't find tgp window";
-//        return false;
-//    }
-
-//    // Activate tgp
-//    if (m_dm.GetForegroundWindow() != hTGPWnd) {
-//        activateWindow((HWND)hTGPWnd);
-//        msleep(1000);
-//    }
-
-//    // wait for tgp activated
-//    bool ok = false;
-//    for (int i = 0; i < 10; ++i) {
-//        if (m_dm.GetForegroundWindow() == hTGPWnd) {
-//            ok = true;
-//            break;
-//        }
-//        msleep(1000);
-//    }
-//    if (!ok) {
-//        qDebug()<<"Start Client: Can't activate tgp window";
-//        return false;
-//    }
-
-//    // Bind tgp
-//    m_dm.SetWindowSize(hTGPWnd, 1020, 720);
-//    m_dm.BindWindow(hTGPWnd, "normal", "normal", "normal", 0);
-
-//    // Close client
-//    QVariant vx, vy;
-//    if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game.bmp", "101010", 1.0, 0, vx, vy) != -1) {
-//        sendMouse(Left, vx.toInt() + 10, vy.toInt() + 10, 2000);
-//        if (m_dm.FindPic(0, 0, 1020, 720, "tgp_terminate_game_confirm.bmp", "101010", 1.0, 0, vx, vy) != -1)
-//            sendMouse(Left, vx.toInt(), vy.toInt());
-//    }
-
-//    // Unbind tgp
-//    m_dm.UnBindWindow();
-
-//    msleep(2000);
-
-
     QProcess::startDetached("TASKKILL /IM DNF.exe /F /T");
     msleep(2000);
     QProcess::startDetached("TASKKILL /IM Client.exe /IM Repair.exe /F /T");
@@ -569,7 +534,7 @@ void DF::playMercenary()
     
     // Play
     QVariant vx, vy;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 4; ++i) {
         if (m_dm.FindPic(200, 100, 400, 500, "combo_box_button.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             // Pick time
             sendMouse(Left, vx.toInt(), vy.toInt(), 100);
