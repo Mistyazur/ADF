@@ -28,7 +28,7 @@ DF::DF()
     m_arrowD = 40;
 
     // Set simulate mode
-    m_dm.SetSimMode(1);
+    m_dm.SetSimMode(2);
 
     // Set mouse and key duration
     setMouseDuration(30);
@@ -412,6 +412,9 @@ void DF::sellEquipment()
     // Click sort button
     sendMouse(Left, vx.toInt(), vy.toInt(), 100);
 
+    // Click sell button
+    sendMouse(Left, sellX, sellY, 50);
+
     // Select item
     ox = vx.toInt() - 190 + 4;
     oy = vy.toInt() - 240 + 36;
@@ -427,11 +430,9 @@ void DF::sellEquipment()
         // Sell
         sendMouse(Move, x, y, 100);
         if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            // Click sell button
-            sendMouse(Left, sellX, sellY, 50);
-
             // Select and confirm
-            for (int i = 0; i < 4; ++i)
+            int r = randomNumber(2, 3);
+            for (int i = 0; i < r; ++i)
                 sendMouse(Left, x, y, 50);
         }
     }
@@ -816,12 +817,14 @@ void DF::pickFreeGoldenCard()
 {
     QVariant vx, vy;
 
+    int r = randomNumber(0, 3);
+
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1)
             return;
 
         if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1) {
-            sendKey(Sk, 53, 100);
+            sendKey(Sk, 53 + r, 100);
             break;
         }
 
