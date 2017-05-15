@@ -105,6 +105,23 @@ void DmPrivate::setResourcePath(const QString &path)
     m_dm.SetPath(qApp->applicationDirPath()+"/"+path);
 }
 
+int DmPrivate::randomNumber(int min, int max)
+{
+    if (min > max)
+        return 0;
+
+    qsrand(QTime::currentTime().msec());
+
+    return (qrand() % (max - min + 1)) + min;
+}
+
+void DmPrivate::approxSleep(int msec, double delta)
+{
+    if (msec > 0) {
+        msleep(MEDIAN_RANDOM((int)(msec*(1-delta)), (int)(msec*(1+delta))));
+    }
+}
+
 bool DmPrivate::activateWindow(HWND hWnd)
 {
     bool succeed = false;
@@ -135,13 +152,6 @@ bool DmPrivate::activateWindow(HWND hWnd)
     succeed = SetForegroundWindow(hRootWnd);
 
     return succeed;
-}
-
-void DmPrivate::approxSleep(int msec, double delta)
-{
-    if (msec > 0) {
-        msleep(MEDIAN_RANDOM((int)(msec*(1-delta)), (int)(msec*(1+delta))));
-    }
 }
 
 int DmPrivate::setMouseDuration(int duration)

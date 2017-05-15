@@ -36,8 +36,11 @@ public slots:
 protected:
     dmsoft m_dm;
 
-    bool activateWindow(HWND hWnd);
+    int randomNumber(int min, int max);
+
     void approxSleep(int msec, double delta=0.1);
+
+    bool activateWindow(HWND hWnd);
 
     int setMouseDuration(int duration);
     int setKeyDuration(int duration);
