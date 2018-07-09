@@ -62,7 +62,7 @@ void DmPrivate::dmPluginSetup(bool local)
         msleep(1000);
     }
 }
-bool DmPrivate::dmPluginReg(const QString &key, const QString &flag, const QString &guard)
+bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 {
     dmsoft dm;
 
@@ -83,10 +83,6 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag, const QStri
             }
             return false;
         }
-
-        // Guard
-        if (!guard.isEmpty())
-            qDebug()<<"Guard"<<dm.DmGuard(1, guard);
     }
 
     if (!dm.BindWindow(dm.GetForegroundWindow(),"normal","normal","normal",0))
@@ -126,10 +122,12 @@ bool DmPrivate::activateWindow(HWND hWnd)
 {
     bool succeed = false;
 
-    if (hWnd <= 0)
+    if (hWnd == NULL)
         return false;
 
     HWND hRootWnd = GetAncestor(hWnd, GA_ROOTOWNER);
+    if (hRootWnd== NULL)
+        return false;
 
     WINDOWPLACEMENT winPlacement = {0};
     winPlacement.length = sizeof(WINDOWPLACEMENT);

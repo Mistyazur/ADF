@@ -26,7 +26,7 @@ public:
     ~DmPrivate();
 
     static void dmPluginSetup(bool local=false);
-    static bool dmPluginReg(const QString &sendKey, const QString &flag, const QString &guard=QString());
+    static bool dmPluginReg(const QString &sendKey, const QString &flag);
 
     void setResourcePath(const QString &path);
 signals:

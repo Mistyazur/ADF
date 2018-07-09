@@ -114,7 +114,9 @@ void GrandiRaider::run()
                     buff();
                 } else if (sectionIndex == 2) {
                     // Awaken monsters
-                    navigate(600, -1);
+//                    navigate(600, -1);
+                    navigate(500, -1);
+                    navigate(0, -1);
                 } else if (sectionIndex == 6) {
                     // Get close to generator
                     navigate(350, 380);
@@ -146,17 +148,18 @@ void GrandiRaider::run()
 
                 if (sectionIndex == 6) {
                     // Destory generator
-                    sendKey(Dn, m_arrowL);
-                    for (int i=0; i<10; ++i)
+                    sendKey(Dn, m_arrowL, 30);
+                    int r = randomNumber(10, 30);
+                    for (int i=0; i<r; ++i)
                         sendKey(Sk, "x");
-                    sendKey(Up, m_arrowL);
+                    sendKey(Up, m_arrowL, 30);
                 } else {
                     // Pick trophies
                     if (pickTrophies(cross)) {
                         if (!cross) {
-                            // Normal attack
-                            for (int i=0; i<5; ++i)
-                                sendKey(Sk, "x");
+//                            // Normal attack
+//                            for (int i=0; i<5; ++i)
+//                                sendKey(Sk, "x");
                         }
                     }
 
@@ -207,32 +210,38 @@ void GrandiRaider::run()
                 // Check dungeon status
                 if (isDungeonEnded()) {
 
-                    // Move to stones
-                    moveRole(1, 2, -1, 2);
+//                    // Move to stones
+//                    moveRole(1, 2, -1, 2);
 
-                    // Get free card
-                    pickFreeGoldenCard();
+//                    // Get free card
+//                    pickFreeGoldenCard();
+
+//                    // Stop moving
+//                    moveRole(1, 0, 1, 0);
+
+//                    // Destory stones
+//                    sendKey(Dn, m_arrowR);
+//                    for (int i = 0; i < 40; ++i)
+//                        sendKey(Sk, "x");
+//                    sendKey(Up, m_arrowR);
+//                    approxSleep(200);
 
                     // Stop moving
                     moveRole(1, 0, 1, 0);
+                    approxSleep(2000);
 
-                    // Destory stones
-                    sendKey(Dn, m_arrowR);
-                    for (int i = 0; i < 40; ++i)
-                        sendKey(Sk, "x");
-                    sendKey(Up, m_arrowR);
-                    approxSleep(200);
+                    // Get free card
+                    pickFreeGoldenCard();
 
                     // Move trophies (-)
                     sendKey(Dn, 189, 100);
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    int oldKeyDelay = setKeyDelay(10);
-                    for (int i = 0; i < 80; ++i) {
+                    int r = randomNumber(60, 80);
+                    for (int i = 0; i < r; ++i) {
                         sendKey(Sk, "x");
                     }
-                    setKeyDelay(oldKeyDelay);
 
                     // Sell trophies
                     sellEquipment();
@@ -246,8 +255,8 @@ void GrandiRaider::run()
 
                     approxSleep(100);
 
-                    // Get exp capsule
-                    sendMouse(Left, 780, 590, 100);
+//                    // Get exp capsule
+//                    sendMouse(Left, 780, 590, 100);
 
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {
@@ -319,9 +328,7 @@ void GrandiRaider::run()
             // Check disconnected
             if (isDisconnected()) {
                 qDebug()<<"Disconnected";
-
-                // Wait for 3 minutes to avoid errors
-                approxSleep(180000);
+                approxSleep(5000);
                 throw DFRESTART;
             }
 

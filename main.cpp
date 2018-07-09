@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     // Init dm plugin
     DmPrivate::dmPluginSetup(true);
     if (!DmPrivate::dmPluginReg("FateCyn220d1daf6c3e4a132d4da742b5fc3691",
-                                QApplication::applicationDisplayName(), "block"))
+                                QApplication::applicationDisplayName()))
         return 0;
 
     // GUI

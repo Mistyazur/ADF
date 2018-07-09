@@ -27,9 +27,6 @@ DF::DF()
     m_arrowR = 39;
     m_arrowD = 40;
 
-    // Set simulate mode
-    m_dm.SetSimMode(2);
-
     // Set mouse and key duration
     setMouseDuration(30);
     setKeyDuration(30);
@@ -118,9 +115,11 @@ bool DF::startClient()
     m_dm.UnBindWindow();
 
     // Wait for client
+    HWND hClientWin = NULL;
     for (int i = 0; i < 180; ++i) {
-        if (window() != 0) {
-            activateWindow((HWND)window());
+        hClientWin = (HWND)window();
+        if (hClientWin != NULL) {
+            activateWindow(hClientWin);
 
             errorCount = 0;
             return true;
@@ -235,11 +234,14 @@ bool DF::isDisconnected()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "101010", 1.0, 0, vx, vy) == -1) {
-        return false;
+    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+//        if (m_dm.GetColor(vx.toInt(), vy.toInt()).compare("FFFFFF", Qt::CaseInsensitive) != 0) {
+        if (m_dm.GetColorNum(300, 200, 500, 400, "FFFFFF", 1.0) < 400) {
+            return true;
+        }
     }
 
-    return true;
+    return false;
 }
 
 void DF::setArrowKey(int left, int up, int right, int down)
@@ -413,12 +415,12 @@ void DF::sellEquipment()
     sendMouse(Left, vx.toInt(), vy.toInt(), 100);
 
     // Click sell button
-    sendMouse(Left, sellX, sellY, 50);
+    sendMouse(Left, sellX, sellY, 100);
 
     // Select item
     ox = vx.toInt() - 190 + 4;
     oy = vy.toInt() - 240 + 36;
-    for (int i = 0; i < 32; ++i) {
+    for (int i = 0; i < 8; ++i) {
         x = ox + ((i % 8) * 30);
         y = oy + ((i / 8) * 30);
 
@@ -430,10 +432,11 @@ void DF::sellEquipment()
         // Sell
         sendMouse(Move, x, y, 100);
         if (m_dm.FindPic(0, 0, 800, 400, "item_unique.bmp|item_legendary.bmp|item_epic.bmp", "000000", 1.0, 0, vx, vy) == -1) {
-            // Select and confirm
-            int r = randomNumber(2, 3);
+            sendMouse(Left, x, y, 300);
+
+            int r = randomNumber(1, 2);
             for (int i = 0; i < r; ++i)
-                sendMouse(Left, x, y, 50);
+                sendKey(Sk, 13, 50);
         }
     }
 }
