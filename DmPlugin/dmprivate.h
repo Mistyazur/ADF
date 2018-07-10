@@ -27,6 +27,7 @@ public:
 
     static void dmPluginSetup(bool local=false);
     static bool dmPluginReg(const QString &sendKey, const QString &flag);
+    static bool dmGuard(const QString& type, bool enable);
 
     void setResourcePath(const QString &path);
 signals:

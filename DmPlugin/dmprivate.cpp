@@ -45,8 +45,8 @@ DmPrivate::~DmPrivate()
 void DmPrivate::dmPluginSetup(bool local)
 {
     if (local) {
-        QString regDLLPath = QApplication::applicationDirPath()+"/DmReg.dll";
-        QString pluginDLLPath = QApplication::applicationDirPath()+"/dm(mta).dll";
+        QString regDLLPath = QApplication::applicationDirPath()+"/local.dll";
+        QString pluginDLLPath = QApplication::applicationDirPath()+"/plugin.dll";
 
         SETDLLPATHW SetDllPathW = (SETDLLPATHW)GetProcAddress(LoadLibrary(regDLLPath.toStdWString().c_str()),
                                                               "SetDllPathW");
@@ -68,8 +68,8 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 
     qDebug()<<dm.Ver();
 
-    if (dm.Ver() != DM_VER)
-        return false;
+//    if (dm.Ver() != DM_VER)
+//        return false;
 
     if (dm.Ver().toDouble() > 3.1233) {
         int code = dm.Reg(key, flag);
@@ -92,6 +92,15 @@ bool DmPrivate::dmPluginReg(const QString &key, const QString &flag)
 
     dm.DisablePowerSave();
     dm.DisableScreenSave();
+
+    return true;
+}
+
+bool DmPrivate::dmGuard(const QString &type, bool enable)
+{
+    dmsoft dm;
+    if (dm.DmGuard(enable, type) != 1)
+        return false;
 
     return true;
 }

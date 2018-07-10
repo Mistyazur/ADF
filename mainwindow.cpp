@@ -74,10 +74,14 @@ MainWindow::MainWindow(QWidget *parent) :
     if (IsAutoStartEnbaled()) {
         ui->actionStart_with_windows->setChecked(true);
     }
+
+
+    qDebug()<<"Guard On"<<DmPrivate::dmGuard("b2", 1);
 }
 
 MainWindow::~MainWindow()
 {
+    qDebug()<<"Guard Off"<<DmPrivate::dmGuard("b2", 0);
     delete ui;
 }
 

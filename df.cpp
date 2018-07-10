@@ -76,8 +76,11 @@ bool DF::startClient()
 {
     static int errorCount = 0;
     QVariant vx, vy;
+    int hTGPWnd;
+    HWND hClientWin;
+    int i;
 
-    int hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
+    hTGPWnd = m_dm.FindWindow("TWINCONTROL", "腾讯游戏平台");
     if (hTGPWnd == 0) {
         startTGP();
         approxSleep(60000);
@@ -105,7 +108,7 @@ bool DF::startClient()
     sendMouse(Left, 900, 680, 1000);
 
     // Skip checking window
-    for (int i = 0; i < 5; ++i) {
+    for (i = 0; i < 5; ++i) {
         if (m_dm.FindPic(0, 0, 1020, 720, "tgp_dnf_skip_check.bmp", "101010", 1.0, 0, vx, vy) != -1)
             sendMouse(Left, vx.toInt() + 25, vy.toInt() + 6, 1000);
         msleep(1000);
@@ -115,7 +118,6 @@ bool DF::startClient()
     m_dm.UnBindWindow();
 
     // Wait for client
-    HWND hClientWin = NULL;
     for (int i = 0; i < 180; ++i) {
         hClientWin = (HWND)window();
         if (hClientWin != NULL) {
@@ -130,6 +132,7 @@ bool DF::startClient()
     qDebug()<<"Start Client: Failed waiting for client";
 
 Failed:
+
 //    if (++errorCount > 5) {
 //        // Restart TGP
 //        QProcess::startDetached("TASKKILL /IM tgp_daemon.exe /F /T");
@@ -1466,7 +1469,7 @@ bool DF::navigateSection(int sectionIndex)
     if ((0 <= sectionIndex) && (sectionIndex < m_pathList.count())) {
         const QVariantList &sectionPathList = m_pathList.at(sectionIndex).toList();
         for (int i = 0; i < sectionPathList.count(); ++i) {
-            QVariantList &position = sectionPathList.at(i).toList();
+            QVariantList position = sectionPathList.at(i).toList();
             if (position.count() < 2) {
                 throw DFSettingError;
             }

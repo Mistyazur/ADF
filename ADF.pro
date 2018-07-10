@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = ADF
+TARGET = Chrome
 TEMPLATE = app
 Debug:DESTDIR = ../ADF/bin-debug
 Release:DESTDIR = ../ADF/bin-release
@@ -33,7 +33,7 @@ LIBS += -lDbgHelp
 
 RC_FILE = icon.rc
 
-win32 {
-CONFIG += embed_manifest_exe
-QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:level=\'requireAdministrator\'
-}
+#win32 {
+#CONFIG += embed_manifest_exe
+#QMAKE_LFLAGS_WINDOWS += /MANIFESTUAC:level=\'requireAdministrator\'
+#}
