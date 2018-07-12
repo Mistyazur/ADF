@@ -17,6 +17,8 @@ protected:
     int m_arrowU;
     int m_arrowR;
     int m_arrowD;
+    int m_attack;
+
     int m_dungeonMapX1;
     int m_dungeonMapY1;
     int m_dungeonMapX2;
@@ -68,8 +70,6 @@ protected:
     bool isDungeonEnded();
     bool isNoDungeonPoint();
     void pickFreeGoldenCard();
-    void summonSupporter();
-    void useOwnSkill();
     void buff();
     int  getSectionIndex();
     bool isSectionClear();

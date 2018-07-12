@@ -31,7 +31,11 @@ void GrandiRaider::run()
     if (!initDungeonSettings(DUNGEON))
         return;
     
+    flow = PreFight;
+    bind(false);
+
     while (true) {
+        qDebug()<<"Flow"<<flow;
         try {
             switch (flow) {
             case ResetRoleCount:
@@ -102,28 +106,39 @@ void GrandiRaider::run()
                     break;
                 }
 
-                summonSupporter();
-
                 if (sectionIndex == 0) {
                     // Window maybe pop up when first summonx
                     sendKey(Sk, 32, 100);
 
-                    summonSupporter();
-                    useOwnSkill();
-                    approxSleep(1000);
+                    // Summon ring
+                    sendKey(Sk, 72, 100);
+
+                    // Summon
+                    sendKey(Sk, "y", 100);
+                    sendKey(Sk, "u", 100);
+                    sendKey(Sk, "i", 100);
+                    sendKey(Sk, "o", 100);
+                    sendKey(Sk, "p", 100);
+                    sendKey(Sk, "n", 1000);
+                    sendKey(Sk, "m", 1000);
+                    sendKey(Sk, ",", 1000);
+
                     buff();
-                } else if (sectionIndex == 2) {
-                    // Awaken monsters
-//                    navigate(600, -1);
-                    navigate(500, -1);
-                    navigate(0, -1);
-                } else if (sectionIndex == 6) {
-                    // Get close to generator
-                    navigate(350, 380);
-                } else if (sectionIndex == 7) {
-                    // Avoid damage
-                    navigate(0, -1);
+//                } else if (sectionIndex == 2) {
+//                    // Awaken monsters
+////                    navigate(600, -1);
+//                    navigate(500, -1);
+//                    navigate(0, -1);
+//                } else if (sectionIndex == 6) {
+//                    // Get close to generator
+//                    navigate(350, 380);
+//                } else if (sectionIndex == 7) {
+//                    // Avoid damage
+//                    navigate(0, -1);
                 }
+
+                // Whip up
+                sendKey(Sk, 186, 100);
 
                 flow = Fight;
                 break;
@@ -133,42 +148,24 @@ void GrandiRaider::run()
                     continue;
 
                 if (isSectionClear()) {
-                    useOwnSkill();
-                    summonSupporter();
                     flow = PickTrophies;
                     break;
                 }
 
-                if (timer.elapsed() > 40000) {
-                    // Tempester may be disappeared
-                    useOwnSkill();
-                    summonSupporter();
-                    approxSleep(200);
-                }
+//                // Pick trophies
+//                if (pickTrophies(cross)) {
+//                    if (!cross) {
+////					    // Normal attack
+////					    for (int i=0; i<5; ++i)
+////						sendKey(Sk, "x");
+//                    }
+//                }
 
-                if (sectionIndex == 6) {
-                    // Destory generator
-                    sendKey(Dn, m_arrowL, 30);
-                    int r = randomNumber(10, 30);
-                    for (int i=0; i<r; ++i)
-                        sendKey(Sk, "x");
-                    sendKey(Up, m_arrowL, 30);
-                } else {
-                    // Pick trophies
-                    if (pickTrophies(cross)) {
-                        if (!cross) {
-//                            // Normal attack
-//                            for (int i=0; i<5; ++i)
-//                                sendKey(Sk, "x");
-                        }
-                    }
-
-                    // Cross map
-                    if (cross) {
-                        flow = PreFight;
-                        break;
-                    }
-                }
+//                // Cross map
+//                if (cross) {
+//                    flow = PreFight;
+//                    break;
+//                }
                 break;
             case PickTrophies:
                 if (pickTrophies(cross)) {
@@ -198,8 +195,6 @@ void GrandiRaider::run()
                 flow = PreFight;
                 break;
             case PreBossFight:
-                summonSupporter();
-
                 // Move a litte to make boss not able to teleport
                 navigate(350, 400);
                 approxSleep(2000);
@@ -228,20 +223,21 @@ void GrandiRaider::run()
 
                     // Stop moving
                     moveRole(1, 0, 1, 0);
-                    approxSleep(2000);
-
-                    // Get free card
-                    pickFreeGoldenCard();
+                    approxSleep(1000, 0.5);
 
                     // Move trophies (-)
                     sendKey(Dn, 189, 100);
                     sendKey(Up, 189, 100);
 
                     // Pick trophies
-                    int r = randomNumber(60, 80);
+                    int r = randomNumber(80, 100);
                     for (int i = 0; i < r; ++i) {
-                        sendKey(Sk, "x");
+                        sendKey(Sk, m_attack);
                     }
+
+                    // Get free card
+                    sendKey(Sk, 27, 1000);
+//                    pickFreeGoldenCard();
 
                     // Sell trophies
                     sellEquipment();
@@ -254,9 +250,6 @@ void GrandiRaider::run()
                     closeSystemMenu();
 
                     approxSleep(100);
-
-//                    // Get exp capsule
-//                    sendMouse(Left, 780, 590, 100);
 
                     // Next role if no dungeon point
                     if (isNoDungeonPoint()) {

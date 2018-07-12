@@ -19,13 +19,19 @@
 DF::DF()
 {
     m_hBindWnd = 0;
-    m_roleOffsetY = 150;
+    m_roleOffsetY = 125;
 
     // Default arrow keys
-    m_arrowL = 37;
-    m_arrowU = 38;
-    m_arrowR = 39;
-    m_arrowD = 40;
+//    m_arrowL = 37;
+//    m_arrowU = 38;
+//    m_arrowR = 39;
+//    m_arrowD = 40;
+//    m_attack = 88;
+    m_arrowL = 65;
+    m_arrowU = 87;
+    m_arrowR = 68;
+    m_arrowD = 83;
+    m_attack = 74;
 
     // Set mouse and key duration
     setMouseDuration(30);
@@ -239,7 +245,7 @@ bool DF::isDisconnected()
 
     if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "000000", 1.0, 0, vx, vy) != -1) {
 //        if (m_dm.GetColor(vx.toInt(), vy.toInt()).compare("FFFFFF", Qt::CaseInsensitive) != 0) {
-        if (m_dm.GetColorNum(300, 200, 500, 400, "FFFFFF", 1.0) < 400) {
+        if (m_dm.GetColorNum(300, 200, 500, 400, "FFFFFF", 1.0) < 350) {
             return true;
         }
     }
@@ -390,6 +396,8 @@ void DF::sellEquipment()
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1) {
             sellX = vx.toInt();
             sellY = vy.toInt();
+            sendMouse(LeftDn, sellX, sellY, 100);
+            sendMouse(LeftUp, sellX, sellY, 1000);
             found = true;
             break;
         }
@@ -823,14 +831,12 @@ void DF::pickFreeGoldenCard()
 {
     QVariant vx, vy;
 
-    int r = randomNumber(0, 3);
-
     for (int i = 0; i < 10; ++i) {
         if (m_dm.FindPic(0, 300, 400, 600, "sell.bmp", "000000", 1.0, 1, vx, vy) != -1)
             return;
 
         if (m_dm.FindPic(0, 300, 400, 600, "free_golden_card.bmp", "101010", 1.0, 1, vx, vy) != -1) {
-            sendKey(Sk, 53 + r, 100);
+            sendKey(Sk, 27, 100);
             break;
         }
 
@@ -838,27 +844,11 @@ void DF::pickFreeGoldenCard()
     }
 }
 
-void DF::summonSupporter()
-{
-    // Tab to summon
-    sendKey(Sk, 9, 100);
-}
-
-void DF::useOwnSkill()
-{
-    sendKey(Sk, "z", 100);
-}
-
 void DF::buff()
 {
-    sendKey(Sk, m_arrowU);
-    sendKey(Sk, m_arrowD);
+    sendKey(Sk, m_arrowR);
+    sendKey(Sk, m_arrowR);
     sendKey(Sk, 32, 2000);
-
-    sendKey(Sk, m_arrowD);
-    sendKey(Sk, m_arrowU);
-    sendKey(Dn, 32, 2000);
-    sendKey(Up, 32);
 }
 
 int DF::getSectionIndex()
@@ -875,7 +865,9 @@ int DF::getSectionIndex()
         return -2;
     }
 
-    return m_nodeList.indexOf(QVariantList({x , y}));
+    int index = m_nodeList.indexOf(QVariantList({x , y}));
+
+    return index;
 }
 
 bool DF::isSectionClear()
@@ -1189,7 +1181,7 @@ bool DF::pickTrophies(bool &cross)
     timer.start();
 
     // Avoid insisting picking a unpickable item
-    if (counter++ > 10) {
+    if (counter++ > 50) {
         finished = true;
     } else {
         while (true) {
@@ -1309,7 +1301,7 @@ bool DF::pickTrophies(bool &cross)
     moveRole(1, 0, 1, 0);
 
     if (pickable)
-        sendKey(Sk, "x", 50);
+        sendKey(Sk, m_attack, 50);
 
     if (finished)
         counter = 0;
@@ -1499,11 +1491,9 @@ bool DF::killBoss()
     if (!m_dm.FindMultiColor(0, 100, 800, 450,
                         "FF00FF", "1|0|FF00FF, 2|0|FF00FF, 3|0|FF00FF",
                         1.0, 0,
-                        vx, vy)) {
-        useOwnSkill();
-        summonSupporter();
+                        vx, vy))
         return true;
-    }
+
     bx = vx.toInt() + 50;
     by = vy.toInt() + 150;
 
@@ -1511,9 +1501,6 @@ bool DF::killBoss()
     if (abs(rx- bx) < 250) {
         moveRole((bx < 400) ? 1 : -1, 2, 0, 0);
         approxSleep(100);
-    } else {
-        useOwnSkill();
-        summonSupporter();
     }
 
     return true;
