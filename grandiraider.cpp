@@ -111,17 +111,17 @@ void GrandiRaider::run()
                     sendKey(Sk, 32, 100);
 
                     // Summon ring
-                    sendKey(Sk, 72, 100);
+                    sendKey(Sk, 72, 1200);
 
                     // Summon
-                    sendKey(Sk, "y", 100);
-                    sendKey(Sk, "u", 100);
-                    sendKey(Sk, "i", 100);
-                    sendKey(Sk, "o", 100);
-                    sendKey(Sk, "p", 100);
-                    sendKey(Sk, "n", 1000);
-                    sendKey(Sk, "m", 1000);
-                    sendKey(Sk, ",", 1000);
+                    sendKey(Sk, "y", 200);
+                    sendKey(Sk, "u", 200);
+                    sendKey(Sk, "i", 200);
+                    sendKey(Sk, "o", 200);
+                    sendKey(Sk, "p", 200);
+                    sendKey(Sk, "n", 1200);
+                    sendKey(Sk, "m", 1200);
+                    sendKey(Sk, ",", 1200);
 
                     buff();
 //                } else if (sectionIndex == 2) {
@@ -137,7 +137,7 @@ void GrandiRaider::run()
 //                    navigate(0, -1);
                 }
 
-                // Whip up
+                // Whip up (key ;)
                 sendKey(Sk, 186, 100);
 
                 flow = Fight;
@@ -168,7 +168,11 @@ void GrandiRaider::run()
 //                }
                 break;
             case PickTrophies:
-                if (pickTrophies(cross)) {
+                sectionIndex = getSectionIndex();
+                if (sectionIndex < 0)
+                    continue;
+
+                if (pickTrophies(sectionIndex, cross)) {
                     if (cross)
                         flow = PreFight;
                     else

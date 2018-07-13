@@ -78,7 +78,7 @@ protected:
     bool getRoleCoordsInMap(int &x, int &y);
     bool getRoleCoords(int &x, int &y);
     void moveRole(int hDir, int hSpeed, int vDir, int vSpeed);
-    bool pickTrophies(bool &cross);
+    bool pickTrophies(int sectionIndex, bool &cross);
     bool navigate(int x, int y, bool end=false);
     bool navigateSection(int sectionIndex);
     bool killBoss();

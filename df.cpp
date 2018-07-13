@@ -243,9 +243,8 @@ bool DF::isDisconnected()
 {
     QVariant vx, vy;
 
-    if (m_dm.FindPic(300, 200, 500, 400, "disconnected.bmp", "000000", 1.0, 0, vx, vy) != -1) {
-//        if (m_dm.GetColor(vx.toInt(), vy.toInt()).compare("FFFFFF", Qt::CaseInsensitive) != 0) {
-        if (m_dm.GetColorNum(300, 200, 500, 400, "FFFFFF", 1.0) < 350) {
+    if (m_dm.FindPic(CLIENT_RECT, "confirm.bmp", "000000", 1.0, 0, vx, vy) != -1) {
+        if (m_dm.FindPic(CLIENT_RECT, "disconnected.bmp", "000000", 1.0, 0, vx, vy) != -1) {
             return true;
         }
     }
@@ -1151,13 +1150,14 @@ void DF::moveRole(int hDir, int hSpeed, int vDir, int vSpeed)
     }
 }
 
-bool DF::pickTrophies(bool &cross)
+bool DF::pickTrophies(int sectionIndex, bool &cross)
 {
     bool finished = false;
     bool hArrived = false;
     bool vArrived = false;
     bool stucked = false;
     bool pickable = false;
+    int curSectionIndex = -3;
     int preRoleX = -1;
     int preRoleY = -1;
     int roleX = -1;
@@ -1192,17 +1192,15 @@ bool DF::pickTrophies(bool &cross)
             }
 
             // Check if reached next section
-            if (isBlackScreen()) {
-                // Wait
-                for (int i = 0; i < 10; ++i) {
-                    if (!isBlackScreen())
-                        break;
-                    approxSleep(300);
+            curSectionIndex = getSectionIndex();
+            if (curSectionIndex < 0) {
+                continue;
+            } else {
+                if (curSectionIndex != sectionIndex) {
+                    cross = true;
+                    finished = true;
+                    break;
                 }
-
-                cross = true;
-                finished = true;
-                break;
             }
 
             // Get position of role
